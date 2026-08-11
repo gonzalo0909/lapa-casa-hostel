@@ -1,101 +1,13 @@
-# lapa-casa-hostel/render.yaml
+# lapa-casa-hostel/render.yaml — channelapartamentos
+#
+# Frontend solo — motor de reservas APARTAMENTOS.
+# Backend compartido: https://lapa-casa-hostel-api.onrender.com
+# (gestionado desde la rama channelbackend — NO desplegar backend desde aquí)
 
 services:
-  # Backend API Service
+  # Landing estática — info de contacto + links a OTAs
   - type: web
-    name: lapa-casa-hostel-api
-    env: node
-    # Render no ofrece region en Sudamerica; Oregon es la mas cercana
-    # disponible, con latencia extra hacia Supabase (sa-east-1) y los
-    # usuarios reales en Rio de Janeiro -- limitacion conocida, no un bug.
-    region: oregon
-    plan: free
-    rootDir: backend
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: npm run start
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      # DATABASE_URL real de Supabase (proyecto rpowardrcwnhbkzjsiok) --
-      # sync: false = se carga a mano desde el dashboard de Render, nunca
-      # se commitea en este archivo (ver incidente de seguridad previo:
-      # una version anterior tenia la contrasena real en texto plano en
-      # prompts/combo-VENTANA-1-completa.md).
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
-      - key: REFRESH_TOKEN_EXPIRES_IN
-        value: 7d
-      - key: ENCRYPTION_KEY
-        generateValue: true
-      - key: PORT
-        value: 10000
-      # Landing estatica + frontend real de Next.js (motor de reservas),
-      # los dos sirviendo distintos subdominios *.onrender.com por ahora.
-      # Actualizar a los dominios custom (https://lapacasahostel.com /
-      # https://api.lapacasahostel.com) una vez esten atados en el
-      # dashboard de Render (Settings -> Custom Domains, ver docs/DEPLOY.md).
-      - key: CORS_ORIGINS
-        value: https://lapa-casa-hostel-landing.onrender.com,https://lapa-casa-hostel-frontend.onrender.com
-      - key: APP_URL
-        value: https://lapa-casa-hostel-api.onrender.com
-      # Sigue apuntando a la landing (no al frontend real) porque el link
-      # de pago de los emails de confirmacion es /bookings/:id/pay, una
-      # pagina que el frontend real todavia no tiene (pendiente: "Pagina
-      # de confirmacion/pago"). Cambiar a lapa-casa-hostel-frontend cuando
-      # esa pagina exista, si no el link del email queda roto.
-      - key: FRONTEND_URL
-        value: https://lapa-casa-hostel-landing.onrender.com
-      - key: TIMEZONE
-        value: America/Sao_Paulo
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: MP_ACCESS_TOKEN
-        sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: FROM_EMAIL
-        value: reservas@lapacasahostel.com
-      - key: EMAIL_FROM
-        value: reservas@lapacasahostel.com
-      - key: EMAIL_FROM_NAME
-        value: Lapa Casa Hostel
-      - key: ADMIN_EMAIL
-        sync: false
-      - key: ADMIN_PASSWORD_HASH
-        sync: false
-      # ventana4 (bloque 2): Google Sheets, exportacion de solo lectura hacia
-      # afuera. Sin estas 3 variables la exportacion queda deshabilitada sin
-      # romper el resto del backend (ver backend/.env.example para el paso
-      # a paso de como generarlas).
-      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
-        sync: false
-      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-        sync: false
-      - key: GOOGLE_SHEETS_SPREADSHEET_ID
-        sync: false
-      # ventana4 (bloque 2): debe coincidir EXACTO con el nombre de la
-      # pestaña real en Google Sheets -- "Hoja 1" es el nombre por
-      # defecto que Google le pone a la primera pestaña en cuentas en
-      # español (no "Sheet1"). Verificado contra la hoja real del hostel.
-      - key: GOOGLE_SHEETS_SHEET_NAME
-        value: Hoja 1
-    autoDeploy: true
-
-  # Landing estatica (info de contacto + links directos a las OTAs).
-  # Ocupa el dominio raiz por ahora; el frontend real (motor de reservas,
-  # ver servicio siguiente) queda en su propio subdominio hasta que el
-  # dueno decida pasar el dominio raiz a el.
-  - type: web
-    name: lapa-casa-hostel-landing
+    name: lapa-casa-hostel-landing-apartamentos
     env: static
     rootDir: public/landing
     buildCommand: ""
@@ -112,21 +24,14 @@ services:
         value: strict-origin-when-cross-origin
     autoDeploy: true
 
-  # Frontend real (Next.js App Router): motor de reservas conectado a la
-  # API real, rutas por idioma /pt /es /en /fr /de. output:'standalone' en
-  # next.config.js funciona igual con "next start" (confirmado localmente),
-  # asi que se usa el mismo buildCommand/startCommand simple que el resto.
+  # Frontend Next.js — motor de reservas APARTAMENTOS (10 unidades, precio por noche)
+  # Conectado al backend compartido (channelbackend) en Render.
   - type: web
-    name: lapa-casa-hostel-frontend
+    name: lapa-casa-hostel-frontend-apartamentos
     env: node
     region: oregon
     plan: free
     rootDir: frontend
-    # --include=dev: next.config.js importa @next/bundle-analyzer sin
-    # condicion (solo su USO es condicional a ANALYZE=true), y es una
-    # devDependency -- con NODE_ENV=production npm salta devDependencies
-    # por defecto y el build tira MODULE_NOT_FOUND. Mismo patron que ya
-    # usa el backend arriba.
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start
     envVars:
@@ -135,27 +40,14 @@ services:
       - key: PORT
         value: 10000
       - key: NEXT_PUBLIC_SITE_URL
-        value: https://lapa-casa-hostel-frontend.onrender.com
-      # lib/api.ts arma las rutas como `${NEXT_PUBLIC_API_URL}/availability/...`
-      # -- el backend real las expone bajo /api/v1 (ver backend/src/app.ts),
-      # asi que el prefijo tiene que venir incluido aca o cada llamada
-      # devuelve "Route not found".
+        value: https://lapa-casa-hostel-frontend-apartamentos.onrender.com
+      # Backend compartido — mismo API para hostel Y apartamentos.
+      # Stripe/MercadoPago/PIX configurados en el backend (channelbackend).
       - key: NEXT_PUBLIC_API_URL
         value: https://lapa-casa-hostel-api.onrender.com/api/v1
-      # Claves publicas/publishable -- seguras para exponer en el cliente,
-      # a diferencia de STRIPE_SECRET_KEY/MP_ACCESS_TOKEN (esas solo viven
-      # en el backend, ver arriba). Cargadas a mano en el dashboard.
+      # Claves públicas de los procesadores de pago (publishable/safe para el cliente)
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         sync: false
       - key: NEXT_PUBLIC_MP_PUBLIC_KEY
         sync: false
     autoDeploy: true
-
-# No hay bloque "databases": la base es la Supabase real
-# (proyecto rpowardrcwnhbkzjsiok), no una base gestionada por Render.
-# DATABASE_URL se carga a mano en el dashboard (ver envVars del backend).
-#
-# Dominios custom (lapacasahostel.com -> landing, api.lapacasahostel.com
-# -> backend) se atan a mano en el dashboard de Render por servicio
-# (Settings -> Custom Domains) -- Render no soporta asignarlos desde este
-# archivo. Ver docs/DEPLOY.md.
