@@ -63,7 +63,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       const checkIn = range.checkIn.toISOString().slice(0, 10);
       const checkOut = range.checkOut.toISOString().slice(0, 10);
       const res = await availabilityAPI.checkApartments({ checkIn, checkOut });
-      setApartments(res?.data?.apartments ?? []);
+      const data = res?.data ?? res;
+      setApartments(data?.apartments ?? []);
     } catch (err: any) {
       setError(err?.message ?? t('errorLoading'));
     } finally {
@@ -71,21 +72,12 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
     }
   }, [t]);
 
-  // Usa el priceTotal que devuelve la API (ya incluye multiplicador de temporada)
+  // Actualiza precio total cuando cambia el apartamento o las fechas
   useEffect(() => {
-    if (selectedApartment) {
-      setTotalPrice(selectedApartment.priceTotal);
+    if (selectedApartment && nights > 0) {
+      setTotalPrice(selectedApartment.basePrice * nights);
     }
-  }, [selectedApartment, setTotalPrice]);
-
-  // Limpia el store solo al desmontar si la reserva fue confirmada
-  useEffect(() => {
-    return () => {
-      if (confirmedRef.current) {
-        clearBooking();
-      }
-    };
-  }, [clearBooking]);
+  }, [selectedApartment, nights, setTotalPrice]);
 
   // — Handlers de navegación —
 
@@ -132,8 +124,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         guestDetails,
         locale,
       });
-      // clearBooking() se ejecuta al desmontar (useEffect cleanup), no aquí,
-      // para que la página de pago pueda leer el store si lo necesita.
+      clearBooking();
       router.push(`/${locale}/payment/${reservationId}`);
     } catch (err: any) {
       confirmedRef.current = false;
@@ -141,7 +132,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
     } finally {
       setIsProcessing(false);
     }
-  }, [dateRange, selectedApartment, guestDetails, createBooking, locale, router, t]);
+  }, [dateRange, selectedApartment, guestDetails, createBooking, clearBooking, locale, router, t]);
 
   const goBack = useCallback(() => {
     setError(null);
@@ -192,7 +183,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       </div>
 
       {error && (
-        <Alert variant="danger" className="mb-4">
+        <Alert variant="error" className="mb-4">
           {error}
         </Alert>
       )}
