@@ -467,3 +467,38 @@ export function getNestedValue(obj: any, path: string, defaultValue?: any): any 
 
   return result !== undefined ? result : defaultValue;
 }
+
+/**
+ * Format a Date to an ISO date-only string (YYYY-MM-DD)
+ *
+ * @param date - Date to convert
+ * @returns 'YYYY-MM-DD' string
+ *
+ * @example
+ * ```ts
+ * toDateOnly(new Date('2025-07-01')) // Returns: '2025-07-01'
+ * ```
+ */
+export function toDateOnly(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/**
+ * Split a full name string into firstName and lastName parts
+ *
+ * @param fullName - Full name string
+ * @returns Object with firstName and lastName
+ *
+ * @example
+ * ```ts
+ * splitFullName('Maria Silva') // Returns: { firstName: 'Maria', lastName: 'Silva' }
+ * splitFullName('João')        // Returns: { firstName: 'João',  lastName: 'João'  }
+ * ```
+ */
+export function splitFullName(fullName: string): { firstName: string; lastName: string } {
+  const parts = fullName.trim().split(/\s+/);
+  return {
+    firstName: parts[0] || fullName,
+    lastName: parts.slice(1).join(' ') || parts[0] || fullName,
+  };
+}
