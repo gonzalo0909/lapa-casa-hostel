@@ -1,0 +1,1666 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LCACOPIA</title>
+<style>
+:root {
+  --bg:#FFFFFF; --bg-subtle:#F1F5FA; --bg-card:#FFFFFF;
+  --fg:#0D1B2A; --fg-muted:#56697A; --border:#C8D8E8;
+  --primary:#1E3A5F; --primary-fg:#FFFFFF; --primary-soft:#DDEAF8;
+  --accent:#C8870A;
+  --success-bg:#DCFCE7; --success-fg:#15803D;
+  --unavail-bg:#F1F5FA; --unavail-fg:#56697A;
+  --warn-bg:#FEF3C7; --warn-border:#F59E0B; --warn-fg:#92400E;
+  --step-done:#1E3A5F; --step-active:#C8870A; --step-todo:#C8D8E8;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1B2A;--bg-subtle:#132032;--bg-card:#162638;--fg:#E8F0F8;
+  --fg-muted:#7A99B5;--border:#243548;--primary:#3B6EA8;--primary-fg:#FFF;
+  --primary-soft:#1A3050;--accent:#E09A1C;--success-bg:#052E14;
+  --success-fg:#4ADE80;--unavail-bg:#1A2D40;--unavail-fg:#7A99B5;
+  --warn-bg:#2D1F00;--warn-border:#B45309;--warn-fg:#FCD34D;
+  --step-done:#5B8FC8;--step-active:#E09A1C;--step-todo:#243548;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1B2A;--bg-subtle:#132032;--bg-card:#162638;--fg:#E8F0F8;
+  --fg-muted:#7A99B5;--border:#243548;--primary:#3B6EA8;--primary-fg:#FFF;
+  --primary-soft:#1A3050;--accent:#E09A1C;--success-bg:#052E14;
+  --success-fg:#4ADE80;--unavail-bg:#1A2D40;--unavail-fg:#7A99B5;
+  --warn-bg:#2D1F00;--warn-border:#B45309;--warn-fg:#FCD34D;
+  --step-done:#5B8FC8;--step-active:#E09A1C;--step-todo:#243548;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.5;min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,textarea,select{font-family:inherit}
+
+/* ── Hero ────────────────────────────────────────────── */
+.hero{background:var(--primary);color:#fff;padding:3rem 2rem 3.2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,.03) 18px,rgba(255,255,255,.03) 19px),repeating-linear-gradient(-45deg,transparent,transparent 18px,rgba(255,255,255,.03) 18px,rgba(255,255,255,.03) 19px);pointer-events:none}
+.hero-brand{font-family:Georgia,serif;font-size:clamp(1.5rem,4vw,2.4rem);font-weight:normal;letter-spacing:.04em;margin-bottom:.3rem}
+.hero-brand span{color:var(--accent);font-style:italic}
+.hero-location{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:.6rem}
+.hero-sub{font-size:.9rem;color:rgba(255,255,255,.6);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto}
+.hero-cta{display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.8rem 2.2rem;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s;position:relative;z-index:1}
+.hero-cta:hover{opacity:.88}
+
+/* ── Section ─────────────────────────────────────────── */
+.section{max-width:920px;margin:0 auto;padding:2rem 1.25rem 5rem}
+
+/* ── Back to top ──────────────────────────────────────── */
+.back-top{display:inline-flex;align-items:center;gap:.4rem;color:var(--fg-muted);font-size:.82rem;background:none;border:none;padding:.25rem 0;margin-bottom:1.5rem;transition:color .15s}
+.back-top:hover{color:var(--primary)}
+
+/* ── Steps ───────────────────────────────────────────── */
+.steps{display:flex;align-items:center;margin-bottom:1.75rem}
+.step-item{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
+.step-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;border:2px solid var(--step-todo);color:var(--step-todo);transition:all .2s}
+.step-badge.done{background:var(--step-done);border-color:var(--step-done);color:white}
+.step-badge.active{background:var(--step-active);border-color:var(--step-active);color:white}
+.step-label{font-size:.82rem;color:var(--fg-muted);font-weight:500}
+.step-label.active{color:var(--fg);font-weight:600}
+.step-connector{flex:1;min-width:2rem;height:1px;background:var(--border);margin:0 .5rem}
+
+/* ── Notices banner ───────────────────────────────────── */
+.notices{background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.75rem}
+.notices-title{display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:700;color:var(--warn-fg);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.05em}
+.notices-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem}
+.notice-item{display:flex;align-items:flex-start;gap:.5rem;font-size:.8rem;color:var(--warn-fg)}
+.notice-icon{font-size:.95rem;flex-shrink:0;margin-top:-.05rem}
+@media(max-width:560px){.notices-grid{grid-template-columns:1fr}}
+
+/* ── Calendar ─────────────────────────────────────────── */
+.cal-wrapper{display:flex;align-items:flex-start;gap:.5rem}
+.cal-nav{width:36px;height:36px;border:1.5px solid var(--border);background:var(--bg-card);border-radius:8px;font-size:1.2rem;color:var(--fg-muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:28px}
+.cal-nav:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.cal-nav:disabled{opacity:.3;cursor:not-allowed}
+.cal-months{display:flex;gap:2rem;flex:1;flex-wrap:wrap}
+.cal-month{flex:1;min-width:220px}
+.month-title{font-size:.92rem;font-weight:700;color:var(--fg);text-align:center;margin-bottom:.75rem;height:26px;display:flex;align-items:center;justify-content:center}
+.wday-headers{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:.3rem}
+.wday{text-align:center;font-size:.68rem;font-weight:600;color:var(--fg-muted);letter-spacing:.04em;padding:.3rem 0}
+.day-cells{display:grid;grid-template-columns:repeat(7,1fr)}
+.day-cell{position:relative;display:flex;align-items:center;justify-content:center;height:38px;cursor:pointer;user-select:none}
+.day-cell.empty,.day-cell.past{pointer-events:none}
+.day-cell.past .day-num{opacity:.25}
+.day-num{width:33px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:.82rem;position:relative;z-index:1;transition:background .1s}
+.day-cell:not(.past):not(.empty):hover .day-num{background:var(--bg-subtle)}
+.day-cell.in-range::before{content:'';position:absolute;inset:3px 0;background:var(--primary-soft);z-index:0}
+.day-cell.sel-start.has-end::after{content:'';position:absolute;top:3px;bottom:3px;left:50%;right:0;background:var(--primary-soft);z-index:0}
+.day-cell.sel-end::after{content:'';position:absolute;top:3px;bottom:3px;right:50%;left:0;background:var(--primary-soft);z-index:0}
+.day-cell.sel-start .day-num,.day-cell.sel-end .day-num{background:var(--primary);color:white;font-weight:700}
+.day-cell.hov-end .day-num{background:var(--primary-soft);outline:2px dashed var(--primary);outline-offset:-1px}
+.today-dot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);z-index:2}
+.date-info{font-size:.85rem;color:var(--fg-muted);min-height:1.5rem}
+.date-info strong{color:var(--fg)}
+.date-info.hint{font-style:italic}
+
+/* ── Apt header ──────────────────────────────────────── */
+.apt-header{margin-bottom:1.5rem}
+.apt-header h2{font-family:Georgia,serif;font-size:1.25rem;font-weight:normal;color:var(--fg);margin-bottom:.2rem}
+.apt-header p{font-size:.84rem;color:var(--fg-muted)}
+.date-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--bg-subtle);border:1px solid var(--border);border-radius:999px;padding:.3rem .9rem;font-size:.8rem;color:var(--fg-muted);margin-bottom:1.2rem}
+.date-pill strong{color:var(--fg)}
+
+/* ── Apt grid ────────────────────────────────────────── */
+.apt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.apt-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s;cursor:pointer;display:flex;flex-direction:column}
+.apt-card:hover:not(.unavailable):not(.selected){border-color:var(--primary);box-shadow:0 4px 16px rgba(30,58,95,.13);transform:translateY(-2px)}
+.apt-card.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,58,95,.18)}
+.apt-card.unavailable{opacity:.52;cursor:not-allowed;pointer-events:none}
+.apt-card.unavailable .card-btn{pointer-events:none}
+
+/* Photo area */
+.apt-photo{height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0}
+.apt-photo-icon{font-size:3.5rem;position:relative;z-index:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
+.apt-photo-label{position:absolute;bottom:8px;right:10px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);z-index:1}
+.avail-stripe{position:absolute;top:10px;left:10px;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;z-index:2}
+.avail-stripe.avail{background:rgba(21,128,61,.85);color:#fff}
+.avail-stripe.unavail{background:rgba(80,80,80,.75);color:#fff}
+
+.card-body{padding:1rem;display:flex;flex-direction:column;flex:1}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.6rem;gap:.5rem}
+.card-name{font-family:Georgia,serif;font-size:.95rem;font-weight:bold;color:var(--fg);line-height:1.2}
+.card-capacity{font-size:.72rem;color:var(--fg-muted);margin-top:.15rem}
+.card-price-box{background:var(--bg-subtle);border-radius:8px;padding:.55rem .7rem;margin-bottom:.75rem}
+.price-row{display:flex;justify-content:space-between;align-items:center}
+.price-label{font-size:.75rem;color:var(--fg-muted)}
+.price-per-night{font-size:.88rem;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.price-divider{height:1px;background:var(--border);margin:.4rem 0}
+.price-total{font-size:1.05rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.nights-label{font-size:.75rem;color:var(--fg-muted)}
+
+/* Mini cal toggle */
+.apt-cal-toggle{font-size:.75rem;color:var(--primary);background:none;border:none;padding:.2rem 0;text-decoration:underline;text-underline-offset:2px;text-align:left;margin-bottom:.5rem}
+.apt-mini-cal{display:none;background:var(--bg-subtle);border-radius:8px;padding:.75rem;margin-bottom:.75rem;font-size:.72rem}
+.apt-mini-cal.open{display:block}
+.mini-month-title{font-weight:700;color:var(--fg);text-align:center;margin-bottom:.4rem;font-size:.78rem}
+.mini-wday-headers{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:.2rem}
+.mini-wday{text-align:center;font-size:.6rem;font-weight:600;color:var(--fg-muted)}
+.mini-day-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.mini-day{text-align:center;padding:.2rem 0;border-radius:3px;font-size:.68rem;color:var(--fg)}
+.mini-day.blocked{background:#FEE2E2;color:#991B1B;border-radius:3px}
+.mini-day.past{opacity:.3}
+.mini-day.empty{}
+.mini-day.checkin,.mini-day.checkout{background:var(--primary);color:#fff;font-weight:700;border-radius:3px}
+.mini-day.inrange{background:var(--primary-soft);color:var(--primary);border-radius:0}
+.mini-cal-legend{display:flex;gap:.75rem;margin-top:.5rem;font-size:.65rem;color:var(--fg-muted);align-items:center}
+.mini-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* Interactive mini cal */
+.mini-day.avail-day{cursor:pointer}
+.mini-day.avail-day:hover{background:var(--primary-soft);color:var(--primary)}
+.mini-apply-bar{display:flex;align-items:center;justify-content:space-between;margin-top:.6rem;padding:.45rem .6rem;background:var(--primary-soft);border-radius:6px;gap:.5rem;font-size:.72rem;color:var(--primary);font-weight:600}
+.mini-apply-bar.mini-apply-hint{justify-content:center;font-weight:400;color:var(--fg-muted);background:var(--bg-subtle);font-style:italic}
+.mini-apply-btn{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.mini-apply-btn:hover{opacity:.88}
+.mini-reset-link{font-size:.65rem;color:var(--fg-muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer;background:none;border:none;margin-top:.3rem;padding:0;display:block;text-align:center;width:100%}
+.mini-reset-link:hover{color:var(--primary)}
+.mini-avail-badge{font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:4px;margin-bottom:.4rem;display:inline-block}
+.mini-avail-badge.ok{background:#DCFCE7;color:#15803D}
+.mini-avail-badge.no{background:#FEE2E2;color:#991B1B}
+
+.card-btn{width:100%;border-radius:8px;padding:.55rem;font-size:.82rem;font-weight:600;border:1.5px solid var(--border);background:transparent;color:var(--primary);transition:all .15s;margin-top:auto}
+.card-btn:hover:not(:disabled){background:var(--primary-soft);border-color:var(--primary)}
+.card-btn.selected-btn{background:var(--primary);border-color:var(--primary);color:white}
+.card-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Sticky continue bar */
+.sticky-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1.5px solid var(--border);padding:.85rem 1.5rem;display:none;align-items:center;justify-content:space-between;gap:1rem;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+.sticky-bar.visible{display:flex}
+.sticky-bar-info{font-size:.85rem;color:var(--fg)}
+.sticky-bar-info strong{color:var(--accent)}
+.sticky-bar-btn{background:var(--primary);color:white;border:none;border-radius:8px;padding:.65rem 1.75rem;font-size:.9rem;font-weight:700;transition:opacity .15s;white-space:nowrap}
+.sticky-bar-btn:hover{opacity:.88}
+
+/* ── Summary ──────────────────────────────────────────── */
+.summary-card{background:var(--bg-subtle);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.25rem}
+.summary-card h3{font-family:Georgia,serif;font-size:.95rem;font-weight:bold;color:var(--fg);margin-bottom:.8rem}
+.summary-rows{display:flex;flex-direction:column;gap:.45rem;font-size:.84rem}
+.summary-row{display:flex;justify-content:space-between;align-items:center}
+.summary-row span:first-child{color:var(--fg-muted)}
+.summary-row .bold{font-weight:600}
+.total-row{border-top:1px solid var(--border);padding-top:.55rem;margin-top:.2rem;font-weight:700}
+.total-price{font-size:1.05rem;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* Address teaser */
+.addr-teaser{background:var(--bg-subtle);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:.75rem}
+.addr-icon{font-size:1.3rem;flex-shrink:0;margin-top:.05rem}
+.addr-label{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:.15rem}
+.addr-neighborhood{font-size:.92rem;font-weight:600;color:var(--fg);margin-bottom:.2rem}
+.addr-note{font-size:.75rem;color:var(--fg-muted);font-style:italic}
+
+/* Guest form */
+.guest-form{background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.25rem}
+.guest-form h3{font-family:Georgia,serif;font-size:.95rem;font-weight:bold;color:var(--fg);margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.form-field{display:flex;flex-direction:column;gap:.3rem}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:.75rem;font-weight:600;color:var(--fg-muted);letter-spacing:.03em}
+.form-field label .req{color:var(--accent)}
+.form-field .opt{font-weight:400}
+.form-field input,.form-field textarea,.form-field select{border:1.5px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.85rem;background:var(--bg);color:var(--fg);transition:border-color .15s;outline:none}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--primary)}
+.form-field textarea{resize:vertical;min-height:68px}
+
+/* Rules confirmation */
+.rules-confirm{background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:10px;padding:1rem 1.2rem;margin-top:1.25rem}
+.rules-confirm-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--warn-fg);margin-bottom:.6rem}
+.rules-confirm-list{display:flex;flex-direction:column;gap:.4rem}
+.rules-confirm-item{font-size:.78rem;color:var(--warn-fg);display:flex;align-items:flex-start;gap:.45rem}
+
+/* Payment note */
+.payment-note{background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-top:1.25rem}
+.payment-note-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-muted);margin-bottom:.75rem}
+.deposit-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--primary-soft);border:1px solid var(--primary);border-radius:8px;padding:.45rem .85rem;font-size:.82rem;color:var(--primary);font-weight:600;margin-bottom:.75rem}
+.payment-methods{display:flex;flex-direction:column;gap:.5rem}
+.payment-method{display:flex;align-items:center;gap:.75rem;padding:.55rem .75rem;border-radius:8px;font-size:.82rem}
+.payment-method.pix{background:#DCFCE7;border:1px solid #86EFAC}
+.payment-method.card{background:var(--bg-subtle);border:1px solid var(--border)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .payment-method.pix{background:#052E14;border-color:#166534}}
+:root[data-theme="dark"] .payment-method.pix{background:#052E14;border-color:#166534}
+.pm-icon{font-size:1.1rem;flex-shrink:0}
+.pm-name{font-weight:700;color:var(--fg)}
+.pm-detail{color:var(--fg-muted);font-size:.78rem;margin-top:.1rem}
+.pm-tag{margin-left:auto;font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;white-space:nowrap}
+.pm-tag.recommended{background:#DCFCE7;color:#15803D}
+.pm-tag.surcharge{background:var(--warn-bg);color:var(--warn-fg)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .pm-tag.recommended{background:#052E14;color:#4ADE80}}
+:root[data-theme="dark"] .pm-tag.recommended{background:#052E14;color:#4ADE80}
+
+/* Promo banner */
+.promo-banner{background:linear-gradient(135deg,#DCFCE7,#BBF7D0);border:2px solid #86EFAC;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.85rem}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .promo-banner{background:linear-gradient(135deg,#052E14,#063D20);border-color:#166534}}
+:root[data-theme="dark"] .promo-banner{background:linear-gradient(135deg,#052E14,#063D20);border-color:#166534}
+.promo-icon{font-size:2rem;flex-shrink:0;line-height:1}
+.promo-label{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#15803D;margin-bottom:.15rem}
+.promo-headline{font-size:1rem;font-weight:700;color:#14532D;line-height:1.2}
+.promo-sub{font-size:.78rem;color:#166534;margin-top:.2rem}
+@media(prefers-color-scheme:dark){
+:root:not([data-theme="light"]) .promo-label{color:#4ADE80}
+:root:not([data-theme="light"]) .promo-headline{color:#86EFAC}
+:root:not([data-theme="light"]) .promo-sub{color:#4ADE80}}
+:root[data-theme="dark"] .promo-label{color:#4ADE80}
+:root[data-theme="dark"] .promo-headline{color:#86EFAC}
+:root[data-theme="dark"] .promo-sub{color:#4ADE80}
+
+/* CPF validation */
+.cpf-feedback{font-size:.72rem;min-height:.85rem;margin-top:.2rem;display:block}
+.cpf-feedback.ok{color:#15803D}
+.cpf-feedback.err{color:#991B1B}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .cpf-feedback.ok{color:#4ADE80}:root:not([data-theme="light"]) .cpf-feedback.err{color:#FCA5A5}}
+:root[data-theme="dark"] .cpf-feedback.ok{color:#4ADE80}
+:root[data-theme="dark"] .cpf-feedback.err{color:#FCA5A5}
+.form-field input.cpf-valid{border-color:#86EFAC}
+.form-field input.cpf-invalid{border-color:#FCA5A5}
+
+/* Cancellation policy — accordion */
+.cancel-policy{background:var(--bg-subtle);border:1px solid var(--border);border-radius:12px;margin-top:1.25rem;overflow:hidden}
+.cancel-policy-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;cursor:pointer;user-select:none}
+.cancel-policy-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-muted)}
+.cancel-policy-chevron{font-size:.75rem;color:var(--fg-muted);transition:transform .2s}
+.cancel-policy-chevron.open{transform:rotate(180deg)}
+.cancel-policy-body{display:none;padding:0 1.2rem 1rem}
+.cancel-policy-body.open{display:block}
+.cancel-rows{display:flex;flex-direction:column;gap:.55rem}
+.cancel-row{display:flex;align-items:flex-start;gap:.75rem;font-size:.82rem;color:var(--fg)}
+.cancel-badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:999px;font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.cancel-badge.green{background:var(--success-bg);color:var(--success-fg)}
+.cancel-badge.amber{background:var(--warn-bg);color:var(--warn-fg)}
+.cancel-badge.red{background:#FEE2E2;color:#991B1B}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .cancel-badge.red{background:#3B1111;color:#FCA5A5}}
+:root[data-theme="dark"] .cancel-badge.red{background:#3B1111;color:#FCA5A5}
+
+/* Actions */
+.actions{display:flex;justify-content:space-between;align-items:center;padding-top:.75rem}
+.btn-back{background:none;border:none;color:var(--fg-muted);font-size:.85rem;padding:.4rem 0;transition:color .15s}
+.btn-back:hover{color:var(--fg)}
+.btn-continue{background:var(--primary);color:var(--primary-fg);border:none;border-radius:8px;padding:.65rem 1.75rem;font-size:.88rem;font-weight:700;transition:opacity .15s;opacity:.35;pointer-events:none}
+.btn-continue.active{opacity:1;pointer-events:auto}
+.btn-continue.active:hover{opacity:.88}
+.btn-reserve{width:100%;background:var(--accent);color:white;border:none;border-radius:8px;padding:.8rem;font-size:.95rem;font-weight:700;transition:opacity .15s;margin-top:1.25rem}
+.btn-reserve:hover{opacity:.88}
+
+@media(max-width:600px){
+  .cal-months{gap:1rem}.form-grid{grid-template-columns:1fr}
+  .day-num{width:29px;height:29px;font-size:.75rem}.day-cell{height:33px}
+  .apt-grid{grid-template-columns:1fr}
+  .sticky-bar{padding:.7rem 1rem}
+}
+
+/* ── LCACOPIA — mejoras ───────────────────────────────── */
+/* Guest counter */
+.guest-counter-wrap{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem}
+.guest-counter-label{font-size:.85rem;font-weight:500;color:var(--fg);flex:1}
+.guest-counter-label small{display:block;font-size:.72rem;color:var(--fg-muted);font-weight:400;margin-top:.1rem}
+.guest-counter-btns{display:flex;align-items:center;gap:.5rem}
+.gcnt-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--fg);font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.gcnt-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.gcnt-btn:disabled{opacity:.3;cursor:not-allowed}
+.gcnt-val{font-size:.95rem;font-weight:700;color:var(--fg);min-width:1.5rem;text-align:center;font-variant-numeric:tabular-nums}
+
+/* Season legend */
+.season-legend{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.season-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:600}
+.season-chip.carnaval{background:#FEF3C7;color:#92400E}
+.season-chip.alta{background:var(--primary-soft);color:var(--primary)}
+.season-chip.media{background:var(--bg-subtle);color:var(--fg-muted);border:1px solid var(--border)}
+.season-chip.baixa{background:#DCFCE7;color:#15803D}
+
+/* Season tinting on calendar cells */
+.day-cell.carnival{background:rgba(245,158,11,.06)}
+.day-cell.carnival .day-num{color:#B45309;font-weight:700}
+.day-cell.carnival::before{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#F59E0B;z-index:3;pointer-events:none}
+.day-cell.alta .day-num{color:var(--primary);font-weight:600}
+.day-cell.baixa .day-num{color:#059669}
+
+/* Carnival warning */
+.carnival-warn{background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:10px;padding:.75rem 1rem;font-size:.82rem;color:var(--warn-fg);margin-top:.75rem;display:none;line-height:1.4}
+.carnival-warn.visible{display:block}
+
+/* Season badge on apt card */
+.card-season-badge{font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;white-space:nowrap;vertical-align:middle;margin-left:.3rem}
+.card-season-badge.carnaval{background:#FEF3C7;color:#92400E}
+.card-season-badge.alta{background:var(--primary-soft);color:var(--primary)}
+.card-season-badge.baixa{background:#DCFCE7;color:#15803D}
+
+/* Season multiplier in price box */
+.price-multiplier{font-size:.7rem;font-weight:600;padding:.1rem .4rem;border-radius:3px;margin-left:.3rem}
+.price-multiplier.carnaval{background:#FEF3C7;color:#92400E}
+.price-multiplier.alta{background:var(--primary-soft);color:var(--primary)}
+.price-multiplier.baixa{background:#DCFCE7;color:#15803D}
+.price-base-strike{font-size:.75rem;text-decoration:line-through;color:var(--fg-muted);margin-right:.3rem}
+
+/* OTA comparison bar */
+.ota-banner{background:var(--bg-subtle);border:1px dashed var(--border);border-radius:10px;padding:.75rem 1rem;margin-bottom:1.25rem;font-size:.82rem;color:var(--fg-muted);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.ota-banner strong{color:var(--ok,#15803D)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .ota-banner strong{color:#4ADE80}}
+:root[data-theme="dark"] .ota-banner strong{color:#4ADE80}
+
+/* WhatsApp button */
+.btn-whatsapp{width:100%;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.75rem;font-size:.9rem;font-weight:700;transition:opacity .15s;margin-top:.65rem;display:flex;align-items:center;justify-content:center;gap:.5rem;text-decoration:none}
+.btn-whatsapp:hover{opacity:.88}
+
+/* Confirmation modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-box{background:var(--bg-card);border-radius:16px;padding:2rem 1.75rem;max-width:400px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.25);transform:translateY(12px);transition:transform .2s;text-align:center}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-icon{font-size:2.5rem;margin-bottom:.75rem}
+.modal-title{font-family:Georgia,serif;font-size:1.15rem;font-weight:bold;color:var(--fg);margin-bottom:.5rem}
+.modal-body{font-size:.85rem;color:var(--fg-muted);line-height:1.55;margin-bottom:1.25rem}
+.modal-ref{font-family:SFMono-Regular,Consolas,monospace;font-size:.78rem;background:var(--bg-subtle);border:1px solid var(--border);border-radius:6px;padding:.35rem .75rem;display:inline-block;margin-bottom:1rem;color:var(--fg);letter-spacing:.05em}
+.modal-close{width:100%;background:var(--primary);color:white;border:none;border-radius:8px;padding:.65rem;font-size:.88rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.modal-close:hover{opacity:.88}
+.modal-pay-btns{display:flex;flex-direction:column;gap:.6rem;margin-top:.25rem}
+.modal-pay-pix{width:100%;background:#25D366;color:#fff;border:none;border-radius:8px;padding:.7rem;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.modal-pay-pix:hover{opacity:.88}
+.modal-pay-card{width:100%;background:var(--bg-subtle);color:var(--fg);border:1.5px solid var(--border);border-radius:8px;padding:.65rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
+.modal-pay-card:hover{border-color:var(--primary)}
+
+/* ── Step 4: Payment ─────────────────────────────────── */
+.pay-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.pay-tab{flex:1;padding:.55rem;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--fg-muted);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s}
+.pay-tab.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.pay-tab:hover:not(.active){border-color:var(--border);background:var(--bg-subtle)}
+
+/* PIX panel */
+.pix-panel{text-align:center}
+.pix-qr{width:160px;height:160px;margin:0 auto 1rem;background:var(--bg-subtle);border:2px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.pix-qr-inner{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);gap:2px;width:130px;height:130px}
+.pix-qr-cell{background:var(--navy,#0D2137);border-radius:1px}
+.pix-qr-cell.w{background:transparent}
+.pix-key-box{background:var(--bg-subtle);border:1.5px solid var(--border);border-radius:8px;padding:.65rem 1rem;margin:0 0 1rem;display:flex;align-items:center;gap:.5rem}
+.pix-key-val{font-family:SFMono-Regular,Consolas,monospace;font-size:.78rem;color:var(--fg);flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pix-copy-btn{font-size:.72rem;font-weight:700;padding:.3rem .75rem;border-radius:6px;border:1.5px solid var(--primary);background:transparent;color:var(--primary);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.pix-copy-btn.copied{background:var(--primary);color:white}
+.pix-amount{font-size:1.4rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;margin-bottom:.3rem}
+.pix-amount-label{font-size:.78rem;color:var(--fg-muted);margin-bottom:1rem}
+.pix-expire{font-size:.75rem;color:var(--fg-muted);font-style:italic;margin-top:.5rem}
+
+/* Card form */
+.card-form{display:flex;flex-direction:column;gap:.85rem}
+.card-field{display:flex;flex-direction:column;gap:.3rem}
+.card-field label{font-size:.75rem;font-weight:600;color:var(--fg-muted);letter-spacing:.03em}
+.card-field input{border:1.5px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.88rem;background:var(--bg);color:var(--fg);outline:none;transition:border-color .15s;font-family:inherit}
+.card-field input:focus{border-color:var(--primary)}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.card-number-wrap{position:relative}
+.card-brand{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none}
+.btn-pay-card{width:100%;background:var(--accent);color:white;border:none;border-radius:8px;padding:.75rem;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:.25rem}
+.btn-pay-card:hover{opacity:.88}
+
+/* Pay success */
+.pay-success{text-align:center;padding:1.5rem 0}
+.pay-success-icon{font-size:3rem;margin-bottom:.75rem}
+.pay-success-title{font-family:Georgia,serif;font-size:1.15rem;color:var(--fg);margin-bottom:.5rem}
+.pay-success-ref{font-family:SFMono-Regular,Consolas,monospace;font-size:.8rem;background:var(--bg-subtle);border:1px solid var(--border);border-radius:6px;padding:.35rem .75rem;display:inline-block;margin:.5rem 0 1rem;color:var(--fg)}
+.pay-success-msg{font-size:.85rem;color:var(--fg-muted);line-height:1.55}
+
+/* Capacity warning on card */
+.card-capacity-warn{font-size:.72rem;color:var(--warn-fg);background:var(--warn-bg);border-radius:4px;padding:.15rem .45rem;margin-top:.2rem;display:inline-block}
+</style>
+
+<!-- Hero -->
+<div class="hero" id="top">
+  <div class="hero-location">Santa Teresa · Rio de Janeiro</div>
+  <div class="hero-brand">LAPA CASA <span>Apartamentos</span></div>
+  <p class="hero-sub">Unidades privativas no coração do Rio — reserve direto, sem intermediários</p>
+  <button class="hero-cta" id="heroCta">Reserva agora ↓</button>
+</div>
+
+<!-- Main -->
+<div class="section" id="reservar">
+
+  <button class="back-top" id="btnTop">← Voltar</button>
+
+  <div class="steps" id="stepIndicator">
+    
+    <div class="step-item">
+      <div class="step-badge active">1</div>
+      <span class="step-label active">Datas</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-badge ">2</div>
+      <span class="step-label ">Apartamento</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-badge ">3</div>
+      <span class="step-label ">Resumo</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-badge ">4</div>
+      <span class="step-label ">Pagamento</span>
+    </div></div>
+
+  <!-- Notices -->
+  <div class="notices" id="noticesBanner">
+    <div class="notices-title">⚠️ Informações importantes</div>
+    <div class="notices-grid">
+      <div class="notice-item"><span class="notice-icon">🔑</span><span>Check-in (entrada): <strong>14h às 22h</strong> — para chegar antes, reserve também o dia anterior</span></div>
+      <div class="notice-item"><span class="notice-icon">🚪</span><span>Check-out (saída): até as <strong>12h</strong> — para sair mais tarde, prefira reservar mais um dia</span></div>
+      <div class="notice-item"><span class="notice-icon">📄</span><span>Envio de foto do documento <strong>obrigatório</strong>, sem exceção</span></div>
+      <div class="notice-item"><span class="notice-icon">🔞</span><span>Somente para <strong>maiores de 18 anos</strong></span></div>
+      <div class="notice-item"><span class="notice-icon">🚭</span><span><strong>Proibido fumar</strong> no apartamento e nas dependências do prédio</span></div>
+    </div>
+  </div>
+
+  <!-- Step 1: Calendar -->
+  <div id="step-dates">
+    <!-- Guest counter -->
+    <div class="guest-counter-wrap">
+      <div class="guest-counter-label" id="guestLabel">
+        2 hóspedes
+        <small>Filtra apartamentos por capacidade</small>
+      </div>
+      <div class="guest-counter-btns">
+        <button class="gcnt-btn" id="gcntMinus" disabled="">−</button>
+        <span class="gcnt-val" id="gcntVal">2</span>
+        <button class="gcnt-btn" id="gcntPlus">+</button>
+      </div>
+    </div>
+    <!-- Season legend -->
+    <div class="season-legend">
+      <span class="season-chip carnaval">🎊 Carnaval ×2.0</span>
+      <span class="season-chip alta">☀️ Alta ×1.5</span>
+      <span class="season-chip media">— Média ×1.0</span>
+      <span class="season-chip baixa">🌿 Baixa ×0.8</span>
+    </div>
+    <div id="calendarContainer"><div class="cal-wrapper">
+    <button class="cal-nav" id="calPrev" disabled="">‹</button>
+    <div class="cal-months" id="calGrid">
+      <div class="cal-month"><div class="month-title">Agosto 2026</div><div class="wday-headers"><div class="wday">Dom</div><div class="wday">Seg</div><div class="wday">Ter</div><div class="wday">Qua</div><div class="wday">Qui</div><div class="wday">Sex</div><div class="wday">Sáb</div></div><div class="day-cells"><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell past"><div class="day-num">1</div></div><div class="day-cell past"><div class="day-num">2</div></div><div class="day-cell past"><div class="day-num">3</div></div><div class="day-cell past"><div class="day-num">4</div></div><div class="day-cell past"><div class="day-num">5</div></div><div class="day-cell past"><div class="day-num">6</div></div><div class="day-cell past"><div class="day-num">7</div></div><div class="day-cell past"><div class="day-num">8</div></div><div class="day-cell past"><div class="day-num">9</div></div><div class="day-cell baixa today" data-date="2026-08-10"><div class="day-num">10</div><div class="today-dot"></div></div><div class="day-cell baixa" data-date="2026-08-11"><div class="day-num">11</div></div><div class="day-cell baixa" data-date="2026-08-12"><div class="day-num">12</div></div><div class="day-cell baixa" data-date="2026-08-13"><div class="day-num">13</div></div><div class="day-cell baixa" data-date="2026-08-14"><div class="day-num">14</div></div><div class="day-cell baixa" data-date="2026-08-15"><div class="day-num">15</div></div><div class="day-cell baixa" data-date="2026-08-16"><div class="day-num">16</div></div><div class="day-cell baixa" data-date="2026-08-17"><div class="day-num">17</div></div><div class="day-cell baixa" data-date="2026-08-18"><div class="day-num">18</div></div><div class="day-cell baixa" data-date="2026-08-19"><div class="day-num">19</div></div><div class="day-cell baixa" data-date="2026-08-20"><div class="day-num">20</div></div><div class="day-cell baixa" data-date="2026-08-21"><div class="day-num">21</div></div><div class="day-cell baixa" data-date="2026-08-22"><div class="day-num">22</div></div><div class="day-cell baixa" data-date="2026-08-23"><div class="day-num">23</div></div><div class="day-cell baixa" data-date="2026-08-24"><div class="day-num">24</div></div><div class="day-cell baixa" data-date="2026-08-25"><div class="day-num">25</div></div><div class="day-cell baixa" data-date="2026-08-26"><div class="day-num">26</div></div><div class="day-cell baixa" data-date="2026-08-27"><div class="day-num">27</div></div><div class="day-cell baixa" data-date="2026-08-28"><div class="day-num">28</div></div><div class="day-cell baixa" data-date="2026-08-29"><div class="day-num">29</div></div><div class="day-cell baixa" data-date="2026-08-30"><div class="day-num">30</div></div><div class="day-cell baixa" data-date="2026-08-31"><div class="day-num">31</div></div></div></div>
+      <div class="cal-month"><div class="month-title">Setembro 2026</div><div class="wday-headers"><div class="wday">Dom</div><div class="wday">Seg</div><div class="wday">Ter</div><div class="wday">Qua</div><div class="wday">Qui</div><div class="wday">Sex</div><div class="wday">Sáb</div></div><div class="day-cells"><div class="day-cell empty"></div><div class="day-cell empty"></div><div class="day-cell baixa" data-date="2026-09-01"><div class="day-num">1</div></div><div class="day-cell baixa" data-date="2026-09-02"><div class="day-num">2</div></div><div class="day-cell baixa" data-date="2026-09-03"><div class="day-num">3</div></div><div class="day-cell baixa" data-date="2026-09-04"><div class="day-num">4</div></div><div class="day-cell baixa" data-date="2026-09-05"><div class="day-num">5</div></div><div class="day-cell baixa" data-date="2026-09-06"><div class="day-num">6</div></div><div class="day-cell baixa" data-date="2026-09-07"><div class="day-num">7</div></div><div class="day-cell baixa" data-date="2026-09-08"><div class="day-num">8</div></div><div class="day-cell baixa" data-date="2026-09-09"><div class="day-num">9</div></div><div class="day-cell baixa" data-date="2026-09-10"><div class="day-num">10</div></div><div class="day-cell baixa" data-date="2026-09-11"><div class="day-num">11</div></div><div class="day-cell baixa" data-date="2026-09-12"><div class="day-num">12</div></div><div class="day-cell baixa" data-date="2026-09-13"><div class="day-num">13</div></div><div class="day-cell baixa" data-date="2026-09-14"><div class="day-num">14</div></div><div class="day-cell baixa" data-date="2026-09-15"><div class="day-num">15</div></div><div class="day-cell baixa" data-date="2026-09-16"><div class="day-num">16</div></div><div class="day-cell baixa" data-date="2026-09-17"><div class="day-num">17</div></div><div class="day-cell baixa" data-date="2026-09-18"><div class="day-num">18</div></div><div class="day-cell baixa" data-date="2026-09-19"><div class="day-num">19</div></div><div class="day-cell baixa" data-date="2026-09-20"><div class="day-num">20</div></div><div class="day-cell baixa" data-date="2026-09-21"><div class="day-num">21</div></div><div class="day-cell baixa" data-date="2026-09-22"><div class="day-num">22</div></div><div class="day-cell baixa" data-date="2026-09-23"><div class="day-num">23</div></div><div class="day-cell baixa" data-date="2026-09-24"><div class="day-num">24</div></div><div class="day-cell baixa" data-date="2026-09-25"><div class="day-num">25</div></div><div class="day-cell baixa" data-date="2026-09-26"><div class="day-num">26</div></div><div class="day-cell baixa" data-date="2026-09-27"><div class="day-num">27</div></div><div class="day-cell baixa" data-date="2026-09-28"><div class="day-num">28</div></div><div class="day-cell baixa" data-date="2026-09-29"><div class="day-num">29</div></div><div class="day-cell baixa" data-date="2026-09-30"><div class="day-num">30</div></div></div></div>
+    </div>
+    <button class="cal-nav" id="calNext">›</button></div></div>
+    <!-- Carnival min-nights warning -->
+    <div class="carnival-warn" id="carnivalWarn">
+      🎊 <strong>Carnaval:</strong> estadia mínima de <strong>5 noites</strong>. Selecione pelo menos 5 noites para prosseguir.
+    </div>
+    <div class="actions" style="margin-top:1.25rem">
+      <div class="date-info hint" id="dateInfo">Selecione a data de entrada</div>
+      <button class="btn-continue" id="btnDatesContinue">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Apartments -->
+  <div id="step-apartments" style="display:none">
+    <div class="apt-header">
+      <div class="date-pill" id="aptDatePill"></div>
+      <h2>Escolha seu apartamento</h2>
+      <p id="aptSubtitle"></p>
+    </div>
+    <div class="apt-grid" id="aptGrid"></div>
+    <div class="actions">
+      <button class="btn-back" id="btnAptBack">← Voltar</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Summary + guest form -->
+  <div id="step-summary" style="display:none">
+    <div id="summaryContent"></div>
+    <div class="actions" style="margin-top:1rem">
+      <button class="btn-back" id="btnSumBack">← Voltar ao passo 2 (Apartamentos)</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Payment -->
+  <div id="step-payment" style="display:none">
+    <div class="pay-tabs">
+      <button class="pay-tab active" id="tabPix">⚡ PIX <span style="font-size:.72rem;opacity:.75">10% OFF</span></button>
+      <button class="pay-tab" id="tabCard">💳 Cartão</button>
+    </div>
+    <div id="payPanelPix" class="pix-panel">
+      <div class="pix-amount" id="pixAmount">R$ 0,00</div>
+      <div class="pix-amount-label">Depósito com desconto PIX (10% OFF)</div>
+      <div class="pix-qr" id="pixQr"></div>
+      <div class="pix-key-box">
+        <span class="pix-key-val" id="pixKeyVal">pagamento@lapacasa.com.br</span>
+        <button class="pix-copy-btn" id="pixCopyBtn">Copiar</button>
+      </div>
+      <div style="font-size: 0.78rem; color: var(--fg-muted); line-height: 1.5; text-align: left; background: var(--bg-subtle); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; ">
+        1. Abra o app do seu banco<br>
+        2. Selecione <strong>PIX → Copiar e Colar</strong><br>
+        3. Cole a chave acima e confirme o valor<br>
+        4. Envie o comprovante via WhatsApp
+      </div>
+      <div class="pix-expire" id="pixExpire">⏱ Chave válida por <strong id="pixTimer">5:00</strong></div>
+      <button class="btn-pay-card" id="btnPixDone" style="margin-top: 1rem; background: var(--primary); ">✅ Já paguei — confirmar reserva</button>
+    </div>
+    <div id="payPanelCard" style="display:none">
+      <div class="pix-expire" id="cardExpireBar" style="margin-bottom:.75rem">⏱ Tempo para pagar: <strong id="cardTimer">5:00</strong></div>
+      <div class="card-form">
+        <div class="card-field">
+          <label>Nome no cartão</label>
+          <input type="text" id="cardName" placeholder="Como aparece no cartão" autocomplete="cc-name">
+        </div>
+        <div class="card-field">
+          <label>Número do cartão</label>
+          <div class="card-number-wrap">
+            <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" inputmode="numeric">
+            <span class="card-brand" id="cardBrand">💳</span>
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="card-field">
+            <label>Validade</label>
+            <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric">
+          </div>
+          <div class="card-field">
+            <label>CVV</label>
+            <input type="text" id="cardCvv" placeholder="123" maxlength="4" autocomplete="cc-csc" inputmode="numeric">
+          </div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--fg-muted); display: flex; align-items: center; gap: 0.4rem; ">
+          🔒 Pagamento seguro — dados não são armazenados
+        </div>
+        <button class="btn-pay-card" id="btnPayCard">Pagar R$ <span id="cardDepositAmt">0</span> →</button>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:1.5rem">
+      <button class="btn-back" id="btnPayBack">← Voltar ao passo 3 (Resumo)</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Confirmation modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon">🔒</div>
+    <div class="modal-title">Confirmar reserva</div>
+    <div class="modal-ref" id="modalRef">REF: LCA-000000</div>
+    <div class="modal-body">
+      Escolha como pagar o depósito de <strong id="modalDepositAmt"></strong> para garantir sua reserva.
+    </div>
+    <div class="modal-pay-btns">
+      <button class="modal-pay-pix" id="modalPayPix">⚡ Pagar com PIX <span style="font-size:.78rem;opacity:.85">— 10% OFF</span></button>
+      <button class="modal-pay-card" id="modalPayCard">💳 Pagar com cartão de crédito</button>
+      <button class="modal-close" id="modalClose" style="background: transparent; color: var(--fg-muted); border: 1px solid var(--border); margin-top: 0.25rem; ">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky continue bar (step 2) -->
+<div class="sticky-bar" id="stickyBar">
+  <div class="sticky-bar-info" id="stickyBarInfo"></div>
+  <button class="sticky-bar-btn" id="stickyBarBtn">Continuar →</button>
+</div>
+
+<script>
+// ── Data ────────────────────────────────────────────────────────
+const TODAY  = new Date(2026, 7, 10);
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const APT_COLORS = [
+  'linear-gradient(135deg,#1E3A5F,#2D5F8A)',
+  'linear-gradient(135deg,#2D5F4A,#1E3A2F)',
+  'linear-gradient(135deg,#5F3A1E,#8A5A2D)',
+  'linear-gradient(135deg,#3A1E5F,#5A2D8A)',
+  'linear-gradient(135deg,#1E4F5F,#2D7A8A)',
+  'linear-gradient(135deg,#5F4A1E,#8A6A2D)',
+  'linear-gradient(135deg,#1E5F3A,#2D8A5A)',
+  'linear-gradient(135deg,#5F1E3A,#8A2D5A)',
+  'linear-gradient(135deg,#3A3A1E,#5F5A2D)',
+  'linear-gradient(135deg,#1E3A5F,#5A2D2D)',
+];
+
+const APTS = [
+  {id:1,  icon:'🏙️', name:'Lapa Loft',          capacity:2, price:280},
+  {id:2,  icon:'🌉', name:'Vista do Arco',       capacity:3, price:320},
+  {id:3,  icon:'🏡', name:'Chalé da Rua',        capacity:2, price:260},
+  {id:4,  icon:'🎨', name:'Apt. Selarón',        capacity:4, price:380},
+  {id:5,  icon:'⛰️', name:'Suíte Santa Teresa',  capacity:2, price:350},
+  {id:6,  icon:'🎶', name:'Quarto do Samba',     capacity:2, price:420},
+  {id:7,  icon:'🌿', name:'Estúdio Bohemio',     capacity:2, price:240},
+  {id:8,  icon:'🏢', name:'Apt. Centro',         capacity:3, price:480},
+  {id:9,  icon:'✨', name:'Cobertura Lapa',      capacity:4, price:550},
+  {id:10, icon:'🎬', name:'Flat Cinelândia',     capacity:2, price:270},
+];
+
+const BLOCKED = {
+  // Apartamento 2 — Refúgio
+  2:[{s:'2026-08-15',e:'2026-08-20'},{s:'2026-09-12',e:'2026-09-19'},{s:'2026-10-03',e:'2026-10-10'},
+     {s:'2026-11-20',e:'2026-11-28'},{s:'2026-12-22',e:'2027-01-04'}],
+  // Apartamento 3 — Varanda
+  3:[{s:'2026-08-20',e:'2026-09-01'},{s:'2026-09-14',e:'2026-09-21'},{s:'2026-10-15',e:'2026-10-22'},
+     {s:'2026-11-05',e:'2026-11-12'},{s:'2026-12-18',e:'2027-01-10'}],
+  // Apartamento 5 — Panorama
+  5:[{s:'2026-08-14',e:'2026-08-25'},{s:'2026-09-10',e:'2026-09-20'},{s:'2026-10-08',e:'2026-10-16'},
+     {s:'2026-11-14',e:'2026-11-21'},{s:'2026-12-26',e:'2027-01-08'}],
+  // Apartamento 6 — Terraço
+  6:[{s:'2026-08-18',e:'2026-08-23'},{s:'2026-09-01',e:'2026-09-08'},{s:'2026-09-22',e:'2026-09-29'},
+     {s:'2026-10-20',e:'2026-10-27'},{s:'2026-12-15',e:'2027-01-05'}],
+  // Apartamento 9 — Loft
+  9:[{s:'2026-08-13',e:'2026-08-16'},{s:'2026-09-05',e:'2026-09-12'},{s:'2026-09-18',e:'2026-09-25'},
+     {s:'2026-10-10',e:'2026-10-18'},{s:'2026-11-28',e:'2026-12-05'},{s:'2026-12-20',e:'2027-01-06'}],
+};
+
+const CHECKIN_TIMES = ['14:00','14:30','15:00','15:30','16:00','16:30','17:00',
+  '17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+
+// ── Temporadas ───────────────────────────────────────────────────
+const SEASONS = [
+  { name:'carnaval', label:'🎊 Carnaval', mul:2.0, deposit:0.50, minNights:5,
+    ranges:[{s:'2027-02-27',e:'2027-03-06'}] },
+  { name:'alta', label:'☀️ Alta temporada', mul:1.5, deposit:0.40, minNights:1,
+    ranges:[{s:'2026-12-15',e:'2027-01-31'},{s:'2027-07-01',e:'2027-08-01'}] },
+  { name:'baixa', label:'🌿 Baixa temporada', mul:0.8, deposit:0.40, minNights:1,
+    ranges:[{s:'2026-08-01',e:'2026-12-01'},{s:'2027-04-01',e:'2027-07-01'}] },
+];
+const SEASON_MEDIA = {name:'media',label:'Média temporada',mul:1.0,deposit:0.40,minNights:1,ranges:[]};
+
+function getSeason(ds){
+  if(!ds) return SEASON_MEDIA;
+  for(const s of SEASONS){
+    for(const r of s.ranges){ if(ds>=r.s&&ds<r.e) return s; }
+  }
+  return SEASON_MEDIA;
+}
+
+function calcPrice(apt, nNights, cin){
+  const season = getSeason(cin);
+  const nightPrice = Math.round(apt.price * season.mul);
+  return { total: nightPrice * nNights, night: nightPrice, mul: season.mul, season };
+}
+
+function isCarnivalRange(cin, cout){
+  if(!cin||!cout) return false;
+  const cr = SEASONS[0].ranges[0];
+  return cin < cr.e && cout > cr.s;
+}
+
+// ── State ────────────────────────────────────────────────────────
+let viewYear=2026, viewMonth=7;
+let checkIn=null, checkOut=null, hoverDs=null;
+let selectedAptId=null, currentStep=1, guests=2;
+var miniCalState={}; // { aptId: { aptId, cin, cout } }
+const todayDs=(()=>{const d=TODAY;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+
+// ── Utils ────────────────────────────────────────────────────────
+function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function fmtDate(s){if(!s)return '';const d=parseD(s);return d.getDate().toString().padStart(2,'0')+' '+MONTHS[d.getMonth()].slice(0,3)+' '+d.getFullYear();}
+function nights(){return checkIn&&checkOut?Math.round((parseD(checkOut)-parseD(checkIn))/86400000):0;}
+function isAvail(id){return !(BLOCKED[id]||[]).some(b=>checkIn<b.e&&checkOut>b.s);}
+
+// ── Calendar (main) ──────────────────────────────────────────────
+function monthGrid(y,m){
+  const dim=new Date(y,m+1,0).getDate(),fdow=new Date(y,m,1).getDay();
+  const startDs=checkIn,endDs=checkOut||(checkIn&&hoverDs&&hoverDs>checkIn?hoverDs:null);
+  const hasEnd=!!(startDs&&endDs);
+  let h='<div class="wday-headers">';
+  ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(w=>h+=`<div class="wday">${w}</div>`);
+  h+='</div><div class="day-cells">';
+  for(let i=0;i<fdow;i++) h+='<div class="day-cell empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const s=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const past=s<todayDs,today=s===todayDs;
+    const isCin=s===startDs,isCout=s===checkOut;
+    const inRng=hasEnd&&s>startDs&&s<endDs;
+    const isHov=!checkOut&&s===hoverDs&&checkIn&&hoverDs>checkIn;
+    let cls='day-cell';
+    if(past) cls+=' past';
+    else { const ss=getSeason(s); if(ss.name!=='media') cls+=' '+ss.name; }
+    if(today) cls+=' today';
+    if(isCin) cls+=' sel-start'+(hasEnd?' has-end':'');
+    if(isCout) cls+=' sel-end';
+    if(inRng) cls+=' in-range';
+    if(isHov) cls+=' hov-end';
+    const attr=past?'':`data-date="${s}"`;
+    h+=`<div class="${cls}" ${attr}><div class="day-num">${d}</div>${today?'<div class="today-dot"></div>':''}</div>`;
+  }
+  return h+'</div>';
+}
+
+function renderCalendar(){
+  let y1=viewYear,m1=viewMonth,m2=m1+1,y2=y1;
+  if(m2>11){m2=0;y2++;}
+  const prevOk=!(y1<=TODAY.getFullYear()&&m1<=TODAY.getMonth());
+  const wrap=document.createElement('div');
+  wrap.className='cal-wrapper';
+  wrap.innerHTML=`
+    <button class="cal-nav" id="calPrev" ${prevOk?'':'disabled'}>‹</button>
+    <div class="cal-months" id="calGrid">
+      <div class="cal-month"><div class="month-title">${MONTHS[m1]} ${y1}</div>${monthGrid(y1,m1)}</div>
+      <div class="cal-month"><div class="month-title">${MONTHS[m2]} ${y2}</div>${monthGrid(y2,m2)}</div>
+    </div>
+    <button class="cal-nav" id="calNext">›</button>`;
+  const cont=document.getElementById('calendarContainer');
+  cont.innerHTML=''; cont.appendChild(wrap);
+  const grid=wrap.querySelector('#calGrid');
+  grid.addEventListener('click',function(e){
+    const cell=e.target.closest('[data-date]');if(!cell)return;
+    const s=cell.dataset.date;
+    if(!checkIn||(checkIn&&checkOut)){checkIn=s;checkOut=null;selectedAptId=null;}
+    else{if(s<=checkIn){checkIn=s;}else{checkOut=s;}}
+    hoverDs=null;renderCalendar();updateDateInfo();
+    document.getElementById('btnDatesContinue').classList.toggle('active',!!(checkIn&&checkOut));
+  });
+  grid.addEventListener('mouseover',function(e){
+    const cell=e.target.closest('[data-date]');if(!cell)return;
+    const s=cell.dataset.date;if(s!==hoverDs){hoverDs=s;renderCalendar();}
+  });
+  grid.addEventListener('mouseleave',function(){if(hoverDs){hoverDs=null;renderCalendar();}});
+  wrap.querySelector('#calPrev').addEventListener('click',function(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}renderCalendar();});
+  wrap.querySelector('#calNext').addEventListener('click',function(){viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}renderCalendar();});
+}
+
+function updateDateInfo(){
+  const el=document.getElementById('dateInfo');
+  const carnWarn=document.getElementById('carnivalWarn');
+  const n=nights();
+  if(!checkIn){
+    el.innerHTML='Selecione a data de entrada';el.className='date-info hint';
+  } else if(!checkOut){
+    el.innerHTML=`<strong>Entrada:</strong> ${fmtDate(checkIn)} — selecione a saída`;el.className='date-info';
+  } else {
+    const season=getSeason(checkIn);
+    const seasonTag=season.name!=='media'?` <span class="price-multiplier ${season.name}">${season.label} ×${season.mul}</span>`:'';
+    el.innerHTML=`<strong>${fmtDate(checkIn)}</strong> → <strong>${fmtDate(checkOut)}</strong> · <strong>${n}</strong> noite${n!==1?'s':''}${seasonTag}`;
+    el.className='date-info';
+  }
+  // Carnival warning
+  const isCarn=isCarnivalRange(checkIn,checkOut);
+  if(carnWarn) carnWarn.classList.toggle('visible', isCarn&&n<5);
+  // Enable continue only if dates valid AND carnival min-nights satisfied
+  const canCont=!!(checkIn&&checkOut&&(!isCarn||n>=5));
+  document.getElementById('btnDatesContinue').classList.toggle('active',canCont);
+}
+
+// ── Mini calendar per apt ─────────────────────────────────────────
+function miniMonthHtml(y, m, blockedRanges){
+  const dim=new Date(y,m+1,0).getDate(), fdow=new Date(y,m,1).getDay();
+  let h=`<div class="mini-month-title">${MONTHS[m].slice(0,3)} ${y}</div>`;
+  h+='<div class="mini-wday-headers">';
+  ['D','S','T','Q','Q','S','S'].forEach(w=>h+=`<div class="mini-wday">${w}</div>`);
+  h+='</div><div class="mini-day-cells">';
+  for(let i=0;i<fdow;i++) h+='<div class="mini-day empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const s=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const past=s<todayDs;
+    const blocked=blockedRanges.some(b=>s>=b.s&&s<b.e);
+    const isCin=s===checkIn, isCout=s===checkOut;
+    const inRng=checkIn&&checkOut&&s>checkIn&&s<checkOut;
+    let cls='mini-day';
+    if(past) cls+=' past';
+    else if(isCin) cls+=' checkin';
+    else if(isCout) cls+=' checkout';
+    else if(inRng) cls+=' inrange';
+    else if(blocked) cls+=' blocked';
+    h+=`<div class="${cls}">${d}</div>`;
+  }
+  h+='</div>';
+  return h;
+}
+
+// ── Interactive mini calendar ─────────────────────────────────────
+function miniMonthHtmlInteractive(y, m, blockedRanges, state){
+  const dim=new Date(y,m+1,0).getDate(), fdow=new Date(y,m,1).getDay();
+  const cin=state.cin, cout=state.cout;
+  const hasEnd=!!(cin&&cout);
+  let h=`<div class="mini-month-title">${MONTHS[m].slice(0,3)} ${y}</div>`;
+  h+='<div class="mini-wday-headers">';
+  ['D','S','T','Q','Q','S','S'].forEach(w=>h+=`<div class="mini-wday">${w}</div>`);
+  h+='</div><div class="mini-day-cells">';
+  for(let i=0;i<fdow;i++) h+='<div class="mini-day empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const s=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const past=s<todayDs;
+    const isBlocked=blockedRanges.some(b=>s>=b.s&&s<b.e);
+    const isCin=s===cin, isCout=s===cout;
+    const inRng=hasEnd&&s>cin&&s<cout;
+    let cls='mini-day';
+    if(past||isBlocked){
+      cls+=isBlocked?' blocked':' past';
+    } else if(isCin) cls+=' checkin';
+    else if(isCout) cls+=' checkout';
+    else if(inRng) cls+=' inrange';
+    else cls+=' avail-day';
+    const clickable=!past&&!isBlocked;
+    const data=clickable?` data-mini-day="${state.aptId}" data-ds="${s}"`:'';
+    h+=`<div class="${cls}"${data}>${d}</div>`;
+  }
+  h+='</div>';
+  return h;
+}
+
+function renderInteractiveMiniCal(aptId, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const blocked=BLOCKED[aptId]||[];
+
+  // Init state from global dates if not set
+  if(!miniCalState[aptId]){
+    miniCalState[aptId]={aptId, cin:checkIn, cout:checkOut};
+  }
+  const state=miniCalState[aptId];
+  state.aptId=aptId;
+
+  // Base months: start from state.cin (or global checkIn, or today)
+  const refDs=state.cin||checkIn;
+  let bY=2026,bM=7;
+  if(refDs){const bd=parseD(refDs);bY=bd.getFullYear();bM=bd.getMonth();}
+  let nY=bY,nM=bM+1; if(nM>11){nM=0;nY++;}
+
+  let html=miniMonthHtmlInteractive(bY,bM,blocked,state)
+          +miniMonthHtmlInteractive(nY,nM,blocked,state);
+
+  // If both dates selected, show if apt is available for those dates
+  if(state.cin&&state.cout){
+    const available=!(blocked||[]).some(b=>state.cin<b.e&&state.cout>b.s);
+    const n=Math.round((parseD(state.cout)-parseD(state.cin))/86400000);
+    html+=`<div class="mini-apply-bar">
+      <span>${fmtDate(state.cin)} → ${fmtDate(state.cout)} · ${n} noite${n!==1?'s':''}</span>
+      <button class="mini-apply-btn" data-mini-apply="${aptId}">✓ Aplicar</button>
+    </div>`;
+    if(!available){
+      html+=`<div style="font-size:.68rem;color:#991B1B;text-align:center;margin-top:.35rem">⚠️ Este apartamento está ocupado nessas datas — outros podem estar disponíveis</div>`;
+    }
+  } else if(state.cin){
+    html+=`<div class="mini-apply-bar mini-apply-hint">Selecione a data de saída</div>`;
+  } else {
+    html+=`<div class="mini-apply-bar mini-apply-hint">Selecione a data de entrada</div>`;
+  }
+
+  // Reset link if dates differ from global
+  if((state.cin!==checkIn||state.cout!==checkOut)&&checkIn&&checkOut){
+    html+=`<button class="mini-reset-link" data-mini-reset="${aptId}">↩ Voltar às datas originais (${fmtDate(checkIn)} → ${fmtDate(checkOut)})</button>`;
+  }
+
+  // Legend
+  html+=`<div class="mini-cal-legend">
+    <div class="mini-legend-dot" style="background:var(--primary)"></div><span>Entrada/Saída</span>
+    <div class="mini-legend-dot" style="background:var(--primary-soft);border:1px solid var(--primary)"></div><span>Período</span>
+    <div class="mini-legend-dot" style="background:#FEE2E2;border:1px solid #FCA5A5"></div><span>Indisponível</span>
+  </div>`;
+
+  el.innerHTML=html;
+}
+
+function renderMiniCal(aptId, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const blocked=BLOCKED[aptId]||[];
+  // Show the two months that contain the selected check-in date (or current/next if no date)
+  let baseY=2026,baseM=7;
+  if(checkIn){const d=parseD(checkIn);baseY=d.getFullYear();baseM=d.getMonth();}
+  // Second month
+  let nextY=baseY,nextM=baseM+1;
+  if(nextM>11){nextM=0;nextY++;}
+  let html=miniMonthHtml(baseY,baseM,blocked)+miniMonthHtml(nextY,nextM,blocked);
+  html+=`<div class="mini-cal-legend">
+    <div class="mini-legend-dot" style="background:#FEE2E2;border:1px solid #FCA5A5"></div><span>Indisponível</span>
+    <div class="mini-legend-dot" style="background:var(--bg-card);border:1px solid var(--border)"></div><span>Disponível</span>
+  </div>`;
+  el.innerHTML=html;
+}
+
+// ── Steps ────────────────────────────────────────────────────────
+function renderSteps(){
+  const steps=[{label:'Datas',n:1},{label:'Apartamento',n:2},{label:'Resumo',n:3},{label:'Pagamento',n:4}];
+  document.getElementById('stepIndicator').innerHTML=steps.map((s,i)=>`
+    ${i>0?'<div class="step-connector"></div>':''}
+    <div class="step-item">
+      <div class="step-badge ${currentStep>s.n?'done':currentStep===s.n?'active':''}">${currentStep>s.n?'✓':s.n}</div>
+      <span class="step-label ${currentStep===s.n?'active':currentStep>s.n?'done':''}">${s.label}</span>
+    </div>`).join('');
+}
+
+// ── Navigation ────────────────────────────────────────────────────
+function showStep(n){
+  ['step-dates','step-apartments','step-summary','step-payment'].forEach((id,i)=>{
+    document.getElementById(id).style.display=(i+1===n)?'block':'none';
+  });
+  document.getElementById('stickyBar').classList.toggle('visible', n===2&&!!selectedAptId);
+}
+
+function goToApartments(){
+  if(!checkIn||!checkOut) return;
+  currentStep=2; selectedAptId=null;
+  showStep(2); renderSteps(); renderApartments();
+}
+function goToSummary(){
+  if(!selectedAptId) return;
+  currentStep=3; showStep(3); renderSteps(); renderSummary();
+}
+function goBack(){
+  if(currentStep===2){currentStep=1;showStep(1);}
+  else if(currentStep===3){currentStep=2;showStep(2);}
+  else if(currentStep===4){currentStep=3;showStep(3);}
+  renderSteps();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goToPayment(method){
+  document.getElementById('confirmModal').classList.remove('open');
+  currentStep=4; showStep(4); renderSteps();
+  renderPaymentStep(method);
+  window.scrollTo({top:document.getElementById('reservar').offsetTop,behavior:'smooth'});
+}
+
+var _pixTimerInterval=null;
+function startPixCountdown(){
+  if(_pixTimerInterval) clearInterval(_pixTimerInterval);
+  var secs=5*60; // 5 minutos
+  function tick(){
+    var m=Math.floor(secs/60), s=secs%60;
+    var label=m+':'+(s<10?'0':'')+s;
+    var elPix=document.getElementById('pixTimer');
+    var elCard=document.getElementById('cardTimer');
+    if(elPix) elPix.textContent=label;
+    if(elCard) elCard.textContent=label;
+    if(secs<=60){
+      if(elPix) elPix.style.color='#DC2626';
+      if(elCard) elCard.style.color='#DC2626';
+    }
+    if(secs<=0){
+      clearInterval(_pixTimerInterval);
+      var exp=document.getElementById('pixExpire');
+      if(exp) exp.innerHTML='⏱ <strong style="color:#DC2626">Chave expirada — gere uma nova</strong>';
+      var cBar=document.getElementById('cardExpireBar');
+      if(cBar) cBar.innerHTML='⏱ <strong style="color:#DC2626">Tempo expirado — volte e tente novamente</strong>';
+    }
+    secs--;
+  }
+  tick();
+  _pixTimerInterval=setInterval(tick,1000);
+}
+
+function renderPaymentStep(method){
+  const apt=APTS.find(a=>a.id===selectedAptId);
+  const n=nights();
+  const pricing=calcPrice(apt,n,checkIn);
+  const depositPct=pricing.season.deposit;
+  const deposit=Math.round(pricing.total*depositPct);
+  const depositPix=Math.round(deposit*0.90);
+
+  // Set amounts
+  document.getElementById('pixAmount').textContent='R$ '+depositPix.toLocaleString('pt-BR');
+  document.getElementById('cardDepositAmt').textContent=deposit.toLocaleString('pt-BR');
+
+  // PIX QR placeholder
+  renderPixQr();
+
+  // Start 5-minute countdown
+  startPixCountdown();
+
+  // Switch tab
+  switchPayTab(method==='pix'?'pix':'card');
+}
+
+function renderPixQr(){
+  // Padrão visual de QR code (decorativo)
+  const el=document.getElementById('pixQr');
+  const pat=[1,1,1,1,1,1,1,0,0, 1,0,0,0,0,0,1,0,1, 1,0,1,1,1,0,1,0,0,
+             1,0,1,1,1,0,1,0,1, 1,0,1,1,1,0,1,0,0, 1,0,0,0,0,0,1,0,1,
+             1,1,1,1,1,1,1,0,1, 0,0,0,0,0,0,0,0,0, 0,1,0,1,1,0,1,1,0,
+             0,0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,0,1, 0,1,0,0,0,1,0,1,0,
+             0,1,0,0,1,0,0,0,1, 0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,
+             0,1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0, 1,0,1,0,1,0,1,1,0,
+             1,1,1,0,0,0,1,1,0, 0,1,0,0,0,0,0,0,0, 1,0,1,0,0,0,0,0,0,
+             0,0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,0,0, 1,0,0,0,0,0,1,0,1,
+             1,0,1,1,1,0,1,0,0, 1,0,1,1,1,0,1,1,0, 1,0,0,0,0,0,1,0,1];
+  el.innerHTML='<div class="pix-qr-inner">'+pat.map(v=>`<div class="pix-qr-cell${v?' ':'w'}"></div>`).join('')+'</div>';
+}
+
+function switchPayTab(t){
+  document.getElementById('tabPix').classList.toggle('active',t==='pix');
+  document.getElementById('tabCard').classList.toggle('active',t==='card');
+  document.getElementById('payPanelPix').style.display=t==='pix'?'block':'none';
+  document.getElementById('payPanelCard').style.display=t==='card'?'block':'none';
+}
+
+// ── Apartments ────────────────────────────────────────────────────
+// Event delegation vive em #step-apartments (estável, nunca substituído).
+// renderApartments() só atualiza innerHTML de #aptGrid — sem cloneNode.
+function renderApartments(){
+  const n=nights();
+  const season=getSeason(checkIn);
+
+  // Sort: available+fits guests first, then available but too small, then unavailable
+  const avFit=APTS.filter(a=>isAvail(a.id)&&a.capacity>=guests);
+  const avSmall=APTS.filter(a=>isAvail(a.id)&&a.capacity<guests);
+  const unavail=APTS.filter(a=>!isAvail(a.id));
+  const sorted=[...avFit,...avSmall,...unavail];
+
+  const seasonTag=season.name!=='media'
+    ?` <span class="card-season-badge ${season.name}">${season.label}</span>`:'';
+
+  document.getElementById('aptDatePill').innerHTML=`<strong>${fmtDate(checkIn)}</strong> → <strong>${fmtDate(checkOut)}</strong> · ${n} noite${n!==1?'s':''}${seasonTag}`;
+  const av=avFit.length;
+  document.getElementById('aptSubtitle').textContent=`${av} apartamento${av!==1?'s':''} disponíve${av!==1?'is':'l'} para ${guests} hóspede${guests!==1?'s':''}`;
+
+  document.getElementById('aptGrid').innerHTML=sorted.map(function(apt){
+    const av=isAvail(apt.id),sel=selectedAptId===apt.id;
+    const fits=apt.capacity>=guests;
+    const disabled=!av||!fits;
+    const color=APT_COLORS[apt.id-1]||APT_COLORS[0];
+    const calId='miniCal_'+apt.id;
+    const pricing=calcPrice(apt,n,checkIn);
+    const mulBadge=season.mul!==1
+      ?`<span class="price-multiplier ${season.name}">×${season.mul}</span>`:'';
+    const baseNote=season.mul!==1
+      ?`<span class="price-base-strike">R$ ${apt.price}</span>`:'';
+    const capWarn=av&&!fits
+      ?`<div class="card-capacity-warn">⚠️ Capacidade máx: ${apt.capacity} hóspedes</div>`:'';
+    return '<div class="apt-card'+(disabled?' unavailable':'')+(sel?' selected':'')+'" data-apt="'+apt.id+'">'
+      +'<div class="apt-photo" style="background:'+color+'">'
+        +'<span class="apt-photo-icon">'+apt.icon+'</span>'
+        +'<span class="apt-photo-label">📷 Foto ilustrativa</span>'
+        +'<span class="avail-stripe '+(av?'avail':'unavail')+'">'+(av?'Disponível':'Indisponível')+'</span>'
+      +'</div>'
+      +'<div class="card-body">'
+        +'<div class="card-head"><div>'
+          +'<div class="card-name">'+apt.name+'</div>'
+          +'<div class="card-capacity">até '+apt.capacity+' hóspede'+(apt.capacity!==1?'s':'')+'</div>'
+          +capWarn
+        +'</div></div>'
+        +'<div class="card-price-box">'
+          +'<div class="price-row"><span class="price-label">por noite</span><span class="price-per-night">'+baseNote+'R$ '+pricing.night+mulBadge+'</span></div>'
+          +'<div class="price-divider"></div>'
+          +'<div class="price-row"><span class="nights-label">'+n+' noite'+(n!==1?'s':'')+'</span><span class="price-total">R$ '+pricing.total.toLocaleString('pt-BR')+'</span></div>'
+        +'</div>'
+        +(av&&fits?'<button class="apt-cal-toggle" data-apt-id="'+apt.id+'" data-cal-id="'+calId+'">📅 Ajustar datas / ver disponibilidade</button>':'')
+        +'<div class="apt-mini-cal" id="'+calId+'"></div>'
+        +'<button class="card-btn'+(sel?' selected-btn':'')+'"'+(disabled?' disabled':'')+'>'+( sel?'✓ Selecionado':!av?'Indisponível':!fits?'Capacidade insuficiente':'Selecionar')+'</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+// ── CPF validation ────────────────────────────────────────────────
+function validateCPF(cpf){
+  cpf=cpf.replace(/\D/g,'');
+  if(cpf.length!==11||/^(\d)\1{10}$/.test(cpf)) return false;
+  let s=0;
+  for(let i=0;i<9;i++) s+=parseInt(cpf[i])*(10-i);
+  let d=(s*10)%11; if(d>=10) d=0;
+  if(d!==parseInt(cpf[9])) return false;
+  s=0;
+  for(let i=0;i<10;i++) s+=parseInt(cpf[i])*(11-i);
+  d=(s*10)%11; if(d>=10) d=0;
+  return d===parseInt(cpf[10]);
+}
+function formatCPF(v){
+  v=v.replace(/\D/g,'').slice(0,11);
+  if(v.length>9) return v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  if(v.length>6) return v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  if(v.length>3) return v.slice(0,3)+'.'+v.slice(3);
+  return v;
+}
+
+// ── Summary ───────────────────────────────────────────────────────
+function renderSummary(){
+  const apt=APTS.find(a=>a.id===selectedAptId);
+  const n=nights();
+  const pricing=calcPrice(apt,n,checkIn);
+  const total=pricing.total;
+  const season=pricing.season;
+  const depositPct=season.deposit;
+  const deposit=Math.round(total*depositPct);
+  const depositPix=Math.round(deposit*0.90);
+  const saving=deposit-depositPix;
+  const timeOpts=CHECKIN_TIMES.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const isCarn=season.name==='carnaval';
+  const seasonRow=season.name!=='media'
+    ?`<div class="summary-row"><span>Temporada</span><span class="bold" style="color:${isCarn?'#B45309':season.name==='alta'?'var(--primary)':'#059669'}">${season.label} ×${season.mul}</span></div>`:'';
+  const baseRow=season.mul!==1
+    ?`<div class="summary-row"><span>Preço base/noite</span><span>R$ ${apt.price}</span></div>
+     <div class="summary-row"><span>Preço temporada/noite</span><span>R$ ${pricing.night}</span></div>`
+    :`<div class="summary-row"><span>Preço/noite</span><span>R$ ${pricing.night}</span></div>`;
+
+  // OTA comparison
+  const otaPrice=Math.round(total*1.15);
+  const otaSaving=otaPrice-total;
+
+  // WhatsApp message
+  const waMsg=encodeURIComponent(`Olá! Gostaria de reservar:\n• Apartamento: ${apt.icon} ${apt.name}\n• Check-in: ${fmtDate(checkIn)}\n• Check-out: ${fmtDate(checkOut)}\n• ${n} noites · ${n>1?guests+' hóspedes':guests+' hóspede'}\n• Total: R$ ${total.toLocaleString('pt-BR')}`);
+
+  document.getElementById('summaryContent').innerHTML=`
+    <div class="ota-banner">
+      🏷️ Reservando direto você paga <strong>R$ ${otaSaving.toLocaleString('pt-BR')} a menos</strong> do que pelo Booking.com ou Airbnb — sem taxas de intermediário.
+    </div>
+
+    <div class="promo-banner">
+      <span class="promo-icon">⚡</span>
+      <div>
+        <div class="promo-label">Oferta especial</div>
+        <div class="promo-headline">10% de desconto pagando com PIX!</div>
+        <div class="promo-sub">Economize R$ ${saving.toLocaleString('pt-BR')} no depósito — confirmação imediata, sem taxas</div>
+      </div>
+    </div>
+
+    <div class="summary-card"><h3>Resumo da reserva</h3>
+      <div class="summary-rows">
+        <div class="summary-row"><span>Apartamento</span><span class="bold">${apt.icon} ${apt.name}</span></div>
+        <div class="summary-row"><span>Hóspedes</span><span>${guests} hóspede${guests!==1?'s':''}</span></div>
+        <div class="summary-row"><span>Check-in</span><span>${fmtDate(checkIn)}</span></div>
+        <div class="summary-row"><span>Check-out</span><span>${fmtDate(checkOut)}</span></div>
+        <div class="summary-row"><span>Noites</span><span>${n}</span></div>
+        ${seasonRow}
+        ${baseRow}
+        <div class="summary-row total-row"><span>Total</span><span class="total-price">R$ ${total.toLocaleString('pt-BR')}</span></div>
+      </div></div>
+
+    <div class="addr-teaser">
+      <div class="addr-icon">📍</div>
+      <div>
+        <div class="addr-label">Localização</div>
+        <div class="addr-neighborhood">Rio de Janeiro, Brasil</div>
+        <div class="addr-note">O endereço exato é enviado por e-mail após a confirmação do pagamento</div>
+      </div>
+    </div>
+
+    <div class="guest-form"><h3>Dados do hóspede</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Nome completo <span class="req">*</span></label><input id="guestName" type="text" placeholder="Seu nome completo"></div>
+        <div class="form-field"><label>E-mail <span class="req">*</span></label><input id="emailInput" type="email" placeholder="seu@email.com" autocomplete="off"><span id="emailFeedback" class="cpf-feedback"></span></div>
+        <div class="form-field"><label>Confirmar e-mail <span class="req">*</span> <span style="font-size:.65rem;font-weight:400;color:var(--fg-muted)">(digite manualmente)</span></label><input id="emailConfirm" type="email" placeholder="Repita o e-mail" autocomplete="off"><span id="emailConfirmFeedback" class="cpf-feedback"></span></div>
+        <div class="form-field"><label>Telefone / WhatsApp <span class="req">*</span></label><input id="phoneInput" type="tel" placeholder="+55 21 9 9999-9999" autocomplete="tel" maxlength="20" inputmode="numeric"><span id="phoneFeedback" class="cpf-feedback"></span></div>
+        <div class="form-field"><label>País <span class="req">*</span></label><input type="text" placeholder="Brasil"></div>
+        <div class="form-field"><label>Documento (CPF / Passaporte) <span class="req">*</span></label><input id="cpfInput" type="text" placeholder="000.000.000-00" maxlength="14" autocomplete="off"><span id="cpfFeedback" class="cpf-feedback"></span></div>
+        <div class="form-field"><label>Horário de chegada <span class="req">*</span></label>
+          <select id="chegadaSelect"><option value="" disabled selected>Selecione (14h–22h)</option>${timeOpts}</select><span id="chegadaFeedback" class="cpf-feedback"></span></div>
+        <div class="form-field full"><label>Solicitações especiais <span class="opt">(opcional)</span></label>
+          <textarea placeholder="Alguma preferência ou necessidade especial?"></textarea></div>
+      </div>
+
+      <div class="rules-confirm">
+        <div class="rules-confirm-title">⚠️ Ao confirmar, você declara estar ciente de que:</div>
+        <div class="rules-confirm-list">
+          <div class="rules-confirm-item"><span>🔑</span><span>Check-in (entrada): das <strong>14h às 22h</strong>. Se precisar chegar mais cedo, o ideal é reservar também o dia anterior.</span></div>
+          <div class="rules-confirm-item"><span>🚪</span><span>Check-out (saída): até as <strong>12h</strong>. Para sair mais tarde, prefira reservar mais um dia.</span></div>
+          <div class="rules-confirm-item"><span>📄</span><span>O envio de foto do documento de identificação é <strong>obrigatório</strong> antes do check-in, sem exceção.</span></div>
+          <div class="rules-confirm-item"><span>🔞</span><span>As unidades são destinadas exclusivamente a <strong>maiores de 18 anos</strong>.</span></div>
+          <div class="rules-confirm-item"><span>🚭</span><span>É <strong>proibido fumar</strong> no apartamento e em qualquer dependência do prédio.</span></div>
+        </div>
+      </div>
+
+      <div class="payment-note">
+        <div class="payment-note-title">💳 Para confirmar sua reserva</div>
+        <div class="deposit-pill">🔒 Depósito de ${Math.round(depositPct*100)}%${isCarn?' (Carnaval)':''} — restante pago no check-in</div>
+        <div class="payment-methods">
+          <div class="payment-method pix">
+            <span class="pm-icon">⚡</span>
+            <div>
+              <div class="pm-name">PIX <span style="font-size:.72rem;font-weight:400;color:inherit;opacity:.8">— com desconto</span></div>
+              <div class="pm-detail">Depósito: <strong>R$ ${depositPix.toLocaleString('pt-BR')}</strong> · confirmação imediata</div>
+            </div>
+            <span class="pm-tag recommended">⚡ 10% OFF</span>
+          </div>
+          <div class="payment-method card">
+            <span class="pm-icon">💳</span>
+            <div>
+              <div class="pm-name">Cartão de crédito</div>
+              <div class="pm-detail">Depósito: R$ ${deposit.toLocaleString('pt-BR')} · sem desconto</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cancel-policy">
+        <div class="cancel-policy-header" id="cancelHeader">
+          <span class="cancel-policy-title">🔄 Política de cancelamento</span>
+          <span class="cancel-policy-chevron" id="cancelChevron">▼</span>
+        </div>
+        <div class="cancel-policy-body" id="cancelBody">
+          <div class="cancel-rows">
+            <div class="cancel-row"><span class="cancel-badge green">✓ Gratuito</span><span>Cancelamento com mais de <strong>7 dias</strong> de antecedência — reembolso integral</span></div>
+            <div class="cancel-row"><span class="cancel-badge amber">50%</span><span>Cancelamento entre <strong>2 e 7 dias</strong> antes do check-in — reembolso de 50%</span></div>
+            <div class="cancel-row"><span class="cancel-badge red">✗ Sem reembolso</span><span>Cancelamento com menos de <strong>48h</strong> ou no-show</span></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-reserve" id="btnReserve">Confirmar e ir para pagamento →</button>
+      <a class="btn-whatsapp" href="https://wa.me/5521999999999?text=${waMsg}" target="_blank" rel="noopener">
+        💬 Confirmar via WhatsApp
+      </a>
+    </div>`;
+
+  document.getElementById('cancelHeader').addEventListener('click',function(){
+    const body=document.getElementById('cancelBody');
+    const chev=document.getElementById('cancelChevron');
+    body.classList.toggle('open');
+    chev.classList.toggle('open');
+  });
+
+  // ── E-mail validation ──────────────────────────────────────────────
+  const emailEl=document.getElementById('emailInput');
+  const emailFb=document.getElementById('emailFeedback');
+  const emailConfEl=document.getElementById('emailConfirm');
+  const emailConfFb=document.getElementById('emailConfirmFeedback');
+
+  function isEmailFmt(v){
+    // Stricter: local part rules, no consecutive dots, proper TLD 2-6 chars
+    return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}$/.test(v)
+      && !v.includes('..')
+      && v.indexOf('@')>0
+      && v.split('@')[0].length>0;
+  }
+
+  function checkEmail(){
+    const v=emailEl.value.trim();
+    if(!v){
+      emailFb.textContent=''; emailFb.className='cpf-feedback';
+      emailEl.classList.remove('cpf-valid','cpf-invalid');
+      return false;
+    }
+    const ok=isEmailFmt(v);
+    emailFb.textContent=ok?'✓ E-mail válido':'✗ Formato inválido — ex: nome@dominio.com';
+    emailFb.className='cpf-feedback '+(ok?'ok':'err');
+    emailEl.classList.toggle('cpf-valid',ok);
+    emailEl.classList.toggle('cpf-invalid',!ok);
+    // Re-check confirm if already typed
+    if(emailConfEl&&emailConfEl.value) checkEmailConfirm();
+    return ok;
+  }
+  function checkEmailConfirm(){
+    const v=emailConfEl.value.trim();
+    if(!v){
+      emailConfFb.textContent=''; emailConfFb.className='cpf-feedback';
+      emailConfEl.classList.remove('cpf-valid','cpf-invalid');
+      return false;
+    }
+    const ok=isEmailFmt(emailEl.value.trim())&&v===emailEl.value.trim();
+    emailConfFb.textContent=ok?'✓ E-mails coincidem':'✗ E-mails não coincidem';
+    emailConfFb.className='cpf-feedback '+(ok?'ok':'err');
+    emailConfEl.classList.toggle('cpf-valid',ok);
+    emailConfEl.classList.toggle('cpf-invalid',!ok);
+    return ok;
+  }
+  // Block paste/cut on both email fields — must be typed manually
+  function blockPaste(e){ e.preventDefault(); }
+  if(emailEl){
+    emailEl.addEventListener('input', checkEmail);
+    emailEl.addEventListener('blur', checkEmail);
+    emailEl.addEventListener('paste', blockPaste);
+    emailEl.addEventListener('cut', blockPaste);
+  }
+  if(emailConfEl){
+    emailConfEl.addEventListener('input', checkEmailConfirm);
+    emailConfEl.addEventListener('blur', checkEmailConfirm);
+    emailConfEl.addEventListener('paste', blockPaste);
+    emailConfEl.addEventListener('cut', blockPaste);
+  }
+
+  // ── Phone validation ───────────────────────────────────────────────
+  const phoneEl=document.getElementById('phoneInput');
+  const phoneFb=document.getElementById('phoneFeedback');
+  if(phoneEl){
+    phoneEl.addEventListener('input',function(){
+      // Strip everything except digits and leading +
+      var raw=this.value.replace(/[^\d+]/g,'');
+      var digits=raw.replace(/\D/g,'');
+      // Auto-format Brazilian: +55 (XX) 9XXXX-XXXX
+      if(digits.length<=2) this.value=raw;
+      else if(digits.startsWith('55')||raw.startsWith('+55')){
+        var d=digits.startsWith('55')?digits.slice(2):digits;
+        var fmt='+55 ';
+        if(d.length>0) fmt+='('+d.slice(0,2)+')';
+        if(d.length>2) fmt+=' '+d.slice(2,7);
+        if(d.length>7) fmt+='-'+d.slice(7,11);
+        this.value=fmt;
+      } else {
+        // International / other: just keep as typed, limited
+        this.value=raw.slice(0,18);
+      }
+      var digs=this.value.replace(/\D/g,'');
+      if(!this.value.trim()){
+        phoneFb.textContent=''; phoneFb.className='cpf-feedback';
+        this.classList.remove('cpf-valid','cpf-invalid'); return;
+      }
+      var ok=digs.length>=10;
+      phoneFb.textContent=ok?'✓ Telefone válido':'✗ Número muito curto — inclua DDD e número completo';
+      phoneFb.className='cpf-feedback '+(ok?'ok':'err');
+      this.classList.toggle('cpf-valid',ok);
+      this.classList.toggle('cpf-invalid',!ok);
+    });
+  }
+
+  // ── Horário de chegada: feedback obrigatório ───────────────────────
+  const chegadaEl=document.getElementById('chegadaSelect');
+  const chegadaFb=document.getElementById('chegadaFeedback');
+  if(chegadaEl){
+    chegadaEl.addEventListener('change',function(){
+      if(this.value){
+        chegadaFb.textContent='✓ Horário selecionado';
+        chegadaFb.className='cpf-feedback ok';
+        this.style.borderColor='#86EFAC';
+      }
+    });
+  }
+
+  // ── CPF / Passport validation ──────────────────────────────────────
+  const cpfEl=document.getElementById('cpfInput');
+  const cpfFb=document.getElementById('cpfFeedback');
+  if(cpfEl){
+    cpfEl.addEventListener('input',function(){
+      const raw=this.value;
+      const hasLetter=/[a-zA-Z]/.test(raw);
+      const digits=raw.replace(/\D/g,'');
+      // Auto-format only if no letters (CPF mode)
+      if(!hasLetter) this.value=formatCPF(raw);
+      const clean=this.value.replace(/\D/g,'');
+      if(!raw.trim()){
+        cpfFb.textContent=''; cpfFb.className='cpf-feedback';
+        this.classList.remove('cpf-valid','cpf-invalid');
+      } else if(hasLetter){
+        // Passport — accept as long as non-empty
+        cpfFb.textContent='✓ Passaporte aceito'; cpfFb.className='cpf-feedback ok';
+        this.classList.add('cpf-valid'); this.classList.remove('cpf-invalid');
+      } else if(clean.length===11){
+        const ok=validateCPF(clean);
+        cpfFb.textContent=ok?'✓ CPF válido':'✗ CPF inválido — verifique o número';
+        cpfFb.className='cpf-feedback '+(ok?'ok':'err');
+        this.classList.toggle('cpf-valid',ok); this.classList.toggle('cpf-invalid',!ok);
+      } else {
+        cpfFb.textContent=''; cpfFb.className='cpf-feedback';
+        this.classList.remove('cpf-valid','cpf-invalid');
+      }
+    });
+  }
+
+  document.getElementById('btnReserve').addEventListener('click',function(){
+    // ── Validate required fields ───────────────────────────────────
+    var errors=[];
+    var firstErrEl=null;
+
+    function _setErr(el,fb,msg){
+      if(fb){fb.textContent=msg;fb.className='cpf-feedback err';}
+      if(el){el.classList.add('cpf-invalid');el.classList.remove('cpf-valid');el.style.borderColor='';}
+      if(!firstErrEl) firstErrEl=el;
+      errors.push(msg);
+    }
+
+    // Strict email format helper
+    function _emailOk(v){
+      return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}$/.test(v)&&!v.includes('..')&&v.indexOf('@')>0;
+    }
+
+    // 1. E-mail
+    var em=document.getElementById('emailInput');
+    var emFb=document.getElementById('emailFeedback');
+    var emVal=em?em.value.trim():'';
+    if(!emVal||!_emailOk(emVal)){
+      _setErr(em,emFb,'✗ Informe um e-mail válido — ex: nome@dominio.com');
+    }
+
+    // 2. Confirmar e-mail
+    var emC=document.getElementById('emailConfirm');
+    var emCFb=document.getElementById('emailConfirmFeedback');
+    var emCVal=emC?emC.value.trim():'';
+    if(!emCVal){
+      _setErr(emC,emCFb,'✗ Confirme o e-mail');
+    } else if(emCVal!==emVal){
+      _setErr(emC,emCFb,'✗ E-mails não coincidem');
+    }
+
+    // 3. Telefone
+    var ph=document.getElementById('phoneInput');
+    var phFb=document.getElementById('phoneFeedback');
+    var phDigits=ph?ph.value.replace(/\D/g,''):'';
+    if(phDigits.length<10){
+      _setErr(ph,phFb,'✗ Informe um telefone válido com DDD');
+    }
+
+    // 4. Horário de chegada
+    var ch=document.getElementById('chegadaSelect');
+    var chFb=document.getElementById('chegadaFeedback');
+    if(ch&&!ch.value){
+      if(chFb){chFb.textContent='✗ Selecione o horário de chegada';chFb.className='cpf-feedback err';}
+      ch.style.borderColor='#FCA5A5';
+      if(!firstErrEl) firstErrEl=ch;
+      errors.push('chegada');
+    }
+
+    if(errors.length){
+      if(firstErrEl) firstErrEl.focus();
+      return; // bloqueia
+    }
+
+    // ── Tudo OK: abre modal ────────────────────────────────────────
+    const ref='LCA-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    document.getElementById('modalRef').textContent='REF: '+ref;
+    const _apt=APTS.find(a=>a.id===selectedAptId);
+    if(_apt){
+      const _pricing=calcPrice(_apt,nights(),checkIn);
+      const _dep=Math.round(_pricing.total*_pricing.season.deposit);
+      const _depPix=Math.round(_dep*0.90);
+      document.getElementById('modalDepositAmt').textContent=
+        'R$ '+_depPix.toLocaleString('pt-BR')+' (PIX) / R$ '+_dep.toLocaleString('pt-BR')+' (cartão)';
+    }
+    document.getElementById('confirmModal').classList.add('open');
+  });
+}
+
+// ── Wiring ────────────────────────────────────────────────────────
+document.getElementById('heroCta').addEventListener('click',function(){
+  document.getElementById('reservar').scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('btnTop').addEventListener('click', goBack);
+document.getElementById('btnDatesContinue').addEventListener('click', goToApartments);
+document.getElementById('btnAptBack').addEventListener('click', goBack);
+document.getElementById('btnSumBack').addEventListener('click', goBack);
+document.getElementById('stickyBarBtn').addEventListener('click', goToSummary);
+
+// ── Delegation única em #step-apartments (estável, nunca re-renderizado) ──
+// Cobre tanto o toggle de calendário quanto a seleção de card.
+document.getElementById('step-apartments').addEventListener('click',function(e){
+  // 1) Botão "Ver disponibilidade"
+  var toggleBtn=e.target.closest('.apt-cal-toggle');
+  if(toggleBtn){
+    var calId=toggleBtn.dataset.calId;
+    var aptId=parseInt(toggleBtn.dataset.aptId);
+    var calEl=document.getElementById(calId);
+    if(!calEl) return;
+    var isOpen=calEl.classList.contains('open');
+    // Fecha todas
+    document.querySelectorAll('.apt-mini-cal.open').forEach(function(el){el.classList.remove('open');});
+    if(!isOpen){
+      calEl.classList.add('open');
+      renderInteractiveMiniCal(aptId, calId);
+    }
+    return; // não propaga para seleção de card
+  }
+
+  // 2) Cliques dentro do mini-cal interativo
+  var miniCalContainer=e.target.closest('.apt-mini-cal');
+  if(miniCalContainer){
+    // Apply button → update global dates + re-render all apartments
+    var applyBtn=e.target.closest('[data-mini-apply]');
+    if(applyBtn){
+      var aId=parseInt(applyBtn.dataset.miniApply);
+      var st=miniCalState[aId];
+      if(st&&st.cin&&st.cout){
+        checkIn=st.cin; checkOut=st.cout;
+        selectedAptId=null;
+        miniCalState={};
+        document.getElementById('stickyBar').classList.remove('visible');
+        renderApartments();
+        renderSteps();
+        // Scroll back to top of apt section so user sees all updated cards
+        document.getElementById('step-apartments').scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
+
+    // Reset link → restore global dates in this mini cal
+    var resetBtn=e.target.closest('[data-mini-reset]');
+    if(resetBtn){
+      var aId=parseInt(resetBtn.dataset.miniReset);
+      miniCalState[aId]={aptId:aId, cin:checkIn, cout:checkOut};
+      renderInteractiveMiniCal(aId, 'miniCal_'+aId);
+      return;
+    }
+
+    // Day click → update local state for this apt's mini cal
+    var dayEl=e.target.closest('[data-mini-day]');
+    if(dayEl){
+      var aId=parseInt(dayEl.dataset.miniDay);
+      var ds=dayEl.dataset.ds;
+      if(!miniCalState[aId]) miniCalState[aId]={aptId:aId, cin:checkIn, cout:checkOut};
+      var st=miniCalState[aId];
+      // First click or both set → start new selection
+      if(!st.cin||st.cout){ st.cin=ds; st.cout=null; }
+      else if(ds<=st.cin){ st.cin=ds; st.cout=null; }
+      else { st.cout=ds; }
+      renderInteractiveMiniCal(aId, 'miniCal_'+aId);
+      return;
+    }
+
+    return; // prevent card selection when clicking inside mini cal
+  }
+
+  // 3) Seleção de card — SEM re-renderizar o grid (preserva calendários abertos)
+  var card=e.target.closest('[data-apt]');
+  if(!card||card.classList.contains('unavailable')) return;
+  var prevId=selectedAptId;
+  selectedAptId=parseInt(card.dataset.apt);
+  if(prevId===selectedAptId) return;
+
+  // Desseleciona card anterior (só CSS)
+  if(prevId!==null){
+    var prevCard=document.querySelector('.apt-card[data-apt="'+prevId+'"]');
+    if(prevCard){
+      prevCard.classList.remove('selected');
+      var pb=prevCard.querySelector('.card-btn');
+      if(pb){pb.classList.remove('selected-btn');pb.textContent='Selecionar';}
+    }
+  }
+  // Seleciona card atual (só CSS)
+  card.classList.add('selected');
+  var cb=card.querySelector('.card-btn');
+  if(cb){cb.classList.add('selected-btn');cb.textContent='✓ Selecionado';}
+
+  var apt=APTS.find(function(a){return a.id===selectedAptId;});
+  var n=nights();
+  document.getElementById('stickyBarInfo').innerHTML=
+    apt.icon+' <strong>'+apt.name+'</strong> · R$ <strong style="color:var(--accent)">'
+    +(apt.price*n).toLocaleString('pt-BR')+'</strong>';
+  document.getElementById('stickyBar').classList.add('visible');
+});
+
+// ── Guest counter wiring ───────────────────────────────────────────
+function updateGuestCounter(){
+  document.getElementById('gcntVal').textContent=guests;
+  document.getElementById('gcntMinus').disabled=guests<=1;
+  document.getElementById('gcntPlus').disabled=guests>=4;
+  document.getElementById('guestLabel').innerHTML=
+    `${guests} hóspede${guests!==1?'s':''} <small>Filtra apartamentos por capacidade</small>`;
+}
+document.getElementById('gcntMinus').addEventListener('click',function(){
+  if(guests>1){guests--;updateGuestCounter();}
+});
+document.getElementById('gcntPlus').addEventListener('click',function(){
+  if(guests<4){guests++;updateGuestCounter();}
+});
+
+// ── Modal close ────────────────────────────────────────────────────
+document.getElementById('modalClose').addEventListener('click',function(){
+  document.getElementById('confirmModal').classList.remove('open');
+});
+document.getElementById('confirmModal').addEventListener('click',function(e){
+  if(e.target===this) this.classList.remove('open');
+});
+
+// ── Modal payment choice buttons ───────────────────────────────────
+document.getElementById('modalPayPix').addEventListener('click',function(){
+  goToPayment('pix');
+});
+document.getElementById('modalPayCard').addEventListener('click',function(){
+  goToPayment('card');
+});
+
+// ── Payment tab switches ───────────────────────────────────────────
+document.getElementById('tabPix').addEventListener('click',function(){switchPayTab('pix');});
+document.getElementById('tabCard').addEventListener('click',function(){switchPayTab('card');});
+
+// ── PIX copy key ───────────────────────────────────────────────────
+document.getElementById('pixCopyBtn').addEventListener('click',function(){
+  const key=document.getElementById('pixKeyVal').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(key).catch(function(){});
+  }
+  this.textContent='Copiado ✓';
+  this.style.background='#059669';
+  var btn=this;
+  setTimeout(function(){btn.textContent='Copiar';btn.style.background='';},2500);
+});
+
+// ── Card number formatting + brand detection ───────────────────────
+document.getElementById('cardNumber').addEventListener('input',function(){
+  var raw=this.value.replace(/\D/g,'').slice(0,16);
+  this.value=raw.replace(/(.{4})/g,'$1 ').trim();
+  var brand='💳';
+  if(/^4/.test(raw)) brand='VISA';
+  else if(/^5[1-5]/.test(raw)||/^2[2-7]/.test(raw)) brand='MC';
+  else if(/^3[47]/.test(raw)) brand='AMEX';
+  else if(/^6(?:011|5)/.test(raw)) brand='ELO';
+  document.getElementById('cardBrand').textContent=brand;
+});
+
+// ── Card expiry formatting ─────────────────────────────────────────
+document.getElementById('cardExpiry').addEventListener('input',function(){
+  var raw=this.value.replace(/\D/g,'').slice(0,4);
+  this.value=raw.length>2?raw.slice(0,2)+'/'+raw.slice(2):raw;
+});
+
+// ── Card pay button → success state ───────────────────────────────
+document.getElementById('btnPayCard').addEventListener('click',function(){
+  var form=this.closest('.card-form');
+  if(!form) return;
+  var name=document.getElementById('cardName').value.trim();
+  var num=document.getElementById('cardNumber').value.replace(/\s/g,'');
+  var exp=document.getElementById('cardExpiry').value;
+  var cvv=document.getElementById('cardCvv').value;
+  if(!name||num.length<15||exp.length<5||cvv.length<3){
+    this.textContent='⚠️ Preencha todos os campos'; this.style.background='#DC2626';
+    var b=this;
+    setTimeout(function(){b.textContent='Pagar R$ '+document.getElementById('cardDepositAmt').textContent+' →';b.style.background='';},2500);
+    return;
+  }
+  // Show success
+  var refEl=document.getElementById('modalRef');
+  var refText=refEl?refEl.textContent:'LCA-XXXXXX';
+  form.innerHTML='<div style="text-align:center;padding:2rem 1rem">'
+    +'<div style="font-size:3rem;margin-bottom:1rem">✅</div>'
+    +'<div style="font-size:1.2rem;font-weight:700;color:var(--primary);margin-bottom:.5rem">Pagamento recebido!</div>'
+    +'<div style="font-size:.9rem;color:var(--fg-muted);line-height:1.6">Sua reserva está confirmada.<br>Você receberá a confirmação por e-mail em breve.</div>'
+    +'<div style="margin:.75rem 0;font-weight:700;font-size:1rem;color:var(--accent)">'+refText+'</div>'
+    +'<div style="margin-top:.5rem;font-size:.78rem;color:var(--fg-muted)">📩 Verifique sua caixa de entrada — incluindo spam</div>'
+    +'</div>';
+});
+
+// ── PIX "Já paguei" button ─────────────────────────────────────────
+document.getElementById('btnPixDone').addEventListener('click',function(){
+  var panel=document.getElementById('payPanelPix');
+  var refEl=document.getElementById('modalRef');
+  var refText=refEl?refEl.textContent:'LCA-XXXXXX';
+  panel.innerHTML='<div style="text-align:center;padding:2rem 1rem">'
+    +'<div style="font-size:3rem;margin-bottom:1rem">✅</div>'
+    +'<div style="font-size:1.2rem;font-weight:700;color:var(--primary);margin-bottom:.5rem">Comprovante recebido!</div>'
+    +'<div style="font-size:.9rem;color:var(--fg-muted);line-height:1.6">Verificaremos o pagamento e confirmaremos<br>sua reserva em até 15 minutos.</div>'
+    +'<div style="margin:.75rem 0;font-weight:700;font-size:1rem;color:var(--accent)">'+refText+'</div>'
+    +'<div style="margin-top:.5rem;font-size:.78rem;color:var(--fg-muted)">📩 Verifique sua caixa de entrada — incluindo spam<br>📲 Não esqueça de enviar o comprovante via WhatsApp</div>'
+    +'</div>';
+});
+
+// ── Back button on payment step ────────────────────────────────────
+document.getElementById('btnPayBack').addEventListener('click',goBack);
+
+// ── Init ──────────────────────────────────────────────────────────
+renderSteps();
+renderCalendar();
+</script>
+
+
+
+
+
+</body></html>
