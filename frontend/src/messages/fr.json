@@ -425,6 +425,7 @@
   "admin": {
     "dashboard": "Tableau de bord",
     "pricing": "Tarifs",
+    "rooms": "Chambres",
     "dateBlocking": "Blocage de dates",
     "ical": "iCal",
     "todayCheckins": "Arrivées aujourd'hui",

@@ -357,26 +357,53 @@ router.post('/bookings/:id/confirm', async (req, res, next) => {
 });
 
 /**
- * PUT /admin/rooms/:id/settings — precio base y flag de flexible. El
- * descuento por grupo dejó de ser por cuarto (ver 0010_global_group_discount_tiers.sql,
- * PUT /admin/group-discounts más abajo) porque depende del total de
- * camas de toda la reserva, no de un cuarto individual.
+ * GET /admin/rooms — listado crudo de room_types (hostel + apartamentos)
+ * para el editor del panel. A diferencia de GET /api/v1/rooms (publico,
+ * orientado a huespedes, con contenido estatico del hostel), esto solo
+ * devuelve las columnas editables tal cual estan en la base.
+ */
+router.get('/rooms', async (_req, res, next) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, code, name, capacity, base_price, property_type, is_flexible, default_gender
+       FROM room_types ORDER BY property_type, code`
+    );
+    res.status(200).json(ApiResponse.success(rows, 'Room types obtenidos'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * PUT /admin/rooms/:id/settings — nombre, capacidad, precio base y flag
+ * de flexible. El descuento por grupo dejó de ser por cuarto (ver
+ * 0010_global_group_discount_tiers.sql, PUT /admin/group-discounts más
+ * abajo) porque depende del total de camas de toda la reserva, no de un
+ * cuarto individual.
  */
 router.put('/rooms/:id/settings', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { basePrice, isFlexible } = req.body as {
+    const { name, capacity, basePrice, isFlexible } = req.body as {
+      name?: string;
+      capacity?: number;
       basePrice?: number;
       isFlexible?: boolean;
     };
 
-    if (basePrice === undefined && isFlexible === undefined) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar: basePrice y/o isFlexible'));
+    if (name === undefined && capacity === undefined && basePrice === undefined && isFlexible === undefined) {
+      res.status(400).json(ApiResponse.error('Nada para actualizar: name, capacity, basePrice y/o isFlexible'));
+      return;
+    }
+    if (capacity !== undefined && (!Number.isInteger(capacity) || capacity < 1)) {
+      res.status(400).json(ApiResponse.error('capacity debe ser un entero mayor a 0'));
       return;
     }
 
     const sets: string[] = [];
     const params: any[] = [];
+    if (name !== undefined) { params.push(name); sets.push(`name = $${params.length}`); }
+    if (capacity !== undefined) { params.push(capacity); sets.push(`capacity = $${params.length}`); }
     if (basePrice !== undefined) { params.push(basePrice); sets.push(`base_price = $${params.length}`); }
     if (isFlexible !== undefined) { params.push(isFlexible); sets.push(`is_flexible = $${params.length}`); }
     params.push(id);
@@ -392,7 +419,7 @@ router.put('/rooms/:id/settings', async (req, res, next) => {
 
     await auditLogService.log({
       entity_type: 'room_type', entity_id: id, operation: 'ADMIN_UPDATE_SETTINGS',
-      new_data: { basePrice, isFlexible }
+      new_data: { name, capacity, basePrice, isFlexible }
     });
 
     res.status(200).json(ApiResponse.success(rows[0], 'Habitación actualizada'));

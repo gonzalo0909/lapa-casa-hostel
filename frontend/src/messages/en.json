@@ -425,6 +425,7 @@
   "admin": {
     "dashboard": "Dashboard",
     "pricing": "Pricing",
+    "rooms": "Rooms",
     "dateBlocking": "Date Blocking",
     "ical": "iCal",
     "todayCheckins": "Today's check-ins",
