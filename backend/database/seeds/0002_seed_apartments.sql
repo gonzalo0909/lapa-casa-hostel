@@ -25,7 +25,13 @@ INSERT INTO room_types (code, name, capacity, default_gender, is_flexible, base_
   ('apt-08', 'Apt. Centro',          3, 'mixed', false, 480.00, 'apartment'),
   ('apt-09', 'Cobertura Lapa',       4, 'mixed', false, 550.00, 'apartment'),
   ('apt-10', 'Flat Cinelândia',      2, 'mixed', false, 270.00, 'apartment')
-ON CONFLICT (code) DO NOTHING;
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  capacity = EXCLUDED.capacity,
+  default_gender = EXCLUDED.default_gender,
+  is_flexible = EXCLUDED.is_flexible,
+  base_price = EXCLUDED.base_price,
+  property_type = EXCLUDED.property_type;
 
 -- 1 cama = 1 unidad de apartamento completa. bed_code globalmente unico
 -- (VARCHAR(10)); los codigos de dormitorios existentes no usan el
