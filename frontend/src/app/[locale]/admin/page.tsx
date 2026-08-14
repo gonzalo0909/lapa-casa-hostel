@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { BookingsDashboard } from '@/components/admin/bookings-dashboard';
 import { SeasonPricing } from '@/components/admin/season-pricing';
+import { RoomTypes } from '@/components/admin/room-types';
 import { DateBlocking } from '@/components/admin/date-blocking';
 import ICalSettings from '@/components/admin/ical-settings';
 import { api, handleAPIError } from '@/lib/api';
@@ -23,7 +24,7 @@ import { api, handleAPIError } from '@/lib/api';
  * Login vía POST /admin/login (admin-auth.routes.ts, requiere ADMIN_PASSWORD_HASH en backend).
  */
 
-type Tab = 'dashboard' | 'pricing' | 'blocking' | 'ical';
+type Tab = 'dashboard' | 'pricing' | 'rooms' | 'blocking' | 'ical';
 
 export default function AdminPage({
   params,
@@ -75,6 +76,7 @@ export default function AdminPage({
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'dashboard', label: t('dashboard'), icon: '📊' },
     { id: 'pricing', label: t('pricing'), icon: '💰' },
+    { id: 'rooms', label: t('rooms'), icon: '🏠' },
     { id: 'blocking', label: t('dateBlocking'), icon: '🔒' },
     { id: 'ical', label: t('ical'), icon: '📅' },
   ];
@@ -177,6 +179,7 @@ export default function AdminPage({
       <div>
         {activeTab === 'dashboard' && <BookingsDashboard locale={locale} />}
         {activeTab === 'pricing' && <SeasonPricing locale={locale} />}
+        {activeTab === 'rooms' && <RoomTypes locale={locale} />}
         {activeTab === 'blocking' && <DateBlocking locale={locale} />}
         {activeTab === 'ical' && <ICalSettings />}
       </div>
