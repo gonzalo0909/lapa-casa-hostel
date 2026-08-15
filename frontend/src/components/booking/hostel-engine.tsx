@@ -19,6 +19,8 @@ import {
 import { HostelCalendar } from './hostel-calendar';
 import { HostelRoomSelector } from './hostel-room-selector';
 import { HostelGuestForm } from './hostel-guest-form';
+import { PaymentCountdown } from '../payment/payment-countdown';
+import { PaymentProcessor } from '../payment/payment-processor';
 
 // ─── Inline CSS (.he-* classes shared by all sub-components) ───
 const CSS = `
@@ -170,8 +172,16 @@ const CSS = `
 @media(max-width:400px){.he-form-row-2{grid-template-columns:1fr}.he-dates-sel{flex-direction:column}.he-dep-box{grid-template-columns:1fr}}
 `;
 
-// ─── PIX QR pattern (same as prototype) ─────────────────
-const PIX_PAT = [0,1,1,0,1,0,1,1,0,1,1,1,0,1,0,1,1,0,0,1,1,0,1,0,1,0,1,1,0,1,0,0,1,1,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1];
+// ─── Booking data stored after creation ─────────────────
+interface CreatedBooking {
+  id: string;
+  confirmationNumber: string;
+  pendingExpiresAt: string | null;
+  total: number;
+  deposit: number;
+  remaining: number;
+  checkIn: string;
+}
 
 // ─── Component ──────────────────────────────────────────
 interface HostelEngineProps { locale?: string; }
@@ -198,11 +208,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [payMethod, setPayMethod]   = useState<PayMethod>('pix');
   const [phase, setPhase]           = useState<Phase>('wizard');
-  const [bookingCode, setBookingCode] = useState('');
-  const [timerSecs, setTimerSecs]   = useState(300);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingError, setBookingError] = useState('');
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [booking, setBooking] = useState<CreatedBooking | null>(null);
+  const [paymentDone, setPaymentDone] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
 
   // ─ Guest form state ─
   const [form, setForm]             = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
@@ -384,22 +394,40 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const c6beds = beds['cuarto6'] ?? 0;
       const gender = c6beds > 0 && totalBeds === c6beds ? 'female' : 'mixed';
 
+      const checkInDs = checkIn!.toISOString().slice(0, 10);
       const response = await bookingAPI.create({
-        checkIn:  checkIn!.toISOString().slice(0, 10),
+        checkIn:  checkInDs,
         checkOut: checkOut!.toISOString().slice(0, 10),
         rooms: selectedRooms.map(r => ({ roomId: r.realId || r.id, bedsCount: beds[r.id] ?? 0 })),
         guest: { firstName, lastName, email: form.email, phone: form.phone, country: form.country, document: form.doc },
-        specialRequests: form.requests,
-        arrivalTime: form.arrival,
+        // Bug fix: o backend processa arrivalTime com `.replace('-', ':00 – ') + ':00'`,
+        // formato pensado para intervalos "14-16" → "14:00 – 16:00".
+        // O seletor usa horários pontuais ("14:30"), sem traço, então esse
+        // replace não altera nada e produz "14:30:00" (quebrado).
+        // Solução: montar a nota aqui e incluir em specialRequests, igual
+        // ao motor de apartamentos — não enviar o campo arrivalTime.
+        specialRequests: [
+          form.arrival ? `Horário de chegada: ${form.arrival}` : null,
+          form.requests.trim() || null,
+        ].filter(Boolean).join('\n') || undefined,
         language: lang,
         source: 'direct',
         guestGender: gender,
       });
-      const code = response.data?.booking?.id || response.data?.bookingId
-        || 'LCH-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      setBookingCode(code);
+      const b = response.data?.booking;
+      if (!b?.id) throw new Error(t.errorBooking);
+      setBooking({
+        id: b.id,
+        // Bug fix: antes usava b.id (UUID) em vez de confirmationNumber
+        // (o código legível "LCH-XXXXXXXX" gerado pelo backend).
+        confirmationNumber: b.confirmationNumber || `LCH-${b.id.substring(0, 8).toUpperCase()}`,
+        pendingExpiresAt: b.pendingExpiresAt ?? null,
+        total: b.pricing?.total ?? (price?.total ?? 0),
+        deposit: b.payment?.depositAmount ?? (price?.deposit ?? 0),
+        remaining: b.pricing?.remaining ?? ((price?.total ?? 0) - (price?.deposit ?? 0)),
+        checkIn: checkInDs,
+      });
       setPhase('success');
-      startTimer();
     } catch (err: any) {
       setBookingError(err?.response?.data?.error || err?.message || t.errorBooking);
     } finally {
@@ -407,21 +435,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds]);
 
-  // ─ 5-minute timer ─
-  const startTimer = useCallback(() => {
-    let secs = 300;
-    setTimerSecs(300);
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      secs--;
-      setTimerSecs(secs);
-      if (secs <= 0) { clearInterval(timerRef.current!); setPhase('expired'); }
-    }, 1000);
-  }, []);
-
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
-
-  const timerStr = `${Math.floor(timerSecs / 60)}:${String(timerSecs % 60).padStart(2, '0')}`;
 
   // ─ Footer price display ─
   const footerPrice = (() => {
@@ -661,64 +674,56 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
           </div>
         )}
 
-        {/* ── Success panel ── */}
-        {phase === 'success' && (
+        {/* ── Success / Payment panel ── */}
+        {phase === 'success' && booking && (
           <div className="he-card">
-            <div className="he-success-panel">
-              <div className="he-success-check">✓</div>
-              <div className="he-success-title">{t.successTitle}</div>
-              <div className="he-success-sub">{t.successSub}</div>
-              <div className="he-booking-code">{bookingCode}</div>
-              <div className="he-pay-box">
-                {payMethod === 'pix' ? (
-                  <>
-                    <div className="he-pix-lbl">{t.pixDepLabel}</div>
-                    <div className="he-pix-qr">
-                      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,8px)', gridTemplateRows:'repeat(7,8px)', gap:'1px' }}>
-                        {PIX_PAT.map((b, i) => (
-                          <div key={i} style={{ background: b ? '#fff' : 'transparent', width:'8px', height:'8px' }} />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="he-pix-amt">{price ? fmtMoney(price.deposit) : ''}</div>
-                    <div className="he-timer">{t.timerLabel}: <strong>{timerStr}</strong></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="he-pix-lbl">{t.cardDepLabel}</div>
-                    <div style={{ fontSize:'2.25rem', margin:'.4rem 0' }}>💳</div>
-                    <div className="he-pix-amt">{price ? fmtMoney(price.deposit) : ''}</div>
-                    <div style={{ fontSize:'.72rem', color:'#7A6E64', marginTop:'.2rem' }}>{t.cardInstruction}</div>
-                    <div className="he-timer">{t.timerLabel}: <strong>{timerStr}</strong></div>
-                  </>
+            {paymentDone ? (
+              /* Pagamento concluído — confirmação final */
+              <div className="he-success-panel">
+                <div className="he-success-check">✓</div>
+                <div className="he-success-title">{t.successTitle}</div>
+                <div className="he-success-sub">{t.successSub}</div>
+                <div className="he-booking-code">{booking.confirmationNumber}</div>
+                <div className="he-success-note">{t.restNote}</div>
+                <button
+                  className="he-btn-confirm"
+                  style={{ marginTop:'1.25rem', background:'#1E3A5F' }}
+                  onClick={() => window.location.reload()}
+                >
+                  {t.btnNewBooking}
+                </button>
+              </div>
+            ) : isExpired ? (
+              /* Hold expirou antes do pagamento */
+              <div className="he-expired-panel">
+                <div className="he-expired-icon">⏰</div>
+                <div className="he-expired-title">{t.expiredTitle}</div>
+                <div className="he-expired-sub">{t.expiredSub}</div>
+                <button className="he-btn-confirm" onClick={() => window.location.reload()}>
+                  {t.btnTryAgain}
+                </button>
+              </div>
+            ) : (
+              /* Pagamento real — Stripe (cartão) ou Mercado Pago (PIX) */
+              <div style={{ padding:'1rem' }}>
+                {booking.pendingExpiresAt && (
+                  <PaymentCountdown
+                    expiresAt={booking.pendingExpiresAt}
+                    onExpire={() => setIsExpired(true)}
+                    locale={lang}
+                  />
                 )}
+                <PaymentProcessor
+                  reservationId={booking.id}
+                  totalAmount={booking.total}
+                  depositAmount={booking.deposit}
+                  remainingAmount={booking.remaining}
+                  checkInDate={booking.checkIn}
+                  locale={lang}
+                  onSuccess={() => setPaymentDone(true)}
+                />
               </div>
-              <div className="he-success-note">
-                {payMethod === 'pix' && <>{t.pixKey}<br /></>}
-                {t.restNote}
-              </div>
-              <button
-                className="he-btn-confirm"
-                style={{ marginTop:'1.25rem', background:'#1E3A5F' }}
-                onClick={() => window.location.reload()}
-              >
-                {t.btnNewBooking}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Expired panel ── */}
-        {phase === 'expired' && (
-          <div className="he-card">
-            <div className="he-expired-panel">
-              <div className="he-expired-icon">⏰</div>
-              <div className="he-expired-title">{t.expiredTitle}</div>
-              <div className="he-expired-sub">{t.expiredSub}</div>
-              <button className="he-btn-confirm" onClick={() => window.location.reload()}>
-                {t.btnTryAgain}
-              </button>
-            </div>
+            )}
           </div>
         )}
 
