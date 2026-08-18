@@ -1,9 +1,8 @@
 // lapa-casa-hostel/backend/src/services/channel-service.ts
-// ventana5
 //
 // Reservas entrantes de OTA (via webhook para Booking.com/Expedia, via
 // iCal para Airbnb/Hostelworld) pasan por el MISMO motor anti-overbooking
-// que booking-service.createBooking() (Ventana 2, Requisito Critico #1):
+// que booking-service.createBooking():
 // elegir camas candidatas -> acquire_bed_locks() -> re-verificar bajo
 // lock -> INSERT, todo dentro de la misma transaccion. La diferencia es
 // el status inicial ('pending_ota_confirmation' en vez de

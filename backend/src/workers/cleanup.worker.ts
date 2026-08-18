@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/workers/cleanup.worker.ts
-// ventana4
 
 import { Worker, Job } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';

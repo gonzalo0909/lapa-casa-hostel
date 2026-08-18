@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/database/repositories/payment-repository.ts
-// ventana3
 
 import { prisma } from '../../config/prisma';
 import type { Payment, PaymentStatus } from '../../types/database';

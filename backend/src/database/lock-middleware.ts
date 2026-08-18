@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/database/lock-middleware.ts
 //
-// Extraido de booking-service.ts (Ventana 2, entregable 7). Wrapper
+// Extraido de booking-service.ts. Wrapper
 // explicito de acquire_bed_locks() -- SIEMPRE recibe el PoolClient de
 // una transaccion activa (withTransaction en config/database.ts), nunca
 // abre su propia conexion. pg_advisory_xact_lock solo protege dentro de
@@ -9,7 +9,7 @@
 // database/tests/lock-middleware.test.ts).
 //
 // Diferencia real vs. lo propuesto originalmente en el documento de
-// Ventana 2: no existe un "timeout" configurable -- acquire_bed_locks()
+// no existe un "timeout" configurable -- acquire_bed_locks()
 // usa pg_advisory_xact_lock, que BLOQUEA hasta poder tomar el lock (no
 // falla por timeout). withLock() acá reciben bedIds (UUID[]), no un
 // resourceKey generico con timeout, porque asi es como se llama de

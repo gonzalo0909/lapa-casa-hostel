@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/services/notification-service.ts
-// ventana4
 //
 // Servicio de notificaciones por email: envia inmediato (notify) o
 // programa para mas adelante (scheduleNotification, via BullMQ). Toda

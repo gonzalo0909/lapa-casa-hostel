@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/services/room-service.ts
 //
 // Extraido de routes/rooms/list-rooms.ts y routes/rooms/get-room.ts
-// (Ventana 2, entregable 5). room_types y beds son la unica fuente de
+//. room_types y beds son la unica fuente de
 // verdad -- este servicio nunca inventa habitaciones ni IDs.
 //
 // De paso corrige el mismo bug que tenia list-rooms.ts antes de

@@ -3,7 +3,7 @@
  * List Rooms Handler
  * Lapa Casa Hostel Channel Manager
  *
- * Delegado a room-service.ts (Ventana 2, entregable 5) -- esta ruta
+ * Delegado a room-service.ts -- esta ruta
  * solo arma el envelope de respuesta con contenido estatico (amenities
  * compartidos, politicas) que no vive en la base.
  *

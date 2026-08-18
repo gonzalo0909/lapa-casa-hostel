@@ -1,7 +1,6 @@
 // lapa-casa-hostel/backend/src/services/pricing-service.ts
 //
 // REQUISITO CRITICO #6 (prompt Maestro v1.5): las funciones SQL de
-// Ventana 1 (0004_pricing_functions.sql) son la UNICA implementacion de
 // las reglas de precio. Este servicio es un wrapper delgado -- nunca
 // reimplementa temporada/descuentos/deposito en JS. La version anterior
 // de este archivo lo hacia (constantes hardcodeadas, fechas de Carnaval

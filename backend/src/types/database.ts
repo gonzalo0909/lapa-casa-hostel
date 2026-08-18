@@ -19,7 +19,6 @@ export type PaymentMethod = 'card' | 'pix' | 'bank_transfer' | 'cash';
 
 export type BedGender = 'mixed' | 'female' | 'male';
 
-// ventana3
 export type PaymentProvider = 'stripe' | 'mercadopago';
 
 export interface Guest {

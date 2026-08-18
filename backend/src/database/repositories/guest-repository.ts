@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/database/repositories/guest-repository.ts
-// ventana 3 — migrado a Prisma 5.22.0
 
 import { prisma } from '../../config/prisma';
 import type { Guest } from '../../types/database';

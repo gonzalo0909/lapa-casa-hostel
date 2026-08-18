@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/integrations/google-sheets/sheets-client.ts
-// ventana4 (bloque 2)
 //
 // Cliente de bajo nivel contra la API de Google Sheets. Reescrito
 // contra el schema real (0002_tables.sql) y la estructura de columnas
@@ -205,7 +204,6 @@ export class SheetsClient {
     const sheets = this.requireClient();
     const response = await sheets.spreadsheets.get({ spreadsheetId: this.spreadsheetId });
     const sheet = response.data.sheets?.find(s => s.properties?.title === this.sheetName);
-    // ventana4: acá estaba el bug reportado (sheet.properties?.sheetId es
     // `number | null`, no se puede devolver directo como `number`) --
     // 0 es un sheetId valido (la primera hoja de un spreadsheet nuevo lo
     // usa), por eso se chequea con `??`, no con `||`.

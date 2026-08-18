@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/integrations/google-sheets/data-formatter.ts
-// ventana4 (bloque 2)
 //
 // Formatea una fila cruda de la query de booking-export.ts (join
 // reservations + guests + room_types + agregados de payments) al

@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/integrations/google-sheets/booking-export.ts
-// ventana4 (bloque 2)
 //
 // Reemplaza a booking-sync.ts (schema viejo, tabla `rooms` inexistente,
 // nunca probado). Sentido único DB -> Sheets: la base es la fuente de
@@ -87,7 +86,6 @@ export async function fullExport(): Promise<{ exported: number; errors: string[]
     return { exported: 0, errors: ['Google Sheets no configurado'] };
   }
 
-  // ventana4: sin filtro de status a propósito -- la hoja es un espejo de
   // reporting completo (incluye canceladas/no_show con su status real en
   // la columna L), no solo reservas activas.
   await sheetsClient.initializeSheet();

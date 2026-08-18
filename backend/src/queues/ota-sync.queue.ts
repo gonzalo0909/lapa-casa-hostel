@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/ota-sync.queue.ts
-// ventana5
 //
 // Repeatable job cada 5 minutos (ICAL_IMPORT_INTERVAL_MINUTES,
 // config/channels.ts): invoca icalService.syncICalFeeds() completo

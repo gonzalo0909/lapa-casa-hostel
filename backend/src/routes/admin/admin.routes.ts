@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/admin/admin.routes.ts
-// ventana4 (bloque 2)
 //
 // Reescrito completo: la version anterior devolvia datos hardcodeados en
 // cada endpoint (bookings: [], stats fijas, "Room updated" sin tocar la
@@ -424,7 +423,6 @@ router.put('/pricing', async (req, res, next) => {
       seasonType?: 'alta' | 'media' | 'baja' | 'carnaval';
       multiplier?: number;
       minNights?: number;
-      // ventana4: system_config.carnival_dates es un ARRAY de rangos
       // {year, start_date, end_date} (ver 0001_seed.sql y
       // get_season_type() en 0004_pricing_functions.sql, que itera el
       // array buscando en qué rango cae la fecha) -- no un mapa por año.

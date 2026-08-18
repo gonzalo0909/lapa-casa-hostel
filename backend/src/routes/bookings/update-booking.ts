@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/bookings/update-booking.ts
-// ventana3
 
 import { Request, Response, NextFunction } from 'express';
 import { bookingService } from '../../services/booking-service';

@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/lib/payments/stripe-handler.ts
-// ventana3
 
 import Stripe from 'stripe';
 import { logger } from '../../utils/logger';

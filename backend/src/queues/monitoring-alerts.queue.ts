@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/monitoring-alerts.queue.ts
-// ventana6
 //
 // Repeatable job diario (09:00 America/Sao_Paulo aproximado -- BullMQ
 // corre en UTC, ver nota abajo): corre runScheduledAlertChecks()

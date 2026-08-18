@@ -32,8 +32,7 @@ export const validationMiddleware = (_schemaName: string) =>
   (_req: Request, _res: Response, next: NextFunction): void => next();
 
 /**
- * Sanitizacion de inputs contra XSS/inyeccion de markup (Ventana 6,
- * entregable 6). Las queries a Postgres ya van parametrizadas ($1, $2...
+ * Sanitizacion de inputs contra XSS/inyeccion de markup. Las queries a Postgres ya van parametrizadas ($1, $2...
  * via `pg`, ver config/database.ts) asi que no hay inyeccion SQL posible
  * desde aca -- esto cubre el otro vector real: texto de huesped
  * (guest.firstName/lastName, specialRequests, etc.) que termina

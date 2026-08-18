@@ -42,7 +42,6 @@ app.use(cors(corsOptions));
 // M-02: parsear cookies para leer el httpOnly JWT del panel admin
 app.use(cookieParser());
 
-// ventana6: limite de tamano de payload por endpoint (entregable 6). Se
 // chequea el header Content-Length ANTES de dejar que express.json() lea
 // el body -- el limite del propio express.json (10mb, mas abajo) queda
 // como cota dura general para todo lo que no matchea un prefijo mas
@@ -70,7 +69,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// ventana5: `verify` guarda el buffer crudo del body en req.rawBody antes
 // de parsearlo -- lo necesitan los webhooks de OTA (routes/webhooks/ota.routes.ts)
 // para verificar la firma HMAC contra los bytes exactos recibidos, ya que
 // el express.json() global corre antes de llegar a cualquier ruta y deja
@@ -84,7 +82,6 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/', generalRateLimiter);
-// ventana6: sanitizacion de inputs contra XSS -- limpia markup/script en
 // todo el body y query antes de que llegue a cualquier ruta (ver
 // middleware/validation.ts). Los webhooks de OTA ya capturaron su
 // rawBody arriba para la verificacion HMAC, asi que esto no interfiere
@@ -92,7 +89,6 @@ app.use('/api/', generalRateLimiter);
 app.use('/api/', sanitizeInput);
 app.use(metricsMiddleware);
 
-// ventana4 (bloque 2): panel admin estatico (HTML/CSS/JS vanilla). Las
 // paginas piden datos a /api/v1/admin/* con el JWT guardado en
 // localStorage -- servir estos archivos no expone nada, la proteccion
 // real vive en las rutas de la API (authenticateToken + requireRole).

@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/services/email-service.ts
-// ventana4
 //
 // Servicio de emails real, vía Resend. Sigue el mismo patron de
 // degradacion que src/cache/redis-client.ts y src/lib/payments/stripe-handler.ts:
@@ -350,8 +349,8 @@ export class EmailService {
       checkInDateFormatted: formatDate(booking.check_in_date, language),
       checkInTime: '14:00',
       address: 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro',
-      wifiNetwork: 'LAPA_CASA_GUESTS',
-      wifiPassword: 'santateresa2024'
+      wifiNetwork: process.env.WIFI_NETWORK || 'LAPA_CASA_GUESTS',
+      wifiPassword: process.env.WIFI_PASSWORD || ''
     });
 
     return dispatch(booking.guest.email, t.welcomeTitle, html);

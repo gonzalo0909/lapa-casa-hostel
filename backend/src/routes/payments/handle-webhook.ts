@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/payments/handle-webhook.ts
-// ventana3
 
 import { Request, Response, NextFunction } from 'express';
 import { paymentService } from '../../services/payment-service';
@@ -20,7 +19,6 @@ export const handleWebhookHandler = async (
         res.status(400).json({ error: 'Falta stripe-signature' });
         return;
       }
-      // ventana6: la verificacion de firma de Stripe necesita los bytes
       // EXACTOS del body, no el objeto ya parseado por el express.json()
       // global de app.ts -- ese mismo parser guarda el buffer crudo en
       // req.rawBody antes de parsear (verify callback), igual que ya

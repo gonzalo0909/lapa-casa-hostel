@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/database/models/payment.ts
-// ventana 1 — migrado a Prisma 5.22.0
 
 import { prisma } from '../../config/prisma';
 import { Payment, PaymentProvider } from '../../types/database';

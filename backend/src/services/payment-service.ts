@@ -1,7 +1,4 @@
 // lapa-casa-hostel/backend/src/services/payment-service.ts
-// ventana3
-// ventana4: agrega handlePaymentSucceeded() -- dispara email de pago recibido y agenda saldo/bienvenida, desde el mismo punto que usan tanto el webhook real de Stripe/MercadoPago como la confirmación manual (ver más abajo)
-// ventana4 (bloque 2): handlePaymentSucceeded también re-exporta la reserva a Sheets (deposit_paid/remaining_paid cambian con cada pago)
 
 import Stripe from 'stripe';
 import { PaymentRepository } from '../database/repositories/payment-repository';
@@ -171,7 +168,6 @@ export class PaymentService {
     return confirmed;
   }
 
-  // ventana4: unico punto que dispara notificaciones de pago recibido --
   // corre tanto para el webhook real de Stripe/MercadoPago (confirmPayment)
   // como para la confirmacion manual desde el frontend (confirmPaymentById).
   // Antes solo la ruta confirm-payment.ts enviaba el email, asi que un pago
@@ -268,7 +264,6 @@ export class PaymentService {
     return this.paymentRepo.findByReservation(reservationId);
   }
 
-  // ventana4: usado por el flujo de cobro de saldo (3 reintentos cada 24h,
   // ver Prompt Maestro / POLITICAS OPERATIVAS) una vez que el proveedor
   // confirma el cargo del saldo. A diferencia del deposito, pagar el saldo
   // no cambia el status de la reserva -- ya esta 'confirmed' desde que se

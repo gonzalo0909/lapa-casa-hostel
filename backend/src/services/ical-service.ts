@@ -1,12 +1,11 @@
 // lapa-casa-hostel/backend/src/services/ical-service.ts
-// ventana5
 //
 // Reemplaza a services/ical-sync-service.ts + integrations/ical/ota-sync.ts
-// + integrations/ical/ical-generator.ts (Ventana 4/anteriores), que
+// + integrations/ical/ical-generator.ts, que
 // referenciaban una tabla `ical_feeds` y una tabla `rooms` que nunca
 // existieron en el schema real (0002_tables.sql tiene `room_types`, no
 // `rooms`; no existe `ical_feeds`). Auditados igual que
-// availability-service.ts/pricing-service.ts en Ventana 2: se reescriben
+// availability-service.ts/pricing-service.ts en se reescriben
 // contra el schema real en vez de "conectarlos" tal cual.
 //
 // Los feeds iCal configurados (URL a importar por canal+habitacion) se
@@ -121,7 +120,7 @@ export async function addFeed(input: { channelCode: ChannelCode; roomTypeId: str
   };
 
   await query(
-    `INSERT INTO system_config (key, value, description) VALUES ($1, $2::jsonb, 'Feed iCal a importar (Ventana 5)')`,
+    `INSERT INTO system_config (key, value, description) VALUES ($1, $2::jsonb, 'Feed iCal a importar')`,
     [`${FEED_KEY_PREFIX}${feed.id}`, JSON.stringify(feed)]
   );
   return feed;
@@ -151,7 +150,7 @@ async function recordSyncStatus(channelCode: ChannelCode, status: {
   errors: string[];
 }): Promise<void> {
   await query(
-    `INSERT INTO system_config (key, value, description) VALUES ($1, $2::jsonb, 'Estado de ultima sincronizacion iCal por canal (Ventana 5)')
+    `INSERT INTO system_config (key, value, description) VALUES ($1, $2::jsonb, 'Estado de ultima sincronizacion iCal por canal')
      ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, updated_at = now()`,
     [`${SYNC_STATUS_KEY_PREFIX}${channelCode}`, JSON.stringify(status)]
   );

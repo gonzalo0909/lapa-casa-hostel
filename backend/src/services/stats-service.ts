@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/services/stats-service.ts
-// ventana4 (bloque 2)
 //
 // Estadísticas para el dashboard/panel admin. El prompt de esta ventana
 // dice "las estadísticas usan availability_cache (tabla real) para
@@ -8,7 +7,6 @@
 // una función SQL, ni un trigger): leer de ahí devolvería siempre cero.
 // Se calcula en cambio directo sobre reservation_beds/reservations,
 // igual que ya hace BookingRepository.getOccupancyRate() (probado,
-// Ventana 2/3) -- no se reimplementa nada que ya sea de la fuente real,
 // solo se evita depender de una tabla que nunca se llena.
 //
 // Por lo mismo, el ingreso neto por canal usa la función SQL
@@ -94,7 +92,6 @@ export class StatsService {
         [start, end]
       ),
       query<{ id: string; code: string; name: string; capacity: number; occupied_bed_nights: string }>(
-        // ventana4: OJO -- LEAST/GREATEST de Postgres ignoran NULL en vez de
         // propagarlo (a diferencia de los operadores de comparacion
         // estandar). Sin el CASE WHEN, una cama sin ninguna reserva (rb.*
         // todo NULL por el LEFT JOIN) calculaba LEAST(NULL,end)=end y

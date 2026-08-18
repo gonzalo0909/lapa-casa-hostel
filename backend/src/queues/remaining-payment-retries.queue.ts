@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/remaining-payment-retries.queue.ts
-// ventana4
 //
 // Reintentos del saldo restante: 3 intentos, 24h de separacion, mismo
 // proveedor que el deposito (POLITICAS OPERATIVAS del Maestro). Cada

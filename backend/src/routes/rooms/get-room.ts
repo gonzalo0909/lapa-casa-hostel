@@ -3,7 +3,7 @@
  * Get Room Handler
  * Lapa Casa Hostel Channel Manager
  *
- * Delegado a room-service.ts (Ventana 2, entregable 5). Antes usaba
+ * Delegado a room-service.ts. Antes usaba
  * `getRoomConfig()` local con 4 habitaciones hardcodeadas e IDs
  * ficticios ("room_mixto_12a") -- nunca matcheaba un UUID real de
  * room_types, asi que GET /api/rooms/:id con un id real siempre daba

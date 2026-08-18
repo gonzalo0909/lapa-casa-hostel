@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/payments/create-payment-intent.ts
-// ventana3
 
 import { Request, Response, NextFunction } from 'express';
 import { paymentService } from '../../services/payment-service';

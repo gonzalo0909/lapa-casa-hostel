@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/rooms/rooms.routes.ts
-// ventana3
 
 import { Router } from 'express';
 import { listRoomsHandler } from './list-rooms';

@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/availability/availability.routes.ts
-// ventana3
 
 import { Router } from 'express';
 import { checkAvailabilityHandler } from './check-availability';

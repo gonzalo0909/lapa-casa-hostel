@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/remaining-payment.queue.ts
-// ventana4
 //
 // Se encola UNA vez por reserva cuando se confirma el deposito (ver
 // routes/payments/confirm-payment.ts), con delay hasta 7 dias antes del

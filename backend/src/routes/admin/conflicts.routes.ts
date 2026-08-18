@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/admin/conflicts.routes.ts
-// ventana5
 //
 // Reemplaza el listado inline que admin.routes.ts tenia para
 // GET /conflicts (agregado como placeholder en Ventana 4) -- se suma

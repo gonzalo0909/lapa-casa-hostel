@@ -44,7 +44,6 @@ const env = {
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
 
-  // ventana5: webhooks de reservas OTA (solo Booking.com y Expedia tienen
   // -- Airbnb/Hostelworld son iCal-only, ver config/channels.ts). Sin el
   // secret configurado, el webhook de ese canal rechaza todo con 401 en
   // vez de aceptar sin verificar (nunca "modo test que acepta todo" para

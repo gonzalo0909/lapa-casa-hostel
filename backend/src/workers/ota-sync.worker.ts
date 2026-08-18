@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/workers/ota-sync.worker.ts
-// ventana5
 //
 // Consumidor real de la cola `ota-sync` (ver queues/ota-sync.queue.ts).
 // Reemplaza el stub de Ventana 4 (que descartaba todos los jobs con un

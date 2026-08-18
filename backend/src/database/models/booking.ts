@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/database/models/booking.ts
-// ventana 1 — migrado a Prisma 5.22.0
 
 import { prisma } from '../../config/prisma';
 import { BookingStatus, Reservation } from '../../types/database';

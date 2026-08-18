@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/payments/payments.routes.ts
-// ventana3
 
 import { Router } from 'express';
 import express from 'express';
@@ -24,7 +23,6 @@ router.post('/confirm', confirmPaymentHandler);
 router.post('/deposit', processDepositHandler);
 
 // POST /payments/webhook/stripe
-// ventana6: el `express.raw({ type: 'application/json' })` que estaba aca
 // era inefectivo (bug real, no cosmetico) -- app.ts ya corre
 // express.json() de forma GLOBAL para toda la app antes de que cualquier
 // request llegue a este router, asi que el body ya viene consumido y
