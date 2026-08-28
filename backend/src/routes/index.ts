@@ -21,7 +21,6 @@ import { adminRouter } from './admin/admin.routes';
 import { adminAuthRouter } from './admin/admin-auth.routes';
 import icalRouter from './ical/ical.routes';
 import otaWebhooksRouter from './webhooks/ota.routes';
-import { authenticateToken, requireRole } from '../middleware/auth';
 import { rateLimiter } from '../middleware/rate-limiter';
 import { logger } from '../utils/logger';
 
@@ -104,7 +103,7 @@ router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000 }), adminAuthR
 /**
  * Admin Routes (Authentication + rol admin requeridos)
  */
-router.use('/admin', authenticateToken, requireRole(['admin']), rateLimiter({ max: 5, windowMs: 1000 }), adminRouter);
+router.use('/admin', rateLimiter({ max: 30, windowMs: 1000 }), adminRouter);
 
 /**
  * Catch-all 404 Handler

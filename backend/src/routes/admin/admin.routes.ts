@@ -33,6 +33,14 @@ import type { BookingWithGuest } from '../../services/email-service';
 const router = Router();
 
 /**
+ * GET /admin/me — verificacion de sesion (checkSession en api.js).
+ * Sin auth requerida: el panel admin no exige contrasena.
+ */
+router.get('/me', (_req, res) => {
+  res.json(ApiResponse.success({ role: 'admin' }));
+});
+
+/**
  * /admin/conflicts — detalle + resolucion manual agregados en Ventana 5
  * (conflict-service.ts). Reemplaza el listado inline que vivia aca desde
  * Ventana 4 (ver mas abajo, ahora removido para no duplicar la ruta).
