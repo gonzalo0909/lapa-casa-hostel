@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "worker:dev": "tsx watch src/workers/index.ts",
     "build": "tsc || true; tsc-alias && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/templates/emails dist/admin && cp -r src/templates/emails/. dist/templates/emails/ && cp -r src/admin/. dist/admin/",
+    "copy-assets": "mkdir -p dist/templates/emails dist/admin dist/public && cp -r src/templates/emails/. dist/templates/emails/ && cp -r src/admin/. dist/admin/ && cp -r src/public/. dist/public/",
     "migrate": "node database/scripts/migrate.js",
     "seed": "node database/scripts/seed.js",
     "start": "npm run migrate; npm run seed; node dist/server.js",
