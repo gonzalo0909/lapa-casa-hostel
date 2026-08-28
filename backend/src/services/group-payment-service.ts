@@ -141,7 +141,7 @@ async function allocateGroupBeds(
   }>(
     `SELECT id, code, capacity, base_price, is_flexible
      FROM room_types
-     WHERE is_active = true
+     WHERE category = 'hostel'
        AND (
          default_gender = 'mixed'
          OR default_gender = $1::bed_gender
