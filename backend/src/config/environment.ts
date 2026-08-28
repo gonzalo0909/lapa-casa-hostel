@@ -28,7 +28,7 @@ const env = {
 
   // C-02: sin fallback hardcodeado en producción
   JWT_SECRET: requireSecret('JWT_SECRET', isProd ? undefined : 'dev-secret-change-in-production'),
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '90d',
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
 
   // C-02: sin fallback hardcodeado en producción
