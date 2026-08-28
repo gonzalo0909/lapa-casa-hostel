@@ -213,4 +213,157 @@ router.delete('/photos/:photoId', async (req, res, next) => {
   }
 });
 
+// ── Datos del apartamento ─────────────────────────────────────────────────
+
+/** GET /admin/room-types/:id — detalle completo de un apartamento */
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, code, name, capacity, base_price, property_type,
+              description, neighborhood, amenities, bedrooms, bathrooms,
+              external_rating, external_review_count, external_rating_label,
+              is_flexible, created_at, updated_at
+       FROM room_types
+       WHERE id = $1 AND property_type = 'apartment'`,
+      [req.params.id]
+    );
+    if (!rows.length) { res.status(404).json(ApiResponse.error('Apartamento no encontrado')); return; }
+    res.json(ApiResponse.success(rows[0]));
+  } catch (err) { next(err); }
+});
+
+/** PUT /admin/room-types/:id — editar datos del apartamento */
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      name, description, neighborhood, capacity, bedrooms, bathrooms,
+      amenities, base_price, is_flexible,
+      external_rating, external_review_count, external_rating_label,
+    } = req.body as Record<string, any>;
+
+    const sets: string[] = [];
+    const params: any[] = [];
+    const p = () => `$${params.length}`;
+
+    if (name !== undefined)                   { params.push(String(name).trim());  sets.push(`name = ${p()}`); }
+    if (description !== undefined)            { params.push(description || null);  sets.push(`description = ${p()}`); }
+    if (neighborhood !== undefined)           { params.push(neighborhood || null); sets.push(`neighborhood = ${p()}`); }
+    if (capacity !== undefined)               { params.push(Number(capacity));     sets.push(`capacity = ${p()}`); }
+    if (bedrooms !== undefined)               { params.push(bedrooms != null ? Number(bedrooms) : null); sets.push(`bedrooms = ${p()}`); }
+    if (bathrooms !== undefined)              { params.push(bathrooms != null ? Number(bathrooms) : null); sets.push(`bathrooms = ${p()}`); }
+    if (amenities !== undefined)              { params.push(JSON.stringify(amenities)); sets.push(`amenities = ${p()}::jsonb`); }
+    if (base_price !== undefined)             { params.push(Number(base_price));   sets.push(`base_price = ${p()}`); }
+    if (is_flexible !== undefined)            { params.push(Boolean(is_flexible)); sets.push(`is_flexible = ${p()}`); }
+    if (external_rating !== undefined)        { params.push(external_rating != null ? Number(external_rating) : null); sets.push(`external_rating = ${p()}`); }
+    if (external_review_count !== undefined)  { params.push(external_review_count != null ? Number(external_review_count) : null); sets.push(`external_review_count = ${p()}`); }
+    if (external_rating_label !== undefined)  { params.push(external_rating_label || null); sets.push(`external_rating_label = ${p()}`); }
+
+    if (!sets.length) { res.status(400).json(ApiResponse.error('Nada para actualizar')); return; }
+
+    params.push(id);
+    const { rows } = await query(
+      `UPDATE room_types SET ${sets.join(', ')}, updated_at = now()
+       WHERE id = ${p()} AND property_type = 'apartment'
+       RETURNING id, code, name, capacity, base_price, description, neighborhood,
+                 amenities, bedrooms, bathrooms, external_rating, external_review_count,
+                 external_rating_label, is_flexible, updated_at`,
+      params
+    );
+    if (!rows.length) { res.status(404).json(ApiResponse.error('Apartamento no encontrado')); return; }
+
+    await auditLogService.log({
+      entity_type: 'room_type', entity_id: id, operation: 'ADMIN_UPDATE_SETTINGS',
+      new_data: req.body
+    });
+
+    res.json(ApiResponse.success(rows[0], 'Apartamento actualizado'));
+  } catch (err) { next(err); }
+});
+
+// ── Resenas ───────────────────────────────────────────────────────────────
+
+/** GET /admin/room-types/:id/reviews */
+router.get('/:id/reviews', async (req, res, next) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, author_name, platform, rating, comment,
+              review_date::text, is_published, created_at
+       FROM apartment_reviews
+       WHERE room_type_id = $1
+       ORDER BY review_date DESC, created_at DESC`,
+      [req.params.id]
+    );
+    res.json(ApiResponse.success(rows));
+  } catch (err) { next(err); }
+});
+
+/** POST /admin/room-types/:id/reviews */
+router.post('/:id/reviews', async (req, res, next) => {
+  try {
+    const { author_name, platform, rating, comment, review_date, is_published } = req.body as Record<string, any>;
+    if (!author_name || !comment || rating == null) {
+      res.status(400).json(ApiResponse.error('author_name, comment y rating son requeridos'));
+      return;
+    }
+    const { rows } = await query(
+      `INSERT INTO apartment_reviews
+         (room_type_id, author_name, platform, rating, comment, review_date, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, author_name, platform, rating, comment,
+                 review_date::text, is_published, created_at`,
+      [
+        req.params.id,
+        String(author_name).trim(),
+        platform || 'Admin',
+        Number(rating),
+        String(comment).trim(),
+        review_date || null,
+        is_published ?? true,
+      ]
+    );
+    res.status(201).json(ApiResponse.success(rows[0], 'Resena creada'));
+  } catch (err) { next(err); }
+});
+
+/** PUT /admin/room-types/reviews/:reviewId */
+router.put('/reviews/:reviewId', async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { author_name, platform, rating, comment, review_date, is_published } = req.body as Record<string, any>;
+    const sets: string[] = [];
+    const params: any[] = [];
+    const p = () => `$${params.length}`;
+    if (author_name !== undefined)  { params.push(String(author_name).trim()); sets.push(`author_name = ${p()}`); }
+    if (platform !== undefined)     { params.push(platform || 'Admin');         sets.push(`platform = ${p()}`); }
+    if (rating !== undefined)       { params.push(Number(rating));              sets.push(`rating = ${p()}`); }
+    if (comment !== undefined)      { params.push(String(comment).trim());      sets.push(`comment = ${p()}`); }
+    if (review_date !== undefined)  { params.push(review_date || null);         sets.push(`review_date = ${p()}`); }
+    if (is_published !== undefined) { params.push(Boolean(is_published));       sets.push(`is_published = ${p()}`); }
+    if (!sets.length) { res.status(400).json(ApiResponse.error('Nada para actualizar')); return; }
+    params.push(reviewId);
+    const { rows } = await query(
+      `UPDATE apartment_reviews SET ${sets.join(', ')}, updated_at = now()
+       WHERE id = ${p()}
+       RETURNING id, author_name, platform, rating, comment,
+                 review_date::text, is_published, created_at`,
+      params
+    );
+    if (!rows.length) { res.status(404).json(ApiResponse.error('Resena no encontrada')); return; }
+    res.json(ApiResponse.success(rows[0], 'Resena actualizada'));
+  } catch (err) { next(err); }
+});
+
+/** DELETE /admin/room-types/reviews/:reviewId */
+router.delete('/reviews/:reviewId', async (req, res, next) => {
+  try {
+    const { rows } = await query(
+      `DELETE FROM apartment_reviews WHERE id = $1 RETURNING id`,
+      [req.params.reviewId]
+    );
+    if (!rows.length) { res.status(404).json(ApiResponse.error('Resena no encontrada')); return; }
+    res.json(ApiResponse.success(null, 'Resena eliminada'));
+  } catch (err) { next(err); }
+});
+
 export { router as roomTypePhotosRouter };
