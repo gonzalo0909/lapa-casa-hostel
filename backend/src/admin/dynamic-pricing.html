@@ -1,405 +1,258 @@
+<!-- lapa-casa-hostel/backend/src/admin/dynamic-pricing.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Precios Dinámicos — Admin Lapa Casa Hostel</title>
-<script src="/admin/js/auth.js"></script>
-<script src="/admin/js/nav.js"></script>
+<link rel="stylesheet" href="/admin/css/admin.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; background: #0f1117; color: #e0ddd6; font-size: 14px; }
-  .topbar-placeholder { height: 52px; }
-
-  .page { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
-
-  /* Tabs principales */
-  .main-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #2d3347; padding-bottom: 0; }
-  .main-tab {
-    padding: 9px 18px; cursor: pointer; border-radius: 6px 6px 0 0;
-    color: #8b90a8; font-weight: 600; font-size: 13px; border: none;
-    background: none; transition: color .15s, background .15s;
-    border-bottom: 2px solid transparent; position: relative; bottom: -1px;
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    padding: 8px 16px; cursor: pointer; border: none; background: none;
+    font-size: 14px; color: var(--text-muted); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; font-weight: 500;
   }
-  .main-tab:hover { color: #e0ddd6; }
-  .main-tab.active { color: #c9a96e; border-bottom-color: #c9a96e; background: rgba(201,169,110,.06); }
-
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  /* Sección */
-  h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #c9a96e; }
-  h3 { font-size: 13px; font-weight: 600; color: #8b90a8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+  .units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .unit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .unit-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .unit-base { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .unit-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .unit-fields label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+  .unit-fields input { width: 100%; }
+  .unit-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 10px; }
 
-  .card { background: #1a1f2e; border: 1px solid #2d3347; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .config-grid label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+  .config-grid input { width: 100%; }
 
-  /* Grid de unidades */
-  .units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-  .unit-card {
-    background: #1a1f2e; border: 1px solid #2d3347; border-radius: 10px; padding: 16px;
-    transition: border-color .2s;
-  }
-  .unit-card.disabled { opacity: .5; }
-  .unit-card:hover { border-color: #3d4560; }
-
-  .unit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .unit-name { font-weight: 700; font-size: 14px; }
-  .unit-base { font-size: 12px; color: #8b90a8; margin-top: 2px; }
-
-  /* Toggle */
-  .toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-  .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle .slider {
-    position: absolute; inset: 0; background: #2d3347; border-radius: 20px; cursor: pointer;
-    transition: background .2s;
-  }
-  .toggle .slider::before {
-    content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px;
-    background: #fff; border-radius: 50%; transition: transform .2s;
-  }
-  .toggle input:checked + .slider { background: #c9a96e; }
-  .toggle input:checked + .slider::before { transform: translateX(16px); }
-
-  /* Inputs inline */
-  .unit-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-  .field-group label { display: block; font-size: 11px; color: #8b90a8; margin-bottom: 3px; }
-  .field-group input {
-    width: 100%; background: #0f1117; border: 1px solid #2d3347; border-radius: 6px;
-    color: #e0ddd6; padding: 6px 10px; font-size: 13px;
-  }
-  .field-group input:focus { outline: none; border-color: #c9a96e; }
-  .field-group .hint { font-size: 11px; color: #666; margin-top: 3px; }
-
-  .save-unit-btn {
-    width: 100%; padding: 7px; background: #1e2a1a; border: 1px solid #4a7c3f;
-    color: #7ecb6a; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
-    transition: background .15s;
-  }
-  .save-unit-btn:hover { background: #263320; }
-  .save-unit-btn.saved { background: #4a7c3f; color: #fff; }
-
-  /* Config global */
-  .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .config-field label { display: block; font-size: 11px; color: #8b90a8; margin-bottom: 4px; }
-  .config-field input {
-    width: 100%; background: #0f1117; border: 1px solid #2d3347; border-radius: 6px;
-    color: #e0ddd6; padding: 7px 10px; font-size: 13px;
-  }
-  .config-field input:focus { outline: none; border-color: #c9a96e; }
-
-  /* Botones */
-  .btn {
-    padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;
-    font-weight: 600; border: none; transition: opacity .15s;
-  }
-  .btn:hover { opacity: .85; }
-  .btn-primary { background: #c9a96e; color: #0f1117; }
-  .btn-run { background: #22c55e; color: #0f1117; padding: 10px 20px; }
-  .btn-danger { background: #7f1d1d; color: #fca5a5; }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-
-  /* Eventos */
-  .events-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .event-row {
-    display: flex; align-items: center; gap: 10px; background: #0f1117;
-    border: 1px solid #2d3347; border-radius: 8px; padding: 12px;
-  }
+  .event-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; background: var(--surface); }
   .event-row .ev-name { flex: 1; font-weight: 600; font-size: 13px; }
-  .event-row .ev-dates { font-size: 12px; color: #8b90a8; }
-  .event-row .ev-adj { font-weight: 700; color: #c9a96e; }
-  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-  .badge-all { background: #1e2a3a; color: #7eb8e8; }
-  .badge-hostel { background: #1a2a1a; color: #7ecb6a; }
-  .badge-apt { background: #2a1a2a; color: #d48fd4; }
-  .badge-off { background: #2d2d2d; color: #888; }
+  .event-row .ev-dates { font-size: 12px; color: var(--text-muted); }
+  .event-row .ev-adj { font-weight: 700; color: var(--accent); }
+  .event-form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
+  .event-form-grid label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
 
-  /* Formulario evento */
-  .event-form { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
-  .event-form label { font-size: 11px; color: #8b90a8; }
-  .event-form input, .event-form select {
-    width: 100%; background: #0f1117; border: 1px solid #2d3347; border-radius: 6px;
-    color: #e0ddd6; padding: 7px 10px; font-size: 13px;
-  }
-  .event-form input:focus, .event-form select:focus { outline: none; border-color: #c9a96e; }
+  .cal-filters { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .cal-filters label { font-size: 13px; color: var(--text-muted); }
+  .cal-filters input[type=number] { width: 70px; }
+  .occ-bar { display: inline-block; width: 50px; height: 6px; background: var(--border); border-radius: 3px; vertical-align: middle; overflow: hidden; }
+  .occ-fill { height: 100%; background: var(--accent); }
+  .price-up { color: var(--accent); font-weight: 600; }
+  .price-dn { color: var(--danger); font-weight: 600; }
 
-  /* Calendario */
-  .cal-filters { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-  .cal-filters select, .cal-filters input {
-    background: #1a1f2e; border: 1px solid #2d3347; border-radius: 6px;
-    color: #e0ddd6; padding: 6px 10px; font-size: 13px;
-  }
-  .cal-table { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
-  .cal-table th { padding: 8px 10px; text-align: left; background: #0f1117; color: #8b90a8; font-weight: 600; white-space: nowrap; }
-  .cal-table td { padding: 7px 10px; border-top: 1px solid #2d3347; white-space: nowrap; }
-  .cal-table tr:hover td { background: rgba(255,255,255,.03); }
-  .price-up { color: #22c55e; }
-  .price-dn { color: #f87171; }
-  .occ-bar { height: 6px; border-radius: 3px; background: #2d3347; position: relative; width: 60px; display: inline-block; vertical-align: middle; }
-  .occ-fill { height: 100%; border-radius: 3px; background: #c9a96e; }
+  .run-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .run-info { font-size: 13px; color: var(--text-muted); }
 
-  .run-section { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
-  .run-result { font-size: 13px; color: #8b90a8; }
-
-  .msg { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
-  .msg-ok  { background: #1a2e1a; color: #7ecb6a; border: 1px solid #2d4a2d; }
-  .msg-err { background: #2e1a1a; color: #f87171; border: 1px solid #4a2d2d; }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
 
   @media (max-width: 600px) {
-    .event-form { grid-template-columns: 1fr 1fr; }
+    .event-form-grid { grid-template-columns: 1fr 1fr; }
     .units-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div id="nav-root"></div>
-<div class="topbar-placeholder"></div>
+<main>
 
-<div class="page">
-
-  <!-- Tabs principales -->
-  <div class="main-tabs">
-    <button class="main-tab active" onclick="switchTab('hostel')">🏠 Hostel</button>
-    <button class="main-tab" onclick="switchTab('apartments')">🏢 Apartamentos</button>
-    <button class="main-tab" onclick="switchTab('global')">⚙️ Factores globales</button>
-    <button class="main-tab" onclick="switchTab('events')">🎉 Eventos</button>
-    <button class="main-tab" onclick="switchTab('calendar')">📅 Calendario</button>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('hostel')">Hostel</button>
+    <button class="tab-btn" onclick="switchTab('apartments')">Apartamentos</button>
+    <button class="tab-btn" onclick="switchTab('global')">Factores globales</button>
+    <button class="tab-btn" onclick="switchTab('events')">Eventos</button>
+    <button class="tab-btn" onclick="switchTab('calendar')">Calendario</button>
   </div>
 
-  <!-- ── HOSTEL ── -->
+  <!-- HOSTEL -->
   <div id="tab-hostel" class="tab-panel active">
-    <div class="run-section">
-      <button class="btn btn-run" onclick="runBot()">▶ Ejecutar bot ahora</button>
-      <span class="run-result" id="run-result"></span>
+    <div class="run-row">
+      <button onclick="runBot()" id="run-btn">Ejecutar bot</button>
+      <span class="run-info" id="run-result"></span>
     </div>
-    <h2>Habitaciones del hostel</h2>
-    <p style="color:#8b90a8;font-size:13px;margin-bottom:16px;">
-      Precios por cama/noche. El bot ajusta según ocupación de camas en esa habitación específica.
-    </p>
+    <p style="font-size:13px;color:#888;margin-bottom:16px;">Precio por cama/noche. El bot ajusta según ocupacion de esa habitacion especificamente.</p>
     <div class="units-grid" id="hostel-units"></div>
   </div>
 
-  <!-- ── APARTAMENTOS ── -->
+  <!-- APARTAMENTOS -->
   <div id="tab-apartments" class="tab-panel">
-    <div class="run-section">
-      <button class="btn btn-run" onclick="runBot()">▶ Ejecutar bot ahora</button>
-      <span class="run-result" id="run-result-apt"></span>
+    <div class="run-row">
+      <button onclick="runBot()">Ejecutar bot</button>
+      <span class="run-info" id="run-result-apt"></span>
     </div>
-    <h2>Apartamentos</h2>
-    <p style="color:#8b90a8;font-size:13px;margin-bottom:16px;">
-      Precio por noche (unidad completa). El bot considera Airbnb/Booking vía iCal al calcular ocupación.
-    </p>
+    <p style="font-size:13px;color:#888;margin-bottom:16px;">Precio por noche (unidad completa). El bot considera reservas de Airbnb/Booking via iCal al calcular ocupacion.</p>
     <div class="units-grid" id="apt-units"></div>
   </div>
 
-  <!-- ── FACTORES GLOBALES ── -->
+  <!-- FACTORES GLOBALES -->
   <div id="tab-global" class="tab-panel">
-    <h2>Factores globales del bot</h2>
-    <p style="color:#8b90a8;font-size:13px;margin-bottom:20px;">
-      Aplican a todas las unidades. Los precios mínimo/máximo se pueden sobreescribir por unidad en las tabs de Hostel y Apartamentos.
-    </p>
-    <div id="global-msg"></div>
-
     <div class="card">
-      <h3>Ocupación — tiers y ajustes (%)</h3>
+      <h2>Factores globales</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:16px;">Aplican a todas las unidades. Min/max pueden sobreescribirse por unidad en las tabs de Hostel y Apartamentos.</p>
+      <div id="global-msg"></div>
+
+      <p class="section-label">Ocupacion — tiers y ajustes (%)</p>
       <div class="config-grid" id="cfg-occ"></div>
-    </div>
 
-    <div class="card">
-      <h3>Proximidad — días hasta la fecha y ajustes (%)</h3>
+      <p class="section-label">Proximidad — dias hasta la fecha</p>
       <div class="config-grid" id="cfg-prox"></div>
-    </div>
 
-    <div class="card">
-      <h3>Día de semana</h3>
+      <p class="section-label">Dia de semana</p>
       <div class="config-grid" id="cfg-dow"></div>
-    </div>
 
-    <div class="card">
-      <h3>Precio global mínimo / máximo (fallback si la unidad no tiene override)</h3>
+      <p class="section-label">Precio global min / max (fallback si la unidad no tiene override)</p>
       <div class="config-grid" id="cfg-limits"></div>
-    </div>
 
-    <div class="card">
-      <h3>Horizonte</h3>
+      <p class="section-label">Horizonte</p>
       <div class="config-grid" id="cfg-horizon"></div>
-    </div>
 
-    <button class="btn btn-primary" onclick="saveConfig()">Guardar factores globales</button>
+      <button onclick="saveConfig()">Guardar factores globales</button>
+    </div>
   </div>
 
-  <!-- ── EVENTOS ── -->
+  <!-- EVENTOS -->
   <div id="tab-events" class="tab-panel">
-    <h2>Eventos con impacto en precio</h2>
-    <div id="events-msg"></div>
-    <div class="events-list" id="events-list"></div>
-
     <div class="card">
-      <h3>Nuevo evento</h3>
-      <div class="event-form" id="event-form">
-        <div>
-          <label>Nombre</label>
-          <input id="ev-name" placeholder="Rock in Rio 2026">
-        </div>
-        <div>
-          <label>Desde</label>
-          <input id="ev-from" type="date">
-        </div>
-        <div>
-          <label>Hasta</label>
-          <input id="ev-to" type="date">
-        </div>
-        <div>
-          <label>Ajuste %</label>
-          <input id="ev-adj" type="number" placeholder="50">
-        </div>
-        <div>
-          <label>Aplica a</label>
+      <h2>Eventos con impacto en precio</h2>
+      <div id="events-msg"></div>
+      <div id="events-list"></div>
+    </div>
+    <div class="card">
+      <h2>Nuevo evento</h2>
+      <div class="event-form-grid">
+        <div><label>Nombre</label><input id="ev-name" placeholder="Rock in Rio 2026"></div>
+        <div><label>Desde</label><input id="ev-from" type="date"></div>
+        <div><label>Hasta</label><input id="ev-to" type="date"></div>
+        <div><label>Ajuste %</label><input id="ev-adj" type="number" placeholder="50"></div>
+        <div><label>Aplica a</label>
           <select id="ev-applies">
             <option value="all">Todos</option>
             <option value="hostel">Hostel</option>
             <option value="apartment">Apartamentos</option>
           </select>
         </div>
-        <div>
-          <label>&nbsp;</label>
-          <button class="btn btn-primary" onclick="createEvent()">+ Agregar</button>
-        </div>
+        <div><label>&nbsp;</label><button onclick="createEvent()">Agregar</button></div>
       </div>
     </div>
   </div>
 
-  <!-- ── CALENDARIO ── -->
+  <!-- CALENDARIO -->
   <div id="tab-calendar" class="tab-panel">
-    <h2>Precios calculados</h2>
-    <div class="cal-filters">
-      <select id="cal-filter-type" onchange="loadCalendar()">
-        <option value="">Todos</option>
-        <option value="hostel">Hostel</option>
-        <option value="apartment">Apartamentos</option>
-      </select>
-      <select id="cal-filter-room" onchange="loadCalendar()">
-        <option value="">Todas las unidades</option>
-      </select>
-      <input id="cal-days" type="number" value="60" min="7" max="365" style="width:80px" onchange="loadCalendar()">
-      <label style="color:#8b90a8;font-size:13px;">días</label>
-      <button class="btn btn-sm btn-primary" onclick="loadCalendar()">Actualizar</button>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="cal-table">
-        <thead><tr>
-          <th>Fecha</th><th>Unidad</th><th>Tipo</th><th>Base</th><th>Final</th>
-          <th>Δ%</th><th>Ocup.</th><th>Evento</th>
-        </tr></thead>
-        <tbody id="cal-body"></tbody>
-      </table>
+    <div class="card">
+      <h2>Precios calculados</h2>
+      <div class="cal-filters">
+        <select id="cal-filter-type" onchange="loadCalendar()">
+          <option value="">Todos</option>
+          <option value="hostel">Hostel</option>
+          <option value="apartment">Apartamentos</option>
+        </select>
+        <select id="cal-filter-room" onchange="loadCalendar()">
+          <option value="">Todas las unidades</option>
+        </select>
+        <input id="cal-days" type="number" value="60" min="7" max="365" onchange="loadCalendar()">
+        <label>dias</label>
+        <button onclick="loadCalendar()">Actualizar</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Unidad</th><th>Tipo</th><th>Base</th><th>Final</th>
+            <th>Delta</th><th>Ocupacion</th><th>Evento</th>
+          </tr></thead>
+          <tbody id="cal-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-</div><!-- /page -->
+</main>
 
+<script src="/admin/js/api.js"></script>
+<script src="/admin/js/nav.js"></script>
 <script>
-const API = '/api/v1/admin/dynamic-pricing';
-let token = null;
+requireAuth();
+renderNav('dynamic-pricing');
+
+const DP = '/admin/dynamic-pricing';
 let cfg = {};
 let allUnits = [];
-
-function getToken() {
-  if (token) return token;
-  token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-  return token;
-}
-function authH() { return { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' }; }
-
-async function apiFetch(url, opts = {}) {
-  const r = await fetch(url, { headers: authH(), ...opts });
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.message || j.error || r.statusText);
-  return j.data ?? j;
-}
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
 
 function switchTab(name) {
-  document.querySelectorAll('.main-tab').forEach((b, i) => {
-    const tabs = ['hostel','apartments','global','events','calendar'];
-    b.classList.toggle('active', tabs[i] === name);
-  });
+  const tabs = ['hostel','apartments','global','events','calendar'];
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`tab-${name}`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
 }
 
 // ── Unidades ──────────────────────────────────────────────────────────────
 
 async function loadUnits() {
   try {
-    allUnits = await apiFetch(`${API}/unit-configs`);
+    allUnits = await apiFetch(DP + '/unit-configs');
     renderUnits('hostel', 'hostel-units');
     renderUnits('apartment', 'apt-units');
     populateRoomFilter();
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('loadUnits', e); }
 }
 
 function renderUnits(type, containerId) {
   const units = allUnits.filter(u => u.property_type === type);
-  const container = document.getElementById(containerId);
-  if (!units.length) { container.innerHTML = '<p style="color:#8b90a8">No hay unidades.</p>'; return; }
-  container.innerHTML = units.map(u => `
-    <div class="unit-card ${u.bot_enabled ? '' : 'disabled'}" id="uc-${u.room_type_id}">
-      <div class="unit-header">
-        <div>
-          <div class="unit-name">${u.room_name}</div>
-          <div class="unit-base">Precio base: R$ ${Number(u.base_price).toFixed(2)} ${type === 'hostel' ? '/cama' : '/noche'}</div>
-        </div>
-        <label class="toggle" title="Bot habilitado">
-          <input type="checkbox" ${u.bot_enabled ? 'checked' : ''} onchange="toggleUnit('${u.room_type_id}', this.checked)">
-          <span class="slider"></span>
-        </label>
-      </div>
+  const el = document.getElementById(containerId);
+  if (!units.length) { el.innerHTML = '<p style="color:#888">Sin unidades.</p>'; return; }
+  el.innerHTML = units.map(u => `
+    <div class="unit-card" id="uc-${u.room_type_id}">
+      <div class="unit-name">${u.room_name}</div>
+      <div class="unit-base">Precio base: R$ ${Number(u.base_price).toFixed(2)} ${type === 'hostel' ? '/cama' : '/noche'}</div>
+      <label class="unit-toggle">
+        <input type="checkbox" ${u.bot_enabled ? 'checked' : ''} onchange="toggleUnit('${u.room_type_id}', this.checked)">
+        Bot habilitado
+      </label>
       <div class="unit-fields">
-        <div class="field-group">
-          <label>Mínimo (BRL)</label>
-          <input type="number" id="min-${u.room_type_id}" value="${u.min_price_brl ?? ''}" placeholder="Global">
-          <div class="hint">Vacío = usar global</div>
-        </div>
-        <div class="field-group">
-          <label>Máximo (BRL)</label>
-          <input type="number" id="max-${u.room_type_id}" value="${u.max_price_brl ?? ''}" placeholder="Global">
-          <div class="hint">Vacío = usar global</div>
-        </div>
+        <div><label>Minimo (BRL)</label><input type="number" id="min-${u.room_type_id}" value="${u.min_price_brl ?? ''}" placeholder="Global"></div>
+        <div><label>Maximo (BRL)</label><input type="number" id="max-${u.room_type_id}" value="${u.max_price_brl ?? ''}" placeholder="Global"></div>
       </div>
-      <button class="save-unit-btn" onclick="saveUnit('${u.room_type_id}')">Guardar</button>
+      <button id="save-${u.room_type_id}" onclick="saveUnit('${u.room_type_id}')">Guardar</button>
     </div>
   `).join('');
 }
 
-async function saveUnit(roomTypeId) {
-  const btn = document.querySelector(`#uc-${roomTypeId} .save-unit-btn`);
-  const minVal = document.getElementById(`min-${roomTypeId}`).value;
-  const maxVal = document.getElementById(`max-${roomTypeId}`).value;
-  const unit   = allUnits.find(u => u.room_type_id === roomTypeId);
+async function saveUnit(id) {
+  const btn = document.getElementById('save-' + id);
+  const minVal = document.getElementById('min-' + id).value;
+  const maxVal = document.getElementById('max-' + id).value;
+  const unit   = allUnits.find(u => u.room_type_id === id);
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
   try {
-    btn.textContent = 'Guardando…';
-    await apiFetch(`${API}/unit-configs/${roomTypeId}`, {
+    await apiFetch(DP + '/unit-configs/' + id, {
       method: 'PUT',
       body: JSON.stringify({
         min_price_brl: minVal !== '' ? Number(minVal) : null,
         max_price_brl: maxVal !== '' ? Number(maxVal) : null,
-        bot_enabled:   unit?.bot_enabled ?? true,
+        bot_enabled: unit?.bot_enabled ?? true,
       }),
     });
-    btn.textContent = '✓ Guardado';
-    btn.classList.add('saved');
-    setTimeout(() => { btn.textContent = 'Guardar'; btn.classList.remove('saved'); }, 2000);
+    btn.textContent = 'Guardado';
     await loadUnits();
-  } catch(e) { btn.textContent = 'Error — ' + e.message; }
+  } catch(e) {
+    btn.textContent = 'Error';
+    console.error(e);
+  }
+  setTimeout(() => { btn.textContent = 'Guardar'; btn.disabled = false; }, 2000);
 }
 
-async function toggleUnit(roomTypeId, enabled) {
-  const minVal = document.getElementById(`min-${roomTypeId}`)?.value;
-  const maxVal = document.getElementById(`max-${roomTypeId}`)?.value;
+async function toggleUnit(id, enabled) {
+  const minVal = document.getElementById('min-' + id)?.value;
+  const maxVal = document.getElementById('max-' + id)?.value;
   try {
-    await apiFetch(`${API}/unit-configs/${roomTypeId}`, {
+    await apiFetch(DP + '/unit-configs/' + id, {
       method: 'PUT',
       body: JSON.stringify({
         min_price_brl: minVal && minVal !== '' ? Number(minVal) : null,
@@ -407,105 +260,94 @@ async function toggleUnit(roomTypeId, enabled) {
         bot_enabled: enabled,
       }),
     });
-    const card = document.getElementById(`uc-${roomTypeId}`);
-    if (card) card.classList.toggle('disabled', !enabled);
-    const u = allUnits.find(u => u.room_type_id === roomTypeId);
+    const u = allUnits.find(u => u.room_type_id === id);
     if (u) u.bot_enabled = enabled;
   } catch(e) { console.error(e); }
 }
 
 // ── Config global ─────────────────────────────────────────────────────────
 
-function renderConfigField(key, label, container) {
+function renderField(key, label, container) {
   const val = cfg[key] ?? '';
-  container.innerHTML += `
-    <div class="config-field">
-      <label>${label}</label>
-      <input type="number" id="cfg-${key}" value="${val}" step="any">
-    </div>`;
+  container.innerHTML += `<div><label>${label}</label><input type="number" step="any" id="cfg-${key}" value="${val}"></div>`;
 }
 
 async function loadConfig() {
   try {
-    cfg = await apiFetch(`${API}/config`);
-    const occ   = document.getElementById('cfg-occ');
-    const prox  = document.getElementById('cfg-prox');
-    const dow   = document.getElementById('cfg-dow');
-    const lim   = document.getElementById('cfg-limits');
-    const hor   = document.getElementById('cfg-horizon');
-    occ.innerHTML = prox.innerHTML = dow.innerHTML = lim.innerHTML = hor.innerHTML = '';
+    cfg = await apiFetch(DP + '/config');
+    const occ  = document.getElementById('cfg-occ');
+    const prox = document.getElementById('cfg-prox');
+    const dow  = document.getElementById('cfg-dow');
+    const lim  = document.getElementById('cfg-limits');
+    const hor  = document.getElementById('cfg-horizon');
+    [occ,prox,dow,lim,hor].forEach(el => el.innerHTML = '');
 
-    [['occ_tier_low_pct','Tier bajo (%)'],['occ_tier_mid_pct','Tier medio (%)'],
-     ['occ_tier_high_pct','Tier alto (%)'],['occ_tier_vhigh_pct','Tier muy alto (%)'],
-     ['occ_adj_low','Ajuste bajo (%)'],['occ_adj_mid','Ajuste medio (%)'],
-     ['occ_adj_high','Ajuste alto (%)'],['occ_adj_vhigh','Ajuste muy alto (%)'],
-     ['occ_adj_max','Ajuste máximo (%)']].forEach(([k,l]) => renderConfigField(k,l,occ));
+    [['occ_tier_low_pct','Tier bajo (%)'],['occ_tier_mid_pct','Tier medio (%)'],['occ_tier_high_pct','Tier alto (%)'],['occ_tier_vhigh_pct','Tier muy alto (%)'],
+     ['occ_adj_low','Ajuste bajo (%)'],['occ_adj_mid','Ajuste medio (%)'],['occ_adj_high','Ajuste alto (%)'],['occ_adj_vhigh','Ajuste muy alto (%)'],['occ_adj_max','Ajuste max (%)']
+    ].forEach(([k,l]) => renderField(k,l,occ));
 
-    [['prox_tier_far','Muy anticipado (días)'],['prox_tier_mid','Medio (días)'],
-     ['prox_tier_near','Próximo (días)'],['prox_tier_close','Cercano (días)'],
-     ['prox_adj_far','Ajuste anticipado (%)'],['prox_adj_mid','Ajuste medio (%)'],
-     ['prox_adj_near','Ajuste próximo (%)'],['prox_adj_close','Ajuste cercano (%)'],
-     ['prox_adj_lastmin','Last minute (%)']].forEach(([k,l]) => renderConfigField(k,l,prox));
+    [['prox_tier_far','Anticipado (dias)'],['prox_tier_mid','Medio (dias)'],['prox_tier_near','Proximo (dias)'],['prox_tier_close','Cercano (dias)'],
+     ['prox_adj_far','Ajuste anticipado (%)'],['prox_adj_mid','Ajuste medio (%)'],['prox_adj_near','Ajuste proximo (%)'],['prox_adj_close','Ajuste cercano (%)'],['prox_adj_lastmin','Last minute (%)']
+    ].forEach(([k,l]) => renderField(k,l,prox));
 
-    [['dow_adj_weekday','Lunes–jueves (%)'],['dow_adj_weekend','Viernes–domingo (%)']].forEach(([k,l]) => renderConfigField(k,l,dow));
-
-    [['price_min_brl','Mínimo global (BRL)'],['price_max_brl','Máximo global (BRL)']].forEach(([k,l]) => renderConfigField(k,l,lim));
-
-    [['horizon_days','Días de horizonte']].forEach(([k,l]) => renderConfigField(k,l,hor));
-  } catch(e) { console.error(e); }
+    [['dow_adj_weekday','Lun-Jue (%)'],['dow_adj_weekend','Vie-Dom (%)']].forEach(([k,l]) => renderField(k,l,dow));
+    [['price_min_brl','Min global (BRL)'],['price_max_brl','Max global (BRL)']].forEach(([k,l]) => renderField(k,l,lim));
+    [['horizon_days','Dias de horizonte']].forEach(([k,l]) => renderField(k,l,hor));
+  } catch(e) { console.error('loadConfig', e); }
 }
 
 async function saveConfig() {
   const data = {};
   document.querySelectorAll('[id^="cfg-"]').forEach(inp => {
-    const key = inp.id.replace('cfg-', '');
-    data[key] = Number(inp.value);
+    data[inp.id.replace('cfg-', '')] = Number(inp.value);
   });
   const msg = document.getElementById('global-msg');
   try {
-    await apiFetch(`${API}/config`, { method: 'PUT', body: JSON.stringify(data) });
+    await apiFetch(DP + '/config', { method: 'PUT', body: JSON.stringify(data) });
     cfg = { ...cfg, ...data };
-    msg.innerHTML = '<div class="msg msg-ok">✓ Configuración guardada</div>';
-    setTimeout(() => { msg.innerHTML = ''; }, 3000);
+    msg.innerHTML = '<div class="msg ok">Configuracion guardada</div>';
+    setTimeout(() => msg.innerHTML = '', 3000);
   } catch(e) {
-    msg.innerHTML = `<div class="msg msg-err">Error: ${e.message}</div>`;
+    msg.innerHTML = '<div class="msg error">Error: ' + e.message + '</div>';
   }
 }
 
 // ── Bot ───────────────────────────────────────────────────────────────────
 
 async function runBot() {
-  const els = ['run-result', 'run-result-apt'].map(id => document.getElementById(id));
-  els.forEach(el => { if(el) el.textContent = 'Ejecutando…'; });
+  const els = [document.getElementById('run-result'), document.getElementById('run-result-apt')];
+  els.forEach(el => el && (el.textContent = 'Ejecutando...'));
+  document.getElementById('run-btn').disabled = true;
   try {
-    const r = await apiFetch(`${API}/run`, { method: 'POST' });
-    const msg = `✓ ${r.processed} precios calculados (${r.errors} errores)`;
-    els.forEach(el => { if(el) el.textContent = msg; });
+    const r = await apiFetch(DP + '/run', { method: 'POST' });
+    const msg = r.processed + ' precios calculados (' + r.errors + ' errores)';
+    els.forEach(el => el && (el.textContent = msg));
     loadCalendar();
   } catch(e) {
-    els.forEach(el => { if(el) el.textContent = 'Error: ' + e.message; });
+    els.forEach(el => el && (el.textContent = 'Error: ' + e.message));
   }
+  document.getElementById('run-btn').disabled = false;
 }
 
 // ── Eventos ───────────────────────────────────────────────────────────────
 
 async function loadEvents() {
   try {
-    const events = await apiFetch(`${API}/events`);
+    const events = await apiFetch(DP + '/events');
     const list = document.getElementById('events-list');
-    if (!events.length) { list.innerHTML = '<p style="color:#8b90a8">No hay eventos.</p>'; return; }
+    if (!events.length) { list.innerHTML = '<p style="color:#888">Sin eventos.</p>'; return; }
     list.innerHTML = events.map(e => `
       <div class="event-row">
         <div class="ev-name">${e.name}</div>
-        <div class="ev-dates">${e.date_from} → ${e.date_to}</div>
+        <div class="ev-dates">${e.date_from} — ${e.date_to}</div>
         <div class="ev-adj">${e.adjustment_pct > 0 ? '+' : ''}${e.adjustment_pct}%</div>
-        <span class="badge badge-${e.applies_to === 'all' ? 'all' : e.applies_to === 'hostel' ? 'hostel' : 'apt'}">${e.applies_to}</span>
-        ${e.is_active ? '' : '<span class="badge badge-off">off</span>'}
-        <button class="btn btn-sm" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active ? 'Desactivar' : 'Activar'}</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteEvent('${e.id}')">✕</button>
+        <span class="badge">${e.applies_to}</span>
+        ${!e.is_active ? '<span class="badge" style="background:#f0f0f0;color:#999">inactivo</span>' : ''}
+        <button onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active ? 'Desactivar' : 'Activar'}</button>
+        <button onclick="deleteEvent('${e.id}')" style="color:var(--danger)">Eliminar</button>
       </div>
     `).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('loadEvents', e); }
 }
 
 async function createEvent() {
@@ -515,24 +357,24 @@ async function createEvent() {
   const adj  = document.getElementById('ev-adj').value;
   const apl  = document.getElementById('ev-applies').value;
   const msg  = document.getElementById('events-msg');
-  if (!name || !from || !to || !adj) { msg.innerHTML = '<div class="msg msg-err">Completá todos los campos.</div>'; return; }
+  if (!name || !from || !to || !adj) { msg.innerHTML = '<div class="msg error">Completa todos los campos.</div>'; return; }
   try {
-    await apiFetch(`${API}/events`, { method: 'POST', body: JSON.stringify({ name, date_from: from, date_to: to, adjustment_pct: Number(adj), applies_to: apl }) });
+    await apiFetch(DP + '/events', { method: 'POST', body: JSON.stringify({ name, date_from: from, date_to: to, adjustment_pct: Number(adj), applies_to: apl }) });
     ['ev-name','ev-from','ev-to','ev-adj'].forEach(id => document.getElementById(id).value = '');
-    msg.innerHTML = '<div class="msg msg-ok">✓ Evento creado</div>';
-    setTimeout(() => { msg.innerHTML = ''; }, 2000);
+    msg.innerHTML = '<div class="msg ok">Evento creado</div>';
+    setTimeout(() => msg.innerHTML = '', 2000);
     loadEvents();
-  } catch(e) { msg.innerHTML = `<div class="msg msg-err">Error: ${e.message}</div>`; }
+  } catch(e) { msg.innerHTML = '<div class="msg error">Error: ' + e.message + '</div>'; }
 }
 
 async function toggleEvent(id, active) {
-  try { await apiFetch(`${API}/events/${id}`, { method: 'PUT', body: JSON.stringify({ is_active: active }) }); loadEvents(); }
+  try { await apiFetch(DP + '/events/' + id, { method: 'PUT', body: JSON.stringify({ is_active: active }) }); loadEvents(); }
   catch(e) { alert(e.message); }
 }
 
 async function deleteEvent(id) {
-  if (!confirm('¿Eliminar evento?')) return;
-  try { await apiFetch(`${API}/events/${id}`, { method: 'DELETE' }); loadEvents(); }
+  if (!confirm('Eliminar evento?')) return;
+  try { await apiFetch(DP + '/events/' + id, { method: 'DELETE' }); loadEvents(); }
   catch(e) { alert(e.message); }
 }
 
@@ -550,48 +392,38 @@ function populateRoomFilter() {
 }
 
 async function loadCalendar() {
-  const days      = document.getElementById('cal-days').value || 60;
-  const typeFilter = document.getElementById('cal-filter-type').value;
-  const roomId    = document.getElementById('cal-filter-room').value;
-  const params    = new URLSearchParams({ days });
+  const days   = document.getElementById('cal-days').value || 60;
+  const type   = document.getElementById('cal-filter-type').value;
+  const roomId = document.getElementById('cal-filter-room').value;
+  const params = new URLSearchParams({ days });
   if (roomId) params.set('roomTypeId', roomId);
-
   try {
-    let entries = await apiFetch(`${API}/calendar?${params}`);
-    if (typeFilter) entries = entries.filter(e => e.property_type === typeFilter);
-
+    let rows = await apiFetch(DP + '/calendar?' + params);
+    if (type) rows = rows.filter(r => r.property_type === type);
     const tbody = document.getElementById('cal-body');
-    if (!entries.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:#8b90a8;padding:20px">Sin datos — ejecutá el bot primero.</td></tr>'; return; }
-
-    tbody.innerHTML = entries.map(e => {
-      const delta = e.base_price ? ((e.final_price - e.base_price) / e.base_price * 100).toFixed(1) : 0;
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:#888;padding:20px">Sin datos. Ejecuta el bot primero.</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => {
+      const delta = r.base_price ? ((r.final_price - r.base_price) / r.base_price * 100).toFixed(1) : 0;
       const sign  = delta > 0 ? '+' : '';
-      const cls   = delta > 0 ? 'price-up' : delta < 0 ? 'price-dn' : '';
-      const occ   = e.occupancy_pct ?? 0;
+      const cls   = delta > 0 ? 'price-up' : (delta < 0 ? 'price-dn' : '');
+      const occ   = r.occupancy_pct ?? 0;
       return `<tr>
-        <td>${e.target_date}</td>
-        <td>${e.room_name}</td>
-        <td><span class="badge badge-${e.property_type === 'hostel' ? 'hostel' : 'apt'}">${e.property_type}</span></td>
-        <td>R$ ${Number(e.base_price).toFixed(2)}</td>
-        <td><strong>R$ ${Number(e.final_price).toFixed(2)}</strong></td>
+        <td>${r.target_date}</td>
+        <td>${r.room_name}</td>
+        <td>${r.property_type}</td>
+        <td>R$ ${Number(r.base_price).toFixed(2)}</td>
+        <td><strong>R$ ${Number(r.final_price).toFixed(2)}</strong></td>
         <td class="${cls}">${sign}${delta}%</td>
-        <td>
-          <span class="occ-bar"><span class="occ-fill" style="width:${occ}%"></span></span>
-          ${occ}%
-        </td>
-        <td>${e.event_name ?? '—'}</td>
+        <td><span class="occ-bar"><span class="occ-fill" style="width:${occ}%"></span></span> ${occ}%</td>
+        <td>${r.event_name ?? '—'}</td>
       </tr>`;
     }).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('loadCalendar', e); }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderNav('dynamic-pricing');
-  checkAuth();
-  Promise.all([loadConfig(), loadUnits(), loadEvents(), loadCalendar()]);
-});
+Promise.all([loadConfig(), loadUnits(), loadEvents(), loadCalendar()]);
 </script>
 </body>
 </html>
