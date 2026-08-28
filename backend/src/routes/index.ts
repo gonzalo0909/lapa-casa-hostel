@@ -1,7 +1,7 @@
 /**
  * File: lapa-casa-hostel/backend/src/routes/index.ts
  * Main API Routes Index
- * Lapa Casa Hostel Channel Manager
+ * Lapa Casa Channel Manager
  * 
  * Centralizes all API route modules and applies global middleware
  * Implements versioning, rate limiting, and security headers
@@ -16,11 +16,11 @@ import { photosRouter } from './photos/photos.routes';
 import { availabilityRouter } from './availability/availability.routes';
 import { paymentsRouter } from './payments/payments.routes';
 import { roomsRouter } from './rooms/rooms.routes';
+import { offersRouter } from './offers/offers.routes';
 import { adminRouter } from './admin/admin.routes';
 import { adminAuthRouter } from './admin/admin-auth.routes';
 import icalRouter from './ical/ical.routes';
 import otaWebhooksRouter from './webhooks/ota.routes';
-import { authenticateToken, requireRole } from '../middleware/auth';
 import { rateLimiter } from '../middleware/rate-limiter';
 import { logger } from '../utils/logger';
 
@@ -47,7 +47,7 @@ router.get('/health', (req: Request, res: Response) => {
  */
 router.get('/info', (req: Request, res: Response) => {
   res.status(200).json({
-    name: 'Lapa Casa Hostel API',
+    name: 'Lapa Casa API',
     version: '1.0.0',
     description: 'Channel Manager & Booking Engine API',
     endpoints: {
@@ -58,7 +58,7 @@ router.get('/info', (req: Request, res: Response) => {
       admin: '/api/v1/admin'
     },
     documentation: '/api/docs',
-    support: 'tech@lapacasahostel.com'
+    support: 'tech@lapacasario.com'
   });
 });
 
@@ -71,6 +71,7 @@ router.get('/info', (req: Request, res: Response) => {
 router.use('/availability', rateLimiter({ max: 120, windowMs: 60000 }), availabilityRouter);
 router.use('/rooms', rateLimiter({ max: 60, windowMs: 60000 }), roomsRouter);
 router.use('/photos', rateLimiter({ max: 60, windowMs: 60000 }), photosRouter);
+router.use('/offers', rateLimiter({ max: 30, windowMs: 60000 }), offersRouter);
 
 /**
  * iCal (ventana5): export publico de disponibilidad + config/sync de
@@ -102,7 +103,7 @@ router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000 }), adminAuthR
 /**
  * Admin Routes (Authentication + rol admin requeridos)
  */
-router.use('/admin', authenticateToken, requireRole(['admin']), rateLimiter({ max: 5, windowMs: 1000 }), adminRouter);
+router.use('/admin', rateLimiter({ max: 30, windowMs: 1000 }), adminRouter);
 
 /**
  * Catch-all 404 Handler

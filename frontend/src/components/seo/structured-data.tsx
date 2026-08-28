@@ -3,7 +3,7 @@
 /**
  * Structured Data Component
  * 
- * Generates JSON-LD structured data for Lapa Casa Hostel.
+ * Generates JSON-LD structured data for Lapa Casa.
  * Improves search engine understanding and enables rich snippets.
  * 
  * @module components/seo/structured-data
@@ -20,18 +20,18 @@ interface StructuredDataProps {
 }
 
 /**
- * Organization structured data for Lapa Casa Hostel
+ * Organization structured data for Lapa Casa
  */
 export const OrganizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Hostel',
-  name: 'Lapa Casa Hostel',
+  name: 'Lapa Casa',
   description: 'Premium hostel in Santa Teresa, Rio de Janeiro specializing in group bookings',
-  url: 'https://lapacasahostel.com',
-  logo: 'https://lapacasahostel.com/images/logo.png',
-  image: 'https://lapacasahostel.com/images/hostel-exterior.jpg',
+  url: 'https://lapacasario.com',
+  logo: 'https://lapacasario.com/images/logo.png',
+  image: 'https://lapacasario.com/images/hostel-exterior.jpg',
   telephone: '+55-21-97715-7530',
-  email: 'info@lapacasahostel.com',
+  email: 'info@lapacasario.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Rua Silvio Romero 22',
@@ -91,8 +91,8 @@ export const OrganizationSchema = {
     }
   ],
   sameAs: [
-    'https://www.facebook.com/lapacasahostel',
-    'https://www.instagram.com/lapacasahostel',
+    'https://www.facebook.com/lapacasa',
+    'https://www.instagram.com/lapacasa',
     'https://www.booking.com/hotel/br/lapa-casa-hostel.html',
     'https://www.hostelworld.com/hostel/lapa-casa-hostel'
   ]
@@ -104,9 +104,9 @@ export const OrganizationSchema = {
 export const LocalBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',
-  '@id': 'https://lapacasahostel.com/#organization',
-  name: 'Lapa Casa Hostel',
-  image: 'https://lapacasahostel.com/images/hostel-exterior.jpg',
+  '@id': 'https://lapacasario.com/#organization',
+  name: 'Lapa Casa',
+  image: 'https://lapacasario.com/images/hostel-exterior.jpg',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Rua Silvio Romero 22',
@@ -139,19 +139,19 @@ export function generateRoomProductSchema(room: {
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: `${room.name} - Lapa Casa Hostel`,
+    name: `${room.name} - Lapa Casa`,
     description: `${room.capacity}-bed ${room.type} dormitory in Santa Teresa, Rio de Janeiro`,
-    image: `https://lapacasahostel.com/images/rooms/${room.id}.jpg`,
+    image: `https://lapacasario.com/images/rooms/${room.id}.jpg`,
     brand: {
       '@type': 'Brand',
-      name: 'Lapa Casa Hostel'
+      name: 'Lapa Casa'
     },
     offers: {
       '@type': 'Offer',
       price: room.basePrice.toFixed(2),
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
-      url: `https://lapacasahostel.com/rooms/${room.id}`,
+      url: `https://lapacasario.com/rooms/${room.id}`,
       priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     },
     aggregateRating: {
@@ -193,7 +193,7 @@ export function generateBreadcrumbSchema(breadcrumbs: Array<{ name: string; url:
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: `https://lapacasahostel.com${item.url}`
+      item: `https://lapacasario.com${item.url}`
     }))
   };
 }
@@ -212,7 +212,7 @@ export function generateReviewSchema(review: {
     '@type': 'Review',
     itemReviewed: {
       '@type': 'Hostel',
-      name: 'Lapa Casa Hostel'
+      name: 'Lapa Casa'
     },
     author: {
       '@type': 'Person',
@@ -243,12 +243,12 @@ export function generateEventSchema(event: {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.name,
-    description: event.description || 'Group event at Lapa Casa Hostel',
+    description: event.description || 'Group event at Lapa Casa',
     startDate: event.startDate,
     endDate: event.endDate,
     location: {
       '@type': 'Place',
-      name: event.location || 'Lapa Casa Hostel',
+      name: event.location || 'Lapa Casa',
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'Rua Silvio Romero 22',
@@ -263,10 +263,37 @@ export function generateEventSchema(event: {
       price: '60.00',
       priceCurrency: 'BRL',
       availability: 'https://schema.org/InStock',
-      url: 'https://lapacasahostel.com/booking'
+      url: 'https://lapacasario.com/booking'
     }
   };
 }
+
+/**
+ * Schema para la página de Apartamentos.
+ * SIN dirección física — solo área de servicio "Rio de Janeiro".
+ * Las direcciones de cada apartamento nunca aparecen en la web.
+ */
+export const ApartmentServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LodgingBusiness',
+  '@id': 'https://lapacasario.com/apartamentos#service',
+  name: 'Lapa Casa Apartamentos',
+  description: 'Apartamentos privados para aluguel temporário em diversas regiões do Rio de Janeiro',
+  url: 'https://lapacasario.com/apartamentos',
+  image: 'https://lapacasario.com/og-image.jpg',
+  telephone: '+55-21-97715-7530',
+  email: 'reservas@lapacasario.com',
+  // Área de servicio amplia — sin dirección específica de ningún apartamento
+  areaServed: {
+    '@type': 'City',
+    name: 'Rio de Janeiro',
+    addressCountry: 'BR',
+  },
+  priceRange: 'R$$ - R$$$',
+  sameAs: [
+    'https://www.instagram.com/lapacasa',
+  ],
+};
 
 /**
  * Generate WebSite schema with search action
@@ -274,18 +301,18 @@ export function generateEventSchema(event: {
 export const WebSiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  '@id': 'https://lapacasahostel.com/#website',
-  url: 'https://lapacasahostel.com',
-  name: 'Lapa Casa Hostel',
+  '@id': 'https://lapacasario.com/#website',
+  url: 'https://lapacasario.com',
+  name: 'Lapa Casa',
   description: 'Premium hostel specializing in group bookings in Santa Teresa, Rio de Janeiro',
   publisher: {
-    '@id': 'https://lapacasahostel.com/#organization'
+    '@id': 'https://lapacasario.com/#organization'
   },
   potentialAction: {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://lapacasahostel.com/search?q={search_term_string}'
+      urlTemplate: 'https://lapacasario.com/search?q={search_term_string}'
     },
     'query-input': 'required name=search_term_string'
   }

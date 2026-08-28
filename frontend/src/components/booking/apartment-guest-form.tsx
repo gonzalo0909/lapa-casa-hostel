@@ -6,18 +6,18 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Tag, MapPin, Check, X, AlertTriangle, KeyRound, DoorOpen, FileText,
   Ban, CigaretteOff, CreditCard, Lock, Zap, RotateCcw, ChevronDown, MessageCircle,
-  Users, ShieldCheck, Trash2,
+  Users, ShieldCheck, Trash2, Upload, Camera,
 } from 'lucide-react';
 import styles from './apartment-engine.module.css';
 import { CHECKIN_TIMES } from './apartment-engine.types';
 import { validateCPF, formatCPF, isEmailFmt, formatBRPhone, fmtDate } from './apartment-engine.utils';
 import type { ApartmentAvailability } from '@/types/global';
-import type { GuestForm, AptLocale, AdditionalGuest } from './apartment-engine.types';
+import type { GuestForm, AptLocale, AdditionalGuest, AppliedCoupon } from './apartment-engine.types';
 
 interface ApartmentGuestFormProps {
   locale: AptLocale;
@@ -37,6 +37,12 @@ interface ApartmentGuestFormProps {
   /** Acompañantes declarados (excluye al titular) */
   additionalGuests: AdditionalGuest[];
   onAdditionalGuestsChange: (guests: AdditionalGuest[]) => void;
+  /** Cupón de descuento aplicado (null = sin cupón) */
+  appliedCoupon?: AppliedCoupon | null;
+  onCouponApply?: (coupon: AppliedCoupon) => void;
+  onCouponRemove?: () => void;
+  /** Valida un código de cupón contra el backend → retorna { valid, discount_percent, label, ... } */
+  onValidateCoupon?: (code: string) => Promise<{ valid: boolean; discount_percent?: number; label?: string; code?: string; message?: string } | undefined>;
 }
 
 export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
@@ -56,11 +62,25 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onBack,
   additionalGuests,
   onAdditionalGuestsChange,
+  appliedCoupon,
+  onCouponApply,
+  onCouponRemove,
+  onValidateCoupon,
 }) => {
   const t = useTranslations('apartments');
 
   // ── Estado local ───────────────────────────────────────────────────────────
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  /** Fotos de documentos: [titular, acompanhante] */
+  const [docPhotos, setDocPhotos] = useState<[File | null, File | null]>([null, null]);
+  const photoInputTitular = useRef<HTMLInputElement>(null);
+  const photoInputCompanion = useRef<HTMLInputElement>(null);
+
+  // ── Estado del cupón de descuento ─────────────────────────────────────────
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   // ── Cálculos derivados de props (variables locales, no estado) ─────────────
   const totalPrice = selectedApartment.priceTotal;
@@ -69,6 +89,38 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   const depositAmount = selectedApartment.depositAmount;
   const depositPct = totalPrice > 0 ? Math.round((depositAmount / totalPrice) * 100) : 0;
   const isCarnaval = selectedApartment.seasonType === 'carnaval';
+
+  // Precio con descuento aplicado (si hay cupón)
+  const discountFactor = appliedCoupon ? 1 - appliedCoupon.discount_percent / 100 : 1;
+  const displayTotal = Math.round(totalPrice * discountFactor);
+  const displayDeposit = Math.round(depositAmount * discountFactor);
+  const discountAmount = totalPrice - displayTotal;
+
+  /** Valida el cupón ingresado contra el backend */
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) { return; }
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const result = await onValidateCoupon?.(code);
+      if (result?.valid && result.discount_percent) {
+        onCouponApply?.({
+          code: result.code ?? code,
+          label: result.label ?? code,
+          discount_percent: result.discount_percent,
+        });
+        setCouponInput('');
+        setCouponError(null);
+      } else {
+        setCouponError(result?.message ?? 'Código inválido');
+      }
+    } catch {
+      setCouponError('Error al validar el código');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const emailOk = guestForm.email ? isEmailFmt(guestForm.email) : null;
   const confirmEmailOk = guestForm.confirmEmail
@@ -91,7 +143,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     guestForm.fullName.trim() &&
     emailOk && confirmEmailOk && phoneOk &&
     (cpfOk === true) &&
-    guestForm.arrivalTime
+    guestForm.arrivalTime &&
+    termsAccepted
   );
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
@@ -101,7 +154,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
       checkin: fmtDate(checkIn, locale),
       checkout: fmtDate(checkOut, locale),
       nights,
-      total: totalPrice.toLocaleString('pt-BR'),
+      total: displayTotal.toLocaleString('pt-BR'),
     })
   );
 
@@ -181,11 +234,70 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             <span>{nights}</span>
           </div>
           {/* Season row removed: price already shows total, no need to expose internal multipliers */}
+          {appliedCoupon && (
+            <>
+              <div className={styles.summaryRow} style={{ color: 'var(--text-muted, #666)' }}>
+                <span>Precio original</span>
+                <span style={{ textDecoration: 'line-through' }}>R$ {totalPrice.toLocaleString('pt-BR')}</span>
+              </div>
+              <div className={styles.summaryRow} style={{ color: '#16a34a', fontWeight: 600 }}>
+                <span>🏷️ {appliedCoupon.label} ({appliedCoupon.discount_percent}% off)</span>
+                <span>−R$ {discountAmount.toLocaleString('pt-BR')}</span>
+              </div>
+            </>
+          )}
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
             <span>{t('total')}</span>
-            <span className={styles.totalPrice}>R$ {totalPrice.toLocaleString('pt-BR')}</span>
+            <span className={styles.totalPrice}>R$ {displayTotal.toLocaleString('pt-BR')}</span>
           </div>
         </div>
+
+        {/* ── Cupón de descuento ──────────────────────────────────────────── */}
+        {onValidateCoupon && (
+          <div style={{ marginTop: '12px', borderTop: '1px solid var(--border, #e5e7eb)', paddingTop: '12px' }}>
+            {appliedCoupon ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>
+                  🏷️ Código <code style={{ background: '#dcfce7', padding: '1px 6px', borderRadius: '4px', fontSize: '12px' }}>{appliedCoupon.code}</code> aplicado
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { onCouponRemove?.(); setCouponError(null); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', fontSize: '18px', lineHeight: 1, padding: '0 2px' }}
+                  aria-label="Quitar cupón"
+                >×</button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #6b7280)', marginBottom: '6px' }}>
+                  ¿Tenés un código de descuento?
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                    placeholder="CÓDIGO"
+                    disabled={couponLoading}
+                    style={{ flex: 1, padding: '8px 12px', border: `1px solid ${couponError ? '#fca5a5' : 'var(--border, #e5e7eb)'}`, borderRadius: '6px', fontSize: '13px', fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: (couponLoading || !couponInput.trim()) ? 0.6 : 1 }}
+                  >
+                    {couponLoading ? '…' : 'Aplicar'}
+                  </button>
+                </div>
+                {couponError && (
+                  <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '5px' }}>{couponError}</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Teaser de ubicación */}
@@ -334,7 +446,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             />
           </div>
 
-          {/* Documento (CPF o pasaporte) */}
+          {/* Documento (CPF, pasaporte o doc. estrangeiro) */}
           <div className={styles.formField}>
             <label htmlFor="apt-guest-document">
               {t('documentLabel')} <span className={styles.req}>*</span>
@@ -342,8 +454,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             <input
               id="apt-guest-document"
               type="text"
-              placeholder="000.000.000-00"
-              maxLength={14}
+              placeholder={t('documentPlaceholder')}
+              maxLength={20}
               autoComplete="off"
               value={guestForm.document}
               onChange={(e) =>
@@ -451,8 +563,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                     <div className={styles.guestDeclDocWrap}>
                       <input
                         type="text"
-                        placeholder="000.000.000-00"
-                        maxLength={14}
+                        placeholder={t('documentPlaceholder')}
+                        maxLength={20}
                         value={g.document}
                         onChange={(e) => updateAdditionalGuest(idx, 'document', e.target.value)}
                         className={`${styles.guestDeclInput} ${
@@ -495,6 +607,78 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             </div>
           </div>
         )}
+
+        {/* ── Upload de foto do documento (até 2 pessoas) ──────────────── */}
+        <div className={styles.docUploadSection}>
+          <div className={styles.docUploadTitle}>
+            <Camera size={15} /> {t('docUploadTitle')}
+          </div>
+          <p className={styles.docUploadNote}>{t('docUploadNote')}</p>
+
+          <div className={styles.docUploadSlots}>
+            {/* Slot 1 — Titular */}
+            {([0, 1] as const).map((slot) => {
+              const isCompanion = slot === 1;
+              const inputRef = isCompanion ? photoInputCompanion : photoInputTitular;
+              const file = docPhotos[slot];
+              return (
+                <div key={slot} className={`${styles.docUploadSlot} ${file ? styles.docUploadSlotFilled : ''}`}>
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                    className={styles.docUploadInput}
+                    onChange={(e) => {
+                      const picked = e.target.files?.[0] ?? null;
+                      setDocPhotos((prev) => {
+                        const next: [File | null, File | null] = [...prev] as [File | null, File | null];
+                        next[slot] = picked;
+                        return next;
+                      });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className={styles.docUploadBtn}
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    {file ? (
+                      <>
+                        <Check size={15} className={styles.docUploadCheckIcon} />
+                        <span className={styles.docUploadFileName}>{file.name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={15} />
+                        <span>
+                          {isCompanion ? t('docUploadCompanion') : t('docUploadTitular')}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  {file && (
+                    <button
+                      type="button"
+                      className={styles.docUploadClear}
+                      onClick={() =>
+                        setDocPhotos((prev) => {
+                          const next: [File | null, File | null] = [...prev] as [File | null, File | null];
+                          next[slot] = null;
+                          return next;
+                        })
+                      }
+                      aria-label={t('removeGuest')}
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p className={styles.docUploadFormats}>{t('docUploadFormats')}</p>
+        </div>
 
         {/* Reglas de la casa */}
         <div className={styles.rulesConfirm}>
@@ -543,7 +727,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                 <div className={styles.pmDetail}>
                   {t.rich('pixDepositDetail', {
                     b: (chunks) => <strong>{chunks}</strong>,
-                    amount: depositAmount.toLocaleString('pt-BR'),
+                    amount: displayDeposit.toLocaleString('pt-BR'),
                   })}
                 </div>
               </div>
@@ -589,7 +773,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                   <span>{t.rich('cancelFull', { b: (chunks) => <strong>{chunks}</strong> })}</span>
                 </div>
                 <div className={styles.cancelRow}>
-                  <span className={`${styles.cancelBadge} ${styles.cancelBadgeAmber}`}>50%</span>
+                  <span className={`${styles.cancelBadge} ${styles.cancelBadgeAmber}`}>{t('cancelPartialBadge')}</span>
                   <span>{t.rich('cancelPartial', { b: (chunks) => <strong>{chunks}</strong> })}</span>
                 </div>
                 <div className={styles.cancelRow}>
@@ -603,12 +787,41 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           )}
         </div>
 
+        {/* Aceite dos Termos de Reserva */}
+        <div className={styles.termsAccept}>
+          <label className={styles.termsAcceptLabel}>
+            <input
+              type="checkbox"
+              className={styles.termsAcceptCheckbox}
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+            />
+            <span>
+              {t.rich('termsAcceptText', {
+                link: (chunks) => (
+                  <a
+                    href="/termos-hospede"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.termsAcceptLink}
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </span>
+          </label>
+          {!termsAccepted && (
+            <p className={styles.termsAcceptHint}>{t('termsAcceptHint')}</p>
+          )}
+        </div>
+
         {/* Botón Confirmar y pagar */}
         <button
           type="button"
           className={styles.btnReserve}
           onClick={onReserve}
-          disabled={isCreatingBooking}
+          disabled={isCreatingBooking || !canReserve}
         >
           {isCreatingBooking ? t('creatingBooking') : `${t('confirmAndPay')} →`}
         </button>
