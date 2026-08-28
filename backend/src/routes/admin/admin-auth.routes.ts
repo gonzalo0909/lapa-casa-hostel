@@ -43,12 +43,12 @@ router.post('/', async (req, res, next) => {
 
     const payload = {
       userId: 'admin',
-      email: process.env.ADMIN_EMAIL || 'admin@lapacasahostel.com',
+      email: process.env.ADMIN_EMAIL || 'admin@lapacasario.com',
       role: 'admin' as const
     };
 
-    const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '24h');
-    const refreshToken = generateToken(payload, process.env.REFRESH_TOKEN_EXPIRES_IN || '7d');
+    const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '90d');
+    const refreshToken = generateToken(payload, process.env.REFRESH_TOKEN_EXPIRES_IN || '90d');
 
     logger.info('Login admin exitoso');
 
@@ -59,13 +59,13 @@ router.post('/', async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 24h en ms
+      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 dias en ms
       path: '/',
     });
 
     res.status(200).json(
       ApiResponse.success(
-        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
+        { token, refreshToken, expiresIn: process.env.JWT_EXPIRES_IN || '90d' },
         'Login exitoso'
       )
     );

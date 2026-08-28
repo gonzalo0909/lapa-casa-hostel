@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
   Building2, Landmark, Home, Palette, Mountain, Music, Leaf, Building,
   Sparkles, Clapperboard, Calendar, AlertTriangle,
@@ -67,6 +68,7 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
 }) => {
   const t = useTranslations('apartments');
   const tc = useTranslations('common');
+  const currency = useCurrency();
   const [calOpen, setCalOpen] = useState(false);
   const [photoIdx, setPhotoIdx] = useState(0);
   const isSelectable = !disabledReason;
@@ -140,6 +142,15 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
               </div>
             )}
             <div className={styles.cardCapacity}>{t('cardCapacity', { count: apartment.capacity })}</div>
+            {apartment.externalRating != null && (
+              <div className={styles.cardExternalRating}>
+                ⭐ {apartment.externalRating.toFixed(1)}
+                {apartment.externalReviewCount != null && (
+                  <span> · {apartment.externalReviewCount} reseñas</span>
+                )}
+                <span> · {apartment.externalRatingLabel ?? 'plataformas internacionales'}</span>
+              </div>
+            )}
             {disabledReason === 'too-small' && (
               <div className={styles.cardCapacityWarn}><AlertTriangle size={12} /> {t('maxCapacity', { count: apartment.capacity })}</div>
             )}
@@ -156,7 +167,12 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
               <div className={styles.priceDivider} />
               <div className={styles.priceRow}>
                 <span className={styles.nightsLabel}>{nights} {nights !== 1 ? t('nights') : t('night')}</span>
-                <span className={styles.priceTotal}>R$ {apartment.priceTotal.toLocaleString('pt-BR')}</span>
+                <span className={styles.priceTotal}>
+                  R$ {apartment.priceTotal.toLocaleString('pt-BR')}
+                  {currency && (
+                    <span className={styles.priceConv}>{convertBRL(apartment.priceTotal, currency)}</span>
+                  )}
+                </span>
               </div>
             </>
           )}

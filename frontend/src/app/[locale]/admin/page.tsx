@@ -10,6 +10,7 @@ import { DateBlocking } from '@/components/admin/date-blocking';
 import ICalSettings from '@/components/admin/ical-settings';
 import { ApartmentOffers } from '@/components/admin/apartment-offers';
 import { ApartmentPhotos } from '@/components/admin/apartment-photos';
+import { DynamicPricing } from '@/components/admin/dynamic-pricing';
 import { api, handleAPIError } from '@/lib/api';
 
 /**
@@ -25,7 +26,7 @@ import { api, handleAPIError } from '@/lib/api';
  * Login vía POST /admin/login (admin-auth.routes.ts, requiere ADMIN_PASSWORD_HASH en backend).
  */
 
-type Tab = 'dashboard' | 'pricing' | 'blocking' | 'ical' | 'offers' | 'photos';
+type Tab = 'dashboard' | 'pricing' | 'offers' | 'blocking' | 'ical' | 'photos' | 'dynamic-pricing';
 
 export default function AdminPage({
   params,
@@ -45,7 +46,7 @@ export default function AdminPage({
 
   // Check localStorage on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
     setIsLoggedIn(!!token);
   }, []);
 
@@ -54,11 +55,17 @@ export default function AdminPage({
     setLoginError(null);
     setIsLoggingIn(true);
     try {
-      // POST /api/v1/admin/login → {success, data: {token, refreshToken, expiresIn}}
+      // POST /api/v1/admin/login → {success, data: {token, expiresIn}}
+      // El token puede venir en el body o sólo como cookie httpOnly.
+      // En ambos casos la respuesta es HTTP 200 → login exitoso.
       const res = await api.post('/admin/login', { password });
       const token = res.data?.token as string | undefined;
-      if (!token) { throw new Error('Token não recebido'); }
-      localStorage.setItem('token', token);
+      if (token) {
+        localStorage.setItem('admin_token', token);
+      } else {
+        // Sin token en body (cookie-only): marcamos sesión con un flag
+        localStorage.setItem('admin_token', 'cookie-session');
+      }
       setPassword('');
       setIsLoggedIn(true);
     } catch (err) {
@@ -69,6 +76,7 @@ export default function AdminPage({
   }, [password, locale]);
 
   const handleLogout = useCallback(() => {
+    localStorage.removeItem('admin_token');
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setActiveTab('dashboard');
@@ -77,6 +85,7 @@ export default function AdminPage({
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'dashboard', label: t('dashboard'), icon: '📊' },
     { id: 'pricing', label: t('pricing'), icon: '💰' },
+    { id: 'dynamic-pricing', label: 'Precios Din.', icon: '🤖' },
     { id: 'offers', label: 'Ofertas', icon: '🏷️' },
     { id: 'blocking', label: t('dateBlocking'), icon: '🔒' },
     { id: 'ical', label: t('ical'), icon: '📅' },
@@ -90,8 +99,8 @@ export default function AdminPage({
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
             <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
-              Lapa Casa Hostel
-            </p>
+              Lapa Casa
+</p>
             <h1 className="text-2xl font-display font-bold text-foreground">Admin</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Acesso restrito — insira a senha de administrador
@@ -150,7 +159,7 @@ export default function AdminPage({
       <div className="flex items-center justify-between mb-8">
         <div>
           <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-1">
-            Lapa Casa Hostel
+            Lapa Casa
           </p>
           <h1 className="text-2xl font-display font-bold text-foreground">Admin</h1>
         </div>
@@ -188,6 +197,7 @@ export default function AdminPage({
         {activeTab === 'blocking' && <DateBlocking locale={locale} />}
         {activeTab === 'ical' && <ICalSettings />}
         {activeTab === 'photos' && <ApartmentPhotos />}
+        {activeTab === 'dynamic-pricing' && <DynamicPricing />}
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 /**
  * API Client Library
  * 
- * HTTP client for Lapa Casa Hostel backend API.
+ * HTTP client for Lapa Casa backend API.
  * Handles requests, responses, errors, and authentication.
  * 
  * @module lib/api
@@ -89,8 +89,18 @@ async function request<T = any>(
     ...headers
   };
 
-  if (token) {
-    requestHeaders['Authorization'] = `Bearer ${token}`;
+  // Agrega Bearer token si se pasa explícitamente, o si el endpoint es admin
+  // y hay un token guardado en localStorage (evita pasar el flag 'cookie-session').
+  const resolvedToken = token ?? (
+    endpoint.startsWith('/admin') && typeof window !== 'undefined'
+      ? (() => {
+          const t = localStorage.getItem('admin_token') || localStorage.getItem('token');
+          return t && t !== 'cookie-session' ? t : undefined;
+        })()
+      : undefined
+  );
+  if (resolvedToken) {
+    requestHeaders['Authorization'] = `Bearer ${resolvedToken}`;
   }
 
   const requestOptions: RequestInit = {
@@ -160,6 +170,16 @@ async function request<T = any>(
 }
 
 /**
+ * Devuelve el token de admin guardado en localStorage (si existe y no es el flag de cookie-session).
+ * Los componentes del panel admin llaman getAdminToken() para incluirlo como Bearer header.
+ */
+export function getAdminToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const t = localStorage.getItem('admin_token') || localStorage.getItem('token');
+  return t && t !== 'cookie-session' ? t : undefined;
+}
+
+/**
  * API client object
  */
 export const api = {
@@ -222,9 +242,11 @@ export const bookingAPI = {
     }>;
     specialRequests?: string;
     arrivalTime?: string;
-    language?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+    language?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
     source?: string;
     guestGender?: 'mixed' | 'female';
+    /** Código de oferta/cupón de descuento (apartamentos). */
+    offerCode?: string;
   }) => api.post('/bookings', data),
 
   /**
@@ -325,7 +347,19 @@ export const paymentAPI = {
   /**
    * Full payment history for a reservation
    */
-  getByReservation: (reservationId: string) => api.get(`/payments/reservation/${reservationId}`)
+  getByReservation: (reservationId: string) => api.get(`/payments/reservation/${reservationId}`),
+
+  /**
+   * Crea una Stripe Checkout Session (pago con tarjeta) y devuelve la URL de pago
+   */
+  stripeCheckout: (reservationId: string, frontendUrl: string) =>
+    api.post('/payments/stripe-checkout', { reservationId, frontendUrl }),
+
+  /**
+   * Genera un link de Stripe para el flujo WhatsApp (sin reserva previa)
+   */
+  stripeWaLink: (amountBRL: number, description: string, guestEmail?: string, frontendUrl?: string) =>
+    api.post('/payments/stripe-wa-link', { amountBRL, description, guestEmail, frontendUrl }),
 };
 
 /**
@@ -355,6 +389,15 @@ export const roomsAPI = {
  */
 export const photosAPI = {
   list: () => api.get('/photos')
+};
+
+/**
+ * Offers API — validación pública de códigos de descuento de apartamentos.
+ * Ruta pública: POST /api/v1/offers/validate
+ */
+export const offersAPI = {
+  validate: (code: string, apartmentId: string, checkIn: string) =>
+    api.post('/offers/validate', { code, apartmentId, checkIn }),
 };
 
 /**

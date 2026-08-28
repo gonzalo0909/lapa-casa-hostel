@@ -28,9 +28,18 @@ import { adminPhotosRouter } from './photos.routes';
 import { adminBlockedDatesRouter } from './blocked-dates.routes';
 import { roomTypePhotosRouter } from './room-type-photos.routes';
 import { apartmentOwnersRouter } from './apartment-owners.routes';
+import { dynamicPricingRouter } from './dynamic-pricing.routes';
 import type { BookingWithGuest } from '../../services/email-service';
 
 const router = Router();
+
+/**
+ * GET /admin/me — verificacion de sesion (checkSession en api.js).
+ * Sin auth requerida: el panel admin no exige contraseña.
+ */
+router.get('/me', (_req, res) => {
+  res.json(ApiResponse.success({ role: 'admin' }));
+});
 
 /**
  * /admin/conflicts — detalle + resolucion manual agregados en Ventana 5
@@ -59,6 +68,11 @@ router.use('/room-types', roomTypePhotosRouter);
  * /admin/apartment-owners — administradores de apartamentos con Stripe Connect
  */
 router.use('/apartment-owners', apartmentOwnersRouter);
+
+/**
+ * /admin/dynamic-pricing — bot de precios dinámicos (config, eventos, calendario)
+ */
+router.use('/dynamic-pricing', dynamicPricingRouter);
 
 /**
  * GET /admin/dashboard — KPIs del mes actual
