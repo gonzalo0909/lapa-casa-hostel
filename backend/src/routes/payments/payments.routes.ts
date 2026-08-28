@@ -13,6 +13,7 @@ import markReceivedAtDeskRouter from './mark-received-at-desk';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
 import { stripeHandler } from '../../lib/payments/stripe-handler';
+import { groupPaymentService } from '../../services/group-payment-service';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 
@@ -107,6 +108,97 @@ router.post('/confirm', confirmPaymentHandler);
 
 // POST /payments/deposit
 router.post('/deposit', processDepositHandler);
+
+// ── Pago Grupal (Feature 2) ──────────────────────────────────────────────────
+
+// POST /payments/group-session — el titular crea la sesión grupal
+router.post('/group-session', async (req, res, next) => {
+  try {
+    const {
+      checkIn, checkOut, totalBeds, nights, guestGender,
+      titular, specialRequests, appBaseUrl
+    } = req.body as {
+      checkIn: string; checkOut: string; totalBeds: number; nights: number;
+      guestGender?: 'mixed' | 'female' | 'male';
+      titular: { full_name: string; email: string; phone?: string; country?: string; language?: string };
+      specialRequests?: string;
+      appBaseUrl?: string;
+    };
+
+    if (!checkIn || !checkOut || !totalBeds || !nights || !titular?.full_name || !titular?.email) {
+      res.status(400).json(ApiResponse.error('checkIn, checkOut, totalBeds, nights y titular son requeridos'));
+      return;
+    }
+    if (totalBeds < 2) {
+      res.status(400).json(ApiResponse.error('El pago grupal requiere al menos 2 camas'));
+      return;
+    }
+
+    const baseUrl = appBaseUrl || process.env.FRONTEND_URL || process.env.APP_URL || 'https://lapacasario.com';
+    const result = await groupPaymentService.createGroupSession({
+      checkIn, checkOut, totalBeds, nights,
+      guestGender: guestGender ?? 'mixed',
+      titular, specialRequests, appBaseUrl: baseUrl,
+    });
+
+    logger.info('Sesión de pago grupal creada', {
+      sessionId: result.sessionId, token: result.token, totalBeds,
+    });
+    res.status(201).json(ApiResponse.success(result, 'Sesión de pago grupal creada'));
+  } catch (error) {
+    logger.error('Error al crear sesión de pago grupal', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    next(error);
+  }
+});
+
+// GET /payments/group/:token — estado público de la sesión (sin auth)
+router.get('/group/:token', async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const status = await groupPaymentService.getSessionStatus(token);
+    if (!status.found) {
+      res.status(404).json(ApiResponse.error('Sesión de pago no encontrada'));
+      return;
+    }
+    res.status(200).json(ApiResponse.success(status, 'Estado de sesión grupal'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /payments/group/:token/pay — un miembro inicia su pago
+router.post('/group/:token/pay', async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { guest, paymentMethod } = req.body as {
+      guest: { full_name: string; email: string; phone?: string; country?: string; language?: string };
+      paymentMethod: 'card' | 'pix';
+    };
+
+    if (!guest?.full_name || !guest?.email) {
+      res.status(400).json(ApiResponse.error('Nombre y email son requeridos'));
+      return;
+    }
+    if (!['card', 'pix'].includes(paymentMethod)) {
+      res.status(400).json(ApiResponse.error('paymentMethod debe ser "card" o "pix"'));
+      return;
+    }
+
+    const result = await groupPaymentService.initiateMemberPayment({ token, guest, paymentMethod });
+    logger.info('Pago de miembro grupal iniciado', { token, memberId: result.memberId, paymentMethod });
+    res.status(200).json(ApiResponse.success(result, 'Pago iniciado'));
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    if (msg.includes('expiró') || msg.includes('cerrada') || msg.includes('todas las camas')) {
+      res.status(409).json(ApiResponse.error(msg));
+      return;
+    }
+    logger.error('Error al iniciar pago de miembro grupal', { error: msg });
+    next(error);
+  }
+});
 
 // POST /payments/release-deposit — libera el 25% retenido al admin del apt (solo admin)
 router.use('/release-deposit', releaseDepositRouter);
