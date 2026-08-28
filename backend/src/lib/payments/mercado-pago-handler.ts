@@ -31,6 +31,7 @@ interface MPRefundInput {
 interface MPPaymentStatus {
   id: string;
   status: string;
+  metadata?: Record<string, any>;
 }
 
 export class MercadoPagoPaymentHandler {
@@ -133,7 +134,7 @@ export class MercadoPagoPaymentHandler {
     });
     if (!resp.ok) throw new Error(`MercadoPago getPayment error: ${resp.status}`);
     const data: any = await resp.json();
-    return { id: data.id.toString(), status: data.status };
+    return { id: data.id.toString(), status: data.status, metadata: data.metadata ?? {} };
   }
 
   async verifyPayment(paymentId: string): Promise<boolean> {

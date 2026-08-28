@@ -619,10 +619,11 @@ export class GroupPaymentService {
     const member = memberRows[0];
     if (member.status === 'paid') return { reservationConfirmed: false };
 
-    // Marcar miembro como pagado + asignar bed_id si viene del webhook
+    // Marcar miembro como pagado, guardar provider_payment_id y (opcionalmente) bed_id
     await query(
       `UPDATE group_payment_members
        SET status = 'paid', paid_at = now(),
+           provider_payment_id = $2,
            ${params.bedId ? 'bed_id = $3::uuid,' : ''}
            updated_at = now()
        WHERE id = $1`,
@@ -687,10 +688,9 @@ export class GroupPaymentService {
         const { rows: paidMembers } = await query<{
           payment_method: string; provider_payment_id: string; amount_charged: string;
         }>(
-          `SELECT m.payment_method, p.provider_payment_id, m.amount_charged
-           FROM group_payment_members m
-           LEFT JOIN payments p ON p.id = m.payment_id
-           WHERE m.session_id = $1 AND m.status = 'paid'`,
+          `SELECT payment_method, provider_payment_id, amount_charged
+           FROM group_payment_members
+           WHERE session_id = $1 AND status = 'paid'`,
           [session.id]
         );
 

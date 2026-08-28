@@ -284,8 +284,24 @@ export class PaymentService {
 
   async handleStripeWebhook(event: Stripe.Event): Promise<void> {
     switch (event.type) {
+      case 'checkout.session.completed': {
+        // Pago grupal: el checkout de Stripe lleva member_id y group_session_id en metadata
+        const cs = event.data.object as Stripe.Checkout.Session;
+        const memberId = cs.metadata?.member_id;
+        const groupSessionId = cs.metadata?.group_session_id;
+        if (memberId && groupSessionId) {
+          const providerPaymentId = (cs.payment_intent as string) ?? cs.id;
+          const { groupPaymentService } = await import('./group-payment-service');
+          await groupPaymentService.confirmMemberPayment({ memberId, providerPaymentId }).catch(err => {
+            logger.warn('confirmMemberPayment Stripe ignorado', { memberId, err: err.message });
+          });
+        }
+        break;
+      }
       case 'payment_intent.succeeded': {
         const pi = event.data.object as Stripe.PaymentIntent;
+        // Pago grupal puede llegar también via payment_intent si el Checkout ya lo confirmó;
+        // el check idempotente interno de confirmMemberPayment lo maneja.
         await this.confirmPayment(pi.id).catch(err => {
           logger.warn('confirmPayment en webhook ignorado', { id: pi.id, err: err.message });
         });
@@ -306,9 +322,21 @@ export class PaymentService {
     if (data.type === 'payment' && data.data?.id) {
       const mpPayment = await this.mpHandler.getPayment(data.data.id.toString());
       if (mpPayment.status === 'approved') {
-        await this.confirmPayment(mpPayment.id).catch(err => {
-          logger.warn('confirmPayment MP webhook ignorado', { id: mpPayment.id, err: err.message });
-        });
+        // Pago grupal: la metadata incluye member_id (group-payment-service.ts)
+        const memberId = mpPayment.metadata?.member_id as string | undefined;
+        if (memberId) {
+          const { groupPaymentService } = await import('./group-payment-service');
+          await groupPaymentService.confirmMemberPayment({
+            memberId,
+            providerPaymentId: mpPayment.id,
+          }).catch(err => {
+            logger.warn('confirmMemberPayment MP ignorado', { memberId, err: err.message });
+          });
+        } else {
+          await this.confirmPayment(mpPayment.id).catch(err => {
+            logger.warn('confirmPayment MP webhook ignorado', { id: mpPayment.id, err: err.message });
+          });
+        }
       }
     }
   }
