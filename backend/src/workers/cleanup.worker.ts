@@ -6,6 +6,7 @@ import { getQueueConnection } from '../queues/connection';
 import { query } from '../config/database';
 import bookingRepo from '../database/repositories/booking-repository';
 import { notificationService } from '../services/notification-service';
+import { groupPaymentService } from '../services/group-payment-service';
 import { logger } from '../utils/logger';
 import type { BookingWithGuest } from '../services/email-service';
 
@@ -76,6 +77,9 @@ export function startCleanupWorker(): Worker {
       await query('CALL sp_release_no_show()');
       await notifyPendingNoShows();
       await notifyExpiredPending();
+      // Feature 2: cancelar sesiones de pago grupal expiradas (timer 30 min)
+      const cancelled = await groupPaymentService.cancelExpiredSessions();
+      if (cancelled > 0) logger.info('Sesiones grupales expiradas canceladas', { count: cancelled });
       logger.info('cleanup worker completado', { ms: Date.now() - start });
     },
     { connection: getQueueConnection() }

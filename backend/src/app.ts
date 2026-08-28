@@ -98,6 +98,14 @@ app.use(metricsMiddleware);
 // real vive en las rutas de la API (authenticateToken + requireRole).
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
+// Feature 2: página pública de pago grupal -- sin auth, la protección
+// real está en el token único de cada sesión (64 bytes hex, ~255 bits de
+// entropía) y en los checks internos del servicio (expiración, estado).
+app.use('/group-payment', express.static(path.join(__dirname, 'public'), { index: false }));
+app.get('/group-payment/:token', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'group-payment.html'));
+});
+
 app.get('/health', async (req: Request, res: Response) => {
   try {
     const { testConnection } = await import('@/config/database');

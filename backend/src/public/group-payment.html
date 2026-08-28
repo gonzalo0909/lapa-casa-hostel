@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago Grupal — Lapa Casa Hostel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* Banner */
+    .banner {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .banner h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .banner p {
+      font-size: 0.9rem;
+      color: #ccc;
+      line-height: 1.5;
+      max-width: 480px;
+      margin: 0 auto 16px;
+    }
+    .btn-wa {
+      display: inline-block;
+      background: #fff;
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 22px;
+      border-radius: 6px;
+      text-decoration: none;
+      letter-spacing: 0.2px;
+    }
+    .btn-wa:hover { background: #e5e5e5; }
+
+    /* Contenedor principal */
+    .main {
+      max-width: 520px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    /* Card de estado */
+    .status-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .hostel-name {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    .status-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    /* Contador de camas */
+    .bed-counter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .bed-numbers {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .bed-numbers span.total { color: #aaa; font-weight: 400; }
+    .bed-label { font-size: 0.85rem; color: #666; }
+
+    /* Barra de progreso */
+    .progress-bar {
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #1a1a1a;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* Countdown */
+    .countdown {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .countdown.urgent { color: #c0392b; font-weight: 600; }
+
+    /* Lista de miembros */
+    .members-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    .member-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.88rem;
+    }
+    .member-item:last-child { border-bottom: none; }
+    .member-name { font-weight: 600; }
+    .member-method {
+      font-size: 0.78rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .member-paid {
+      font-size: 0.78rem;
+      color: #27ae60;
+      font-weight: 700;
+    }
+
+    /* Card de pago */
+    .pay-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .pay-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #1a1a1a; }
+
+    /* Selector de método de pago */
+    .payment-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .method-btn {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+    }
+    .method-btn.selected {
+      border-color: #1a1a1a;
+      background: #f8f8f8;
+    }
+    .method-btn .method-name {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .method-btn .method-note {
+      display: block;
+      font-size: 0.72rem;
+      color: #888;
+    }
+
+    /* Resumen de precio */
+    .price-summary {
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+    }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: #555;
+    }
+    .price-row.total {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #ddd;
+      margin-bottom: 0;
+    }
+
+    /* Botón de pago */
+    .btn-pay {
+      width: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      letter-spacing: 0.2px;
+    }
+    .btn-pay:hover { background: #333; }
+    .btn-pay:disabled { background: #aaa; cursor: not-allowed; }
+
+    /* PIX block */
+    .pix-block {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .pix-block img {
+      width: 200px;
+      height: 200px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .pix-code {
+      font-family: monospace;
+      font-size: 0.78rem;
+      word-break: break-all;
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    .btn-copy {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border: 1.5px solid #1a1a1a;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .btn-copy:hover { background: #f0f0f0; }
+
+    /* Estados */
+    .state-msg {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .state-msg h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .state-msg p { color: #666; font-size: 0.9rem; }
+    .state-confirmed h2 { color: #27ae60; }
+    .state-expired h2 { color: #c0392b; }
+
+    .error-msg {
+      color: #c0392b;
+      font-size: 0.82rem;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .loading { text-align: center; padding: 40px; color: #888; }
+  </style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="banner" id="banner" style="display:none">
+  <h2>Un link para todo el grupo</h2>
+  <p>Reenviá este link por donde quieras. Cada persona completa sus datos y paga su cama. Cuando el último pague, la reserva se confirma automáticamente.</p>
+  <a id="wa-btn" href="#" class="btn-wa" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+</div>
+
+<div class="main">
+  <div id="loading" class="loading">Cargando...</div>
+  <div id="expired-state" class="state-msg state-expired" style="display:none">
+    <h2>Tiempo expirado</h2>
+    <p>El tiempo para completar el pago grupal expiró. Los pagos parciales fueron reembolsados.</p>
+  </div>
+  <div id="confirmed-state" class="state-msg state-confirmed" style="display:none">
+    <h2>Reserva confirmada</h2>
+    <p>Todos los miembros del grupo pagaron. Recibirás un email de confirmación a la brevedad.</p>
+  </div>
+
+  <!-- Estado del grupo -->
+  <div id="status-card" class="status-card" style="display:none">
+    <div class="hostel-name">Lapa Casa Hostel</div>
+    <div class="status-title">Pago grupal</div>
+    <div class="bed-counter">
+      <div>
+        <div class="bed-numbers">
+          <span id="paid-beds">0</span><span class="total"> / <span id="total-beds">0</span></span>
+        </div>
+        <div class="bed-label">camas pagadas</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="countdown" id="countdown-box">
+      Tiempo restante: <strong id="countdown-text">--:--</strong>
+    </div>
+    <div id="members-section" style="display:none">
+      <div class="members-title">Ya pagaron</div>
+      <div id="members-list"></div>
+    </div>
+  </div>
+
+  <!-- Formulario de pago por miembro -->
+  <div id="pay-card" class="pay-card" style="display:none">
+    <h3>Completá tus datos y pagá tu cama</h3>
+    <form id="pay-form" autocomplete="on">
+      <div class="form-group">
+        <label>Nombre completo *</label>
+        <input type="text" id="f-name" required autocomplete="name" placeholder="Tu nombre completo">
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="f-email" required autocomplete="email" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="f-phone" autocomplete="tel" placeholder="+55 11 99999-9999">
+      </div>
+      <div class="form-group">
+        <label>País</label>
+        <input type="text" id="f-country" autocomplete="country-name" placeholder="Brasil">
+      </div>
+
+      <div style="margin-bottom:6px; font-size:0.8rem; font-weight:600; color:#555;">
+        Forma de pago *
+      </div>
+      <div class="payment-methods">
+        <div class="method-btn selected" id="btn-pix" onclick="selectMethod('pix')">
+          <span class="method-name">PIX</span>
+          <span class="method-note">Sin recargo</span>
+        </div>
+        <div class="method-btn" id="btn-card" onclick="selectMethod('card')">
+          <span class="method-name">Tarjeta</span>
+          <span class="method-note">+<span id="surcharge-label">10</span>% recargo</span>
+        </div>
+      </div>
+
+      <div class="price-summary">
+        <div class="price-row">
+          <span>Precio por cama</span>
+          <span id="price-base">R$ —</span>
+        </div>
+        <div class="price-row" id="surcharge-row" style="display:none">
+          <span>Recargo tarjeta</span>
+          <span id="price-surcharge">R$ —</span>
+        </div>
+        <div class="price-row total">
+          <span>Total a pagar</span>
+          <span id="price-total">R$ —</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-pay" id="btn-pay">Continuar con el pago</button>
+      <div id="pay-error" class="error-msg" style="display:none"></div>
+    </form>
+
+    <!-- QR de PIX (se muestra tras iniciar el pago PIX) -->
+    <div class="pix-block" id="pix-block">
+      <img id="pix-qr" src="" alt="QR PIX">
+      <div class="pix-code" id="pix-code"></div>
+      <button class="btn-copy" onclick="copyPix()">Copiar código PIX</button>
+      <p style="margin-top:12px; font-size:0.8rem; color:#888;">Abrí tu app bancaria y escaneá el QR o pegá el código</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Configuración ────────────────────────────────────────────────────────────
+  const API_BASE = '/api/v1';
+  const token = location.pathname.split('/').pop();
+  let sessionData = null;
+  let selectedMethod = 'pix';
+  let countdownInterval = null;
+  let pollInterval = null;
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  async function init() {
+    await loadSession();
+    pollInterval = setInterval(loadSession, 10000); // refresca cada 10s
+  }
+
+  async function loadSession() {
+    try {
+      const r = await fetch(`${API_BASE}/payments/group/${token}`);
+      const data = await r.json();
+      if (!data.success || !data.data.found) {
+        showState('not-found'); return;
+      }
+      sessionData = data.data;
+      render();
+    } catch {
+      document.getElementById('loading').textContent = 'Error al cargar. Intentá de nuevo.';
+    }
+  }
+
+  function render() {
+    document.getElementById('loading').style.display = 'none';
+
+    if (sessionData.expired) { showState('expired'); return; }
+    if (sessionData.completed) { showState('confirmed'); return; }
+
+    // Banner (solo titular: quien tiene el wa_share_url en la URL — para todos)
+    document.getElementById('banner').style.display = 'block';
+    document.getElementById('wa-btn').href = `https://wa.me/?text=${encodeURIComponent('Hola! Te comparto el link para pagar tu cama en Lapa Casa Hostel:\n' + location.href)}`;
+
+    // Status card
+    document.getElementById('status-card').style.display = 'block';
+    document.getElementById('paid-beds').textContent = sessionData.paidBeds;
+    document.getElementById('total-beds').textContent = sessionData.totalBeds;
+    const pct = sessionData.totalBeds > 0
+      ? Math.round((sessionData.paidBeds / sessionData.totalBeds) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    // Countdown
+    startCountdown(sessionData.expiresAt);
+
+    // Miembros
+    if (sessionData.members && sessionData.members.length > 0) {
+      document.getElementById('members-section').style.display = 'block';
+      document.getElementById('members-list').innerHTML = sessionData.members.map(m => `
+        <div class="member-item">
+          <div>
+            <div class="member-name">${esc(m.guestName)}</div>
+            <div class="member-method">${m.paymentMethod === 'card' ? 'Tarjeta' : 'PIX'}</div>
+          </div>
+          <div class="member-paid">Pagado</div>
+        </div>
+      `).join('');
+    }
+
+    // Formulario (si aún quedan camas)
+    if (sessionData.paidBeds < sessionData.totalBeds) {
+      document.getElementById('pay-card').style.display = 'block';
+      updatePriceDisplay();
+    }
+  }
+
+  // ── Countdown ────────────────────────────────────────────────────────────────
+  function startCountdown(expiresAt) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    const update = () => {
+      const ms = new Date(expiresAt) - new Date();
+      if (ms <= 0) { clearInterval(countdownInterval); loadSession(); return; }
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      const box = document.getElementById('countdown-box');
+      const txt = document.getElementById('countdown-text');
+      txt.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if (ms < 5 * 60 * 1000) box.classList.add('urgent');
+    };
+    update();
+    countdownInterval = setInterval(update, 1000);
+  }
+
+  // ── Selector de método ───────────────────────────────────────────────────────
+  function selectMethod(m) {
+    selectedMethod = m;
+    document.getElementById('btn-pix').classList.toggle('selected', m === 'pix');
+    document.getElementById('btn-card').classList.toggle('selected', m === 'card');
+    updatePriceDisplay();
+  }
+
+  function updatePriceDisplay() {
+    if (!sessionData) return;
+    const base = sessionData.amountPerBed || 0;
+    const surchargeRow = document.getElementById('surcharge-row');
+    // El porcentaje de recargo viene del backend — por ahora lo mostramos genérico.
+    // El total exacto con recargo lo calcula el backend al iniciar el pago.
+    const surcharge = selectedMethod === 'card' ? Math.round(base * 0.10 * 100) / 100 : 0;
+    const total = base + surcharge;
+    document.getElementById('price-base').textContent = 'R$ ' + base.toFixed(2);
+    document.getElementById('price-surcharge').textContent = 'R$ ' + surcharge.toFixed(2);
+    document.getElementById('price-total').textContent = 'R$ ' + total.toFixed(2);
+    surchargeRow.style.display = selectedMethod === 'card' ? 'flex' : 'none';
+  }
+
+  // ── Envío del formulario ─────────────────────────────────────────────────────
+  document.getElementById('pay-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-pay');
+    const errEl = document.getElementById('pay-error');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    try {
+      const r = await fetch(`${API_BASE}/payments/group/${token}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guest: {
+            full_name: document.getElementById('f-name').value.trim(),
+            email: document.getElementById('f-email').value.trim(),
+            phone: document.getElementById('f-phone').value.trim() || undefined,
+            country: document.getElementById('f-country').value.trim() || undefined,
+          },
+          paymentMethod: selectedMethod,
+        }),
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error(data.error || 'Error al procesar el pago');
+
+      const result = data.data;
+      if (selectedMethod === 'card' && result.checkoutUrl) {
+        location.href = result.checkoutUrl;
+      } else if (selectedMethod === 'pix' && result.pixData) {
+        showPixBlock(result.pixData);
+        btn.disabled = false;
+        btn.textContent = 'Continuar con el pago';
+      }
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Continuar con el pago';
+    }
+  });
+
+  // ── PIX ──────────────────────────────────────────────────────────────────────
+  function showPixBlock(pixData) {
+    document.getElementById('pix-block').style.display = 'block';
+    document.getElementById('pix-qr').src = 'data:image/png;base64,' + pixData.qrCodeBase64;
+    document.getElementById('pix-code').textContent = pixData.qrCode;
+    document.getElementById('pay-form').querySelector('button[type=submit]').style.display = 'none';
+    // Seguir consultando hasta que el pago se confirme
+    pollInterval = setInterval(loadSession, 5000);
+  }
+
+  function copyPix() {
+    navigator.clipboard.writeText(document.getElementById('pix-code').textContent);
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = 'Copiado';
+    setTimeout(() => btn.textContent = 'Copiar código PIX', 2000);
+  }
+
+  // ── Estados ──────────────────────────────────────────────────────────────────
+  function showState(state) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('status-card').style.display = 'none';
+    document.getElementById('pay-card').style.display = 'none';
+    document.getElementById('banner').style.display = 'none';
+    if (state === 'expired')   { document.getElementById('expired-state').style.display = 'block'; clearInterval(pollInterval); clearInterval(countdownInterval); }
+    if (state === 'confirmed') { document.getElementById('confirmed-state').style.display = 'block'; clearInterval(pollInterval); clearInterval(countdownInterval); }
+    if (state === 'not-found') { document.getElementById('loading').style.display = 'block'; document.getElementById('loading').textContent = 'Sesión no encontrada.'; }
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  init();
+</script>
+</body>
+</html>
