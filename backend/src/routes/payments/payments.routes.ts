@@ -134,7 +134,8 @@ router.post('/group-session', async (req, res, next) => {
       return;
     }
 
-    const baseUrl = appBaseUrl || process.env.FRONTEND_URL || process.env.APP_URL || 'https://lapacasario.com';
+    // La página /group-payment/:token la sirve el backend, no el frontend
+    const baseUrl = appBaseUrl || process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
     const result = await groupPaymentService.createGroupSession({
       checkIn, checkOut, totalBeds, nights,
       guestGender: guestGender ?? 'mixed',
