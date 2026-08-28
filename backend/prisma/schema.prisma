@@ -261,6 +261,7 @@ model reservations {
   notifications                                                      notifications[]
   payments                                                           payments[]
   reservation_beds                                                   reservation_beds[]
+  owner_transfers                                                    owner_transfers[]
   channels                                                           channels            @relation(fields: [channel_id], references: [id], onUpdate: NoAction)
   guests                                                             guests              @relation(fields: [guest_id], references: [id], onUpdate: NoAction)
 
@@ -286,6 +287,49 @@ model room_conversion_logs {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model apartment_owners {
+  id                          String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name                   String                    @db.VarChar(200)
+  email                       String                    @unique @db.VarChar(200)
+  phone                       String?                   @db.VarChar(30)
+  stripe_account_id           String?                   @unique @db.VarChar(60)
+  onboarding_status           connect_onboarding_status @default(pending)
+  onboarding_url              String?
+  onboarding_url_expires_at   DateTime?                 @db.Timestamptz(6)
+  commission_rate             Decimal                   @default(0.0500) @db.Decimal(5, 4)
+  payout_fee_rate             Decimal                   @default(0.0099) @db.Decimal(5, 4)
+  is_active                   Boolean                   @default(true)
+  notes                       String?
+  created_at                  DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime                  @default(now()) @db.Timestamptz(6)
+  room_types                  room_types[]
+  owner_transfers             owner_transfers[]
+
+  @@index([email], map: "idx_apartment_owners_email")
+  @@index([stripe_account_id], map: "idx_apartment_owners_stripe_account")
+}
+
+model owner_transfers {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservation_id      String            @db.Uuid
+  owner_id            String            @db.Uuid
+  amount              Decimal           @db.Decimal(10, 2)
+  currency            String            @default("BRL") @db.VarChar(3)
+  transfer_kind       String            @default("remaining") @db.VarChar(30)
+  stripe_transfer_id  String?           @unique @db.VarChar(60)
+  status              String            @default("pending") @db.VarChar(20)
+  error_message       String?
+  transferred_at      DateTime?         @db.Timestamptz(6)
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime          @default(now()) @db.Timestamptz(6)
+  reservations        reservations      @relation(fields: [reservation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  apartment_owners    apartment_owners  @relation(fields: [owner_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([reservation_id], map: "idx_owner_transfers_reservation")
+  @@index([owner_id], map: "idx_owner_transfers_owner")
+  @@index([status], map: "idx_owner_transfers_status")
+}
+
 model room_types {
   id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code                 String                 @unique @db.VarChar(20)
@@ -295,11 +339,15 @@ model room_types {
   is_flexible          Boolean                @default(false)
   base_price           Decimal                @db.Decimal(10, 2)
   property_type        property_type          @default(hostel)
+  owner_id             String?                @db.Uuid
   created_at           DateTime               @default(now()) @db.Timestamptz(6)
   updated_at           DateTime               @default(now()) @db.Timestamptz(6)
   availability_cache   availability_cache[]
   beds                 beds[]
   room_conversion_logs room_conversion_logs[]
+  apartment_owners     apartment_owners?      @relation(fields: [owner_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([owner_id], map: "idx_room_types_owner_id")
 }
 
 model system_config {
@@ -308,6 +356,13 @@ model system_config {
   value       Json
   description String?
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+enum connect_onboarding_status {
+  pending
+  in_progress
+  active
+  restricted
 }
 
 enum bed_gender {
@@ -347,6 +402,8 @@ enum conflict_status {
 enum payment_provider {
   stripe
   mercadopago
+  cash
+  infinitypay
 }
 
 enum payment_status {
@@ -360,6 +417,7 @@ enum payment_status {
 enum payment_type {
   deposit
   remaining
+  owner_transfer
 }
 
 enum season_type {
