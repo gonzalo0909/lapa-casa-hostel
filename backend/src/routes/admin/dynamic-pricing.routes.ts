@@ -9,36 +9,55 @@ import { logger } from '../../utils/logger';
 
 const router = Router();
 
-// ── Config ────────────────────────────────────────────────────────────────
+// ── Config global ─────────────────────────────────────────────────────────
 
-// GET  /admin/dynamic-pricing/config
 router.get('/config', async (_req, res, next) => {
   try {
     const cfg = await dynamicPricingService.getConfig();
-    res.json(ApiResponse.success(cfg, 'Configuración de precios dinámicos'));
+    res.json(ApiResponse.success(cfg));
   } catch (err) { next(err); }
 });
 
-// PUT  /admin/dynamic-pricing/config
 router.put('/config', async (req, res, next) => {
   try {
     const updated = await dynamicPricingService.updateConfig(req.body);
-    logger.info('DynamicPricing: config actualizada', { updatedFields: Object.keys(req.body) });
+    logger.info('DynamicPricing: config actualizada', { fields: Object.keys(req.body) });
     res.json(ApiResponse.success(updated, 'Configuración actualizada'));
+  } catch (err) { next(err); }
+});
+
+// ── Config por unidad ─────────────────────────────────────────────────────
+
+// GET  /admin/dynamic-pricing/unit-configs — todas las unidades con su config
+router.get('/unit-configs', async (_req, res, next) => {
+  try {
+    const units = await dynamicPricingService.getUnitConfigs();
+    res.json(ApiResponse.success(units));
+  } catch (err) { next(err); }
+});
+
+// PUT  /admin/dynamic-pricing/unit-configs/:roomTypeId — guardar override
+router.put('/unit-configs/:roomTypeId', async (req, res, next) => {
+  try {
+    const { min_price_brl, max_price_brl, bot_enabled, notes } = req.body;
+    const updated = await dynamicPricingService.upsertUnitConfig(req.params.roomTypeId, {
+      min_price_brl: min_price_brl != null ? Number(min_price_brl) : null,
+      max_price_brl: max_price_brl != null ? Number(max_price_brl) : null,
+      bot_enabled:   bot_enabled ?? true,
+      notes,
+    });
+    res.json(ApiResponse.success(updated, 'Config de unidad actualizada'));
   } catch (err) { next(err); }
 });
 
 // ── Eventos ───────────────────────────────────────────────────────────────
 
-// GET  /admin/dynamic-pricing/events
 router.get('/events', async (_req, res, next) => {
   try {
-    const events = await dynamicPricingService.getEvents();
-    res.json(ApiResponse.success(events, 'Eventos de precios'));
+    res.json(ApiResponse.success(await dynamicPricingService.getEvents()));
   } catch (err) { next(err); }
 });
 
-// POST /admin/dynamic-pricing/events
 router.post('/events', async (req, res, next) => {
   try {
     const { name, date_from, date_to, adjustment_pct, applies_to, is_active, notes } = req.body;
@@ -57,15 +76,12 @@ router.post('/events', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PUT  /admin/dynamic-pricing/events/:id
 router.put('/events/:id', async (req, res, next) => {
   try {
-    const updated = await dynamicPricingService.updateEvent(req.params.id, req.body);
-    res.json(ApiResponse.success(updated, 'Evento actualizado'));
+    res.json(ApiResponse.success(await dynamicPricingService.updateEvent(req.params.id, req.body)));
   } catch (err) { next(err); }
 });
 
-// DELETE /admin/dynamic-pricing/events/:id
 router.delete('/events/:id', async (req, res, next) => {
   try {
     await dynamicPricingService.deleteEvent(req.params.id);
@@ -75,29 +91,26 @@ router.delete('/events/:id', async (req, res, next) => {
 
 // ── Bot ───────────────────────────────────────────────────────────────────
 
-// POST /admin/dynamic-pricing/run — ejecutar bot ahora
 router.post('/run', async (_req, res, next) => {
   try {
-    logger.info('DynamicPricing: ejecución manual iniciada');
+    logger.info('DynamicPricing: ejecución manual');
     const result = await dynamicPricingService.run();
-    res.json(ApiResponse.success(result, `Bot ejecutado: ${result.processed} fechas calculadas`));
+    res.json(ApiResponse.success(result, `Bot ejecutado: ${result.processed} precios calculados`));
   } catch (err) { next(err); }
 });
 
-// GET  /admin/dynamic-pricing/calendar — precios calculados
 router.get('/calendar', async (req, res, next) => {
   try {
-    const days = Number(req.query.days ?? 90);
-    const calendar = await dynamicPricingService.getCalendar(days);
-    res.json(ApiResponse.success(calendar, 'Calendario de precios'));
+    const days       = Number(req.query.days ?? 90);
+    const roomTypeId = req.query.roomTypeId as string | undefined;
+    const calendar   = await dynamicPricingService.getCalendar(days, roomTypeId);
+    res.json(ApiResponse.success(calendar));
   } catch (err) { next(err); }
 });
 
-// GET  /admin/dynamic-pricing/rio-events — eventos en Río (Sympla + curated)
 router.get('/rio-events', async (_req, res, next) => {
   try {
-    const events = await dynamicPricingService.getRioEvents();
-    res.json(ApiResponse.success(events, 'Eventos en Río de Janeiro'));
+    res.json(ApiResponse.success(await dynamicPricingService.getRioEvents()));
   } catch (err) { next(err); }
 });
 
