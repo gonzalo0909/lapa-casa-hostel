@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Precios Dinámicos — Admin Lapa Casa Hostel</title>
+<title>Precios Dinamicos — Admin Lapa Casa Hostel</title>
 <link rel="stylesheet" href="/admin/css/admin.css">
 <style>
   .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
@@ -34,7 +34,7 @@
   .event-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; background: var(--surface); }
   .event-row .ev-name { flex: 1; font-weight: 600; font-size: 13px; }
   .event-row .ev-dates { font-size: 12px; color: var(--text-muted); }
-  .event-row .ev-adj { font-weight: 700; color: var(--accent); }
+  .event-row .ev-adj { font-weight: 700; color: var(--accent); min-width: 45px; }
   .event-form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
   .event-form-grid label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
 
@@ -61,6 +61,8 @@
 <div id="nav-root"></div>
 <main>
 
+  <div id="page-error" class="msg error" style="display:none;margin-bottom:16px;"></div>
+
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('hostel')">Hostel</button>
     <button class="tab-btn" onclick="switchTab('apartments')">Apartamentos</button>
@@ -72,11 +74,11 @@
   <!-- HOSTEL -->
   <div id="tab-hostel" class="tab-panel active">
     <div class="run-row">
-      <button onclick="runBot()" id="run-btn">Ejecutar bot</button>
+      <button id="run-btn" onclick="runBot()">Ejecutar bot</button>
       <span class="run-info" id="run-result"></span>
     </div>
-    <p style="font-size:13px;color:#888;margin-bottom:16px;">Precio por cama/noche. El bot ajusta según ocupacion de esa habitacion especificamente.</p>
-    <div class="units-grid" id="hostel-units"></div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Precio por cama/noche. El bot ajusta segun ocupacion de cada habitacion.</p>
+    <div class="units-grid" id="hostel-units"><p style="color:var(--text-muted)">Cargando...</p></div>
   </div>
 
   <!-- APARTAMENTOS -->
@@ -85,15 +87,15 @@
       <button onclick="runBot()">Ejecutar bot</button>
       <span class="run-info" id="run-result-apt"></span>
     </div>
-    <p style="font-size:13px;color:#888;margin-bottom:16px;">Precio por noche (unidad completa). El bot considera reservas de Airbnb/Booking via iCal al calcular ocupacion.</p>
-    <div class="units-grid" id="apt-units"></div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Precio por noche (unidad completa). Ocupa reservas de Airbnb/Booking via iCal.</p>
+    <div class="units-grid" id="apt-units"><p style="color:var(--text-muted)">Cargando...</p></div>
   </div>
 
   <!-- FACTORES GLOBALES -->
   <div id="tab-global" class="tab-panel">
     <div class="card">
       <h2>Factores globales</h2>
-      <p style="font-size:13px;color:#888;margin-bottom:16px;">Aplican a todas las unidades. Min/max pueden sobreescribirse por unidad en las tabs de Hostel y Apartamentos.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Aplican a todas las unidades. Min/max se puede sobreescribir por unidad.</p>
       <div id="global-msg"></div>
 
       <p class="section-label">Ocupacion — tiers y ajustes (%)</p>
@@ -120,7 +122,7 @@
     <div class="card">
       <h2>Eventos con impacto en precio</h2>
       <div id="events-msg"></div>
-      <div id="events-list"></div>
+      <div id="events-list"><p style="color:var(--text-muted)">Cargando...</p></div>
     </div>
     <div class="card">
       <h2>Nuevo evento</h2>
@@ -154,7 +156,7 @@
         <select id="cal-filter-room" onchange="loadCalendar()">
           <option value="">Todas las unidades</option>
         </select>
-        <input id="cal-days" type="number" value="60" min="7" max="365" onchange="loadCalendar()">
+        <input id="cal-days" type="number" value="60" min="7" max="365">
         <label>dias</label>
         <button onclick="loadCalendar()">Actualizar</button>
       </div>
@@ -174,256 +176,6 @@
 
 <script src="/admin/js/api.js"></script>
 <script src="/admin/js/nav.js"></script>
-<script>
-requireAuth();
-renderNav('dynamic-pricing');
-
-const DP = '/admin/dynamic-pricing';
-let cfg = {};
-let allUnits = [];
-
-// ── Tabs ──────────────────────────────────────────────────────────────────
-
-function switchTab(name) {
-  const tabs = ['hostel','apartments','global','events','calendar'];
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === name));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-}
-
-// ── Unidades ──────────────────────────────────────────────────────────────
-
-async function loadUnits() {
-  try {
-    allUnits = await apiFetch(DP + '/unit-configs');
-    renderUnits('hostel', 'hostel-units');
-    renderUnits('apartment', 'apt-units');
-    populateRoomFilter();
-  } catch(e) { console.error('loadUnits', e); }
-}
-
-function renderUnits(type, containerId) {
-  const units = allUnits.filter(u => u.property_type === type);
-  const el = document.getElementById(containerId);
-  if (!units.length) { el.innerHTML = '<p style="color:#888">Sin unidades.</p>'; return; }
-  el.innerHTML = units.map(u => `
-    <div class="unit-card" id="uc-${u.room_type_id}">
-      <div class="unit-name">${u.room_name}</div>
-      <div class="unit-base">Precio base: R$ ${Number(u.base_price).toFixed(2)} ${type === 'hostel' ? '/cama' : '/noche'}</div>
-      <label class="unit-toggle">
-        <input type="checkbox" ${u.bot_enabled ? 'checked' : ''} onchange="toggleUnit('${u.room_type_id}', this.checked)">
-        Bot habilitado
-      </label>
-      <div class="unit-fields">
-        <div><label>Minimo (BRL)</label><input type="number" id="min-${u.room_type_id}" value="${u.min_price_brl ?? ''}" placeholder="Global"></div>
-        <div><label>Maximo (BRL)</label><input type="number" id="max-${u.room_type_id}" value="${u.max_price_brl ?? ''}" placeholder="Global"></div>
-      </div>
-      <button id="save-${u.room_type_id}" onclick="saveUnit('${u.room_type_id}')">Guardar</button>
-    </div>
-  `).join('');
-}
-
-async function saveUnit(id) {
-  const btn = document.getElementById('save-' + id);
-  const minVal = document.getElementById('min-' + id).value;
-  const maxVal = document.getElementById('max-' + id).value;
-  const unit   = allUnits.find(u => u.room_type_id === id);
-  btn.textContent = 'Guardando...';
-  btn.disabled = true;
-  try {
-    await apiFetch(DP + '/unit-configs/' + id, {
-      method: 'PUT',
-      body: JSON.stringify({
-        min_price_brl: minVal !== '' ? Number(minVal) : null,
-        max_price_brl: maxVal !== '' ? Number(maxVal) : null,
-        bot_enabled: unit?.bot_enabled ?? true,
-      }),
-    });
-    btn.textContent = 'Guardado';
-    await loadUnits();
-  } catch(e) {
-    btn.textContent = 'Error';
-    console.error(e);
-  }
-  setTimeout(() => { btn.textContent = 'Guardar'; btn.disabled = false; }, 2000);
-}
-
-async function toggleUnit(id, enabled) {
-  const minVal = document.getElementById('min-' + id)?.value;
-  const maxVal = document.getElementById('max-' + id)?.value;
-  try {
-    await apiFetch(DP + '/unit-configs/' + id, {
-      method: 'PUT',
-      body: JSON.stringify({
-        min_price_brl: minVal && minVal !== '' ? Number(minVal) : null,
-        max_price_brl: maxVal && maxVal !== '' ? Number(maxVal) : null,
-        bot_enabled: enabled,
-      }),
-    });
-    const u = allUnits.find(u => u.room_type_id === id);
-    if (u) u.bot_enabled = enabled;
-  } catch(e) { console.error(e); }
-}
-
-// ── Config global ─────────────────────────────────────────────────────────
-
-function renderField(key, label, container) {
-  const val = cfg[key] ?? '';
-  container.innerHTML += `<div><label>${label}</label><input type="number" step="any" id="cfg-${key}" value="${val}"></div>`;
-}
-
-async function loadConfig() {
-  try {
-    cfg = await apiFetch(DP + '/config');
-    const occ  = document.getElementById('cfg-occ');
-    const prox = document.getElementById('cfg-prox');
-    const dow  = document.getElementById('cfg-dow');
-    const lim  = document.getElementById('cfg-limits');
-    const hor  = document.getElementById('cfg-horizon');
-    [occ,prox,dow,lim,hor].forEach(el => el.innerHTML = '');
-
-    [['occ_tier_low_pct','Tier bajo (%)'],['occ_tier_mid_pct','Tier medio (%)'],['occ_tier_high_pct','Tier alto (%)'],['occ_tier_vhigh_pct','Tier muy alto (%)'],
-     ['occ_adj_low','Ajuste bajo (%)'],['occ_adj_mid','Ajuste medio (%)'],['occ_adj_high','Ajuste alto (%)'],['occ_adj_vhigh','Ajuste muy alto (%)'],['occ_adj_max','Ajuste max (%)']
-    ].forEach(([k,l]) => renderField(k,l,occ));
-
-    [['prox_tier_far','Anticipado (dias)'],['prox_tier_mid','Medio (dias)'],['prox_tier_near','Proximo (dias)'],['prox_tier_close','Cercano (dias)'],
-     ['prox_adj_far','Ajuste anticipado (%)'],['prox_adj_mid','Ajuste medio (%)'],['prox_adj_near','Ajuste proximo (%)'],['prox_adj_close','Ajuste cercano (%)'],['prox_adj_lastmin','Last minute (%)']
-    ].forEach(([k,l]) => renderField(k,l,prox));
-
-    [['dow_adj_weekday','Lun-Jue (%)'],['dow_adj_weekend','Vie-Dom (%)']].forEach(([k,l]) => renderField(k,l,dow));
-    [['price_min_brl','Min global (BRL)'],['price_max_brl','Max global (BRL)']].forEach(([k,l]) => renderField(k,l,lim));
-    [['horizon_days','Dias de horizonte']].forEach(([k,l]) => renderField(k,l,hor));
-  } catch(e) { console.error('loadConfig', e); }
-}
-
-async function saveConfig() {
-  const data = {};
-  document.querySelectorAll('[id^="cfg-"]').forEach(inp => {
-    data[inp.id.replace('cfg-', '')] = Number(inp.value);
-  });
-  const msg = document.getElementById('global-msg');
-  try {
-    await apiFetch(DP + '/config', { method: 'PUT', body: JSON.stringify(data) });
-    cfg = { ...cfg, ...data };
-    msg.innerHTML = '<div class="msg ok">Configuracion guardada</div>';
-    setTimeout(() => msg.innerHTML = '', 3000);
-  } catch(e) {
-    msg.innerHTML = '<div class="msg error">Error: ' + e.message + '</div>';
-  }
-}
-
-// ── Bot ───────────────────────────────────────────────────────────────────
-
-async function runBot() {
-  const els = [document.getElementById('run-result'), document.getElementById('run-result-apt')];
-  els.forEach(el => el && (el.textContent = 'Ejecutando...'));
-  document.getElementById('run-btn').disabled = true;
-  try {
-    const r = await apiFetch(DP + '/run', { method: 'POST' });
-    const msg = r.processed + ' precios calculados (' + r.errors + ' errores)';
-    els.forEach(el => el && (el.textContent = msg));
-    loadCalendar();
-  } catch(e) {
-    els.forEach(el => el && (el.textContent = 'Error: ' + e.message));
-  }
-  document.getElementById('run-btn').disabled = false;
-}
-
-// ── Eventos ───────────────────────────────────────────────────────────────
-
-async function loadEvents() {
-  try {
-    const events = await apiFetch(DP + '/events');
-    const list = document.getElementById('events-list');
-    if (!events.length) { list.innerHTML = '<p style="color:#888">Sin eventos.</p>'; return; }
-    list.innerHTML = events.map(e => `
-      <div class="event-row">
-        <div class="ev-name">${e.name}</div>
-        <div class="ev-dates">${e.date_from} — ${e.date_to}</div>
-        <div class="ev-adj">${e.adjustment_pct > 0 ? '+' : ''}${e.adjustment_pct}%</div>
-        <span class="badge">${e.applies_to}</span>
-        ${!e.is_active ? '<span class="badge" style="background:#f0f0f0;color:#999">inactivo</span>' : ''}
-        <button onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active ? 'Desactivar' : 'Activar'}</button>
-        <button onclick="deleteEvent('${e.id}')" style="color:var(--danger)">Eliminar</button>
-      </div>
-    `).join('');
-  } catch(e) { console.error('loadEvents', e); }
-}
-
-async function createEvent() {
-  const name = document.getElementById('ev-name').value.trim();
-  const from = document.getElementById('ev-from').value;
-  const to   = document.getElementById('ev-to').value;
-  const adj  = document.getElementById('ev-adj').value;
-  const apl  = document.getElementById('ev-applies').value;
-  const msg  = document.getElementById('events-msg');
-  if (!name || !from || !to || !adj) { msg.innerHTML = '<div class="msg error">Completa todos los campos.</div>'; return; }
-  try {
-    await apiFetch(DP + '/events', { method: 'POST', body: JSON.stringify({ name, date_from: from, date_to: to, adjustment_pct: Number(adj), applies_to: apl }) });
-    ['ev-name','ev-from','ev-to','ev-adj'].forEach(id => document.getElementById(id).value = '');
-    msg.innerHTML = '<div class="msg ok">Evento creado</div>';
-    setTimeout(() => msg.innerHTML = '', 2000);
-    loadEvents();
-  } catch(e) { msg.innerHTML = '<div class="msg error">Error: ' + e.message + '</div>'; }
-}
-
-async function toggleEvent(id, active) {
-  try { await apiFetch(DP + '/events/' + id, { method: 'PUT', body: JSON.stringify({ is_active: active }) }); loadEvents(); }
-  catch(e) { alert(e.message); }
-}
-
-async function deleteEvent(id) {
-  if (!confirm('Eliminar evento?')) return;
-  try { await apiFetch(DP + '/events/' + id, { method: 'DELETE' }); loadEvents(); }
-  catch(e) { alert(e.message); }
-}
-
-// ── Calendario ────────────────────────────────────────────────────────────
-
-function populateRoomFilter() {
-  const sel = document.getElementById('cal-filter-room');
-  sel.innerHTML = '<option value="">Todas las unidades</option>';
-  allUnits.forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = u.room_type_id;
-    opt.textContent = u.room_name;
-    sel.appendChild(opt);
-  });
-}
-
-async function loadCalendar() {
-  const days   = document.getElementById('cal-days').value || 60;
-  const type   = document.getElementById('cal-filter-type').value;
-  const roomId = document.getElementById('cal-filter-room').value;
-  const params = new URLSearchParams({ days });
-  if (roomId) params.set('roomTypeId', roomId);
-  try {
-    let rows = await apiFetch(DP + '/calendar?' + params);
-    if (type) rows = rows.filter(r => r.property_type === type);
-    const tbody = document.getElementById('cal-body');
-    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:#888;padding:20px">Sin datos. Ejecuta el bot primero.</td></tr>'; return; }
-    tbody.innerHTML = rows.map(r => {
-      const delta = r.base_price ? ((r.final_price - r.base_price) / r.base_price * 100).toFixed(1) : 0;
-      const sign  = delta > 0 ? '+' : '';
-      const cls   = delta > 0 ? 'price-up' : (delta < 0 ? 'price-dn' : '');
-      const occ   = r.occupancy_pct ?? 0;
-      return `<tr>
-        <td>${r.target_date}</td>
-        <td>${r.room_name}</td>
-        <td>${r.property_type}</td>
-        <td>R$ ${Number(r.base_price).toFixed(2)}</td>
-        <td><strong>R$ ${Number(r.final_price).toFixed(2)}</strong></td>
-        <td class="${cls}">${sign}${delta}%</td>
-        <td><span class="occ-bar"><span class="occ-fill" style="width:${occ}%"></span></span> ${occ}%</td>
-        <td>${r.event_name ?? '—'}</td>
-      </tr>`;
-    }).join('');
-  } catch(e) { console.error('loadCalendar', e); }
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────
-
-Promise.all([loadConfig(), loadUnits(), loadEvents(), loadCalendar()]);
-</script>
+<script src="/admin/js/dynamic-pricing.js"></script>
 </body>
 </html>
