@@ -158,9 +158,7 @@ router.post('/', async (req, res, next) => {
       `INSERT INTO apartment_owners
          (full_name, email, phone, stripe_account_id, onboarding_status,
           onboarding_url, onboarding_url_expires_at, commission_rate, payout_fee_rate, notes)
-       VALUES ($1, $2, $3, $4,
-               CASE WHEN $4 IS NOT NULL THEN 'pending'::connect_onboarding_status
-                    ELSE 'pending'::connect_onboarding_status END,
+       VALUES ($1, $2, $3, $4, 'pending'::connect_onboarding_status,
                $5, $6, $7, $8, $9)
        RETURNING *`,
       [
