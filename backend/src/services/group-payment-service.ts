@@ -534,8 +534,8 @@ export class GroupPaymentService {
     );
     const memberId = memberRows[0].id;
 
-    // URL base del frontend (para success/cancel de Stripe Checkout)
-    const appBaseUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
+    // La página del grupo la sirve el backend (/group-payment/:token)
+    const appBaseUrl = process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
     const successUrl = `${appBaseUrl}/group-payment/${input.token}?status=success&member=${memberId}`;
     const cancelUrl  = `${appBaseUrl}/group-payment/${input.token}?status=cancel`;
 
