@@ -19,8 +19,8 @@ export type PaymentMethod = 'card' | 'pix' | 'bank_transfer' | 'cash';
 
 export type BedGender = 'mixed' | 'female' | 'male';
 
-// ventana3
-export type PaymentProvider = 'stripe' | 'mercadopago';
+// ventana3 + 0021: agrega 'cash' e 'infinitypay' para pagos físicos en recepción
+export type PaymentProvider = 'stripe' | 'mercadopago' | 'cash' | 'infinitypay';
 
 export interface Guest {
   id: string;
@@ -97,8 +97,8 @@ export interface Payment {
   id: string;
   reservation_id: string;
   guest_id: string;
-  provider: 'stripe' | 'mercadopago';
-  payment_type: 'deposit' | 'remaining';
+  provider: PaymentProvider;
+  payment_type: 'deposit' | 'remaining' | 'owner_transfer';
   amount: number;
   currency: string;
   status: PaymentStatus;

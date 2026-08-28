@@ -7,6 +7,8 @@ import { createPaymentIntentHandler } from './create-payment-intent';
 import { confirmPaymentHandler } from './confirm-payment';
 import { processDepositHandler } from './process-deposit';
 import { handleWebhookHandler } from './handle-webhook';
+import releaseDepositRouter from './release-deposit';
+import markReceivedAtDeskRouter from './mark-received-at-desk';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
 import { logger } from '../../utils/logger';
@@ -22,6 +24,12 @@ router.post('/confirm', confirmPaymentHandler);
 
 // POST /payments/deposit
 router.post('/deposit', processDepositHandler);
+
+// POST /payments/release-deposit — libera el 25% retenido al admin del apt (solo admin)
+router.use('/release-deposit', releaseDepositRouter);
+
+// POST /payments/mark-received-at-desk — registra pago físico InfinityPay/efectivo (solo admin)
+router.use('/mark-received-at-desk', markReceivedAtDeskRouter);
 
 // POST /payments/webhook/stripe
 // ventana6: el `express.raw({ type: 'application/json' })` que estaba aca

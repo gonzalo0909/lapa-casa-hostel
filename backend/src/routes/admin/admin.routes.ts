@@ -27,6 +27,7 @@ import { adminConflictsRouter } from './conflicts.routes';
 import { adminPhotosRouter } from './photos.routes';
 import { adminBlockedDatesRouter } from './blocked-dates.routes';
 import { roomTypePhotosRouter } from './room-type-photos.routes';
+import { apartmentOwnersRouter } from './apartment-owners.routes';
 import type { BookingWithGuest } from '../../services/email-service';
 
 const router = Router();
@@ -53,6 +54,11 @@ router.use('/blocked-dates', adminBlockedDatesRouter);
  * /admin/room-types — gestión de fotos por apartamento
  */
 router.use('/room-types', roomTypePhotosRouter);
+
+/**
+ * /admin/apartment-owners — administradores de apartamentos con Stripe Connect
+ */
+router.use('/apartment-owners', apartmentOwnersRouter);
 
 /**
  * GET /admin/dashboard — KPIs del mes actual

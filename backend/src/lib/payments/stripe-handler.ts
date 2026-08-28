@@ -11,6 +11,18 @@ interface CreatePaymentIntentInput {
   customerEmail: string;
   description: string;
   metadata?: Record<string, string>;
+  /**
+   * Para pagos de apartamentos con Stripe Connect:
+   * ID de la cuenta Express del administrador (acct_xxx).
+   * Si se provee, el pago se enruta como "separate charges and transfers"
+   * y Stripe cobra application_fee_amount por la plataforma.
+   */
+  connectedAccountId?: string;
+  /**
+   * Monto de la tarifa de la plataforma en centavos (para Stripe Connect).
+   * Stripe lo retiene en la cuenta de la plataforma y transfiere el resto al admin.
+   */
+  applicationFeeAmountCents?: number;
 }
 
 interface PaymentIntentResult {
@@ -54,13 +66,28 @@ export class StripeHandler {
       return { paymentIntentId: `pi_test_${Date.now()}`, clientSecret: `pi_test_${Date.now()}_secret_test` };
     }
     const amountCents = Math.round(data.amount * 100);
-    const intent = await this.stripe.paymentIntents.create({
+
+    const intentParams: Stripe.PaymentIntentCreateParams = {
       amount: amountCents,
       currency: data.currency.toLowerCase(),
       receipt_email: data.customerEmail,
       description: data.description,
       metadata: data.metadata ?? {},
-    });
+    };
+
+    // Stripe Connect: cuando hay un administrador de apartamento con cuenta Express,
+    // se agrega transfer_data para que la plataforma pueda crear Transfers después.
+    // El modelo es "separate charges and transfers" — la plataforma cobra el PI
+    // y luego transfiere manualmente con stripeConnectHandler.createTransfer().
+    // application_fee_amount retiene la comisión de Lapa Casa en la plataforma.
+    if (data.connectedAccountId) {
+      intentParams.transfer_data = { destination: data.connectedAccountId };
+      if (data.applicationFeeAmountCents !== undefined) {
+        intentParams.application_fee_amount = data.applicationFeeAmountCents;
+      }
+    }
+
+    const intent = await this.stripe.paymentIntents.create(intentParams);
     return { paymentIntentId: intent.id, clientSecret: intent.client_secret! };
   }
 
