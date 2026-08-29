@@ -3,7 +3,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PropertyExperience } from '@/components/booking/property-experience';
-import { StructuredData, SpeakableSchema, WebSiteSchema } from '@/components/seo/structured-data';
+import { StructuredData, SpeakableSchema, WebSiteSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
@@ -100,8 +100,9 @@ export default async function HomePage({ params }: { params: { locale: string } 
   return (
     <main className="min-h-screen bg-background">
       <JsonLd />
-      {/* WebSite + Speakable — AEO para motores de IA y asistentes de voz */}
+      {/* WebSite + LocalBusiness + Speakable — AEO para motores de IA y asistentes de voz */}
       <StructuredData data={WebSiteSchema} />
+      <StructuredData data={LocalBusinessSchema} />
       <StructuredData data={SpeakableSchema} />
       <PropertyExperience locale={locale} />
     </main>
