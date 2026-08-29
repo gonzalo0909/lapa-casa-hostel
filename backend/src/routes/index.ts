@@ -89,14 +89,18 @@ router.use('/webhooks', otaWebhooksRouter);
 router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000 }), bookingsRouter);
 
 /**
- * Payment Routes (Strict Rate Limiting)
- * GET /payments/group/:token es el endpoint de polling público de pago grupal —
- * usa un límite más relajado (60/min) para no bloquear la página mientras el
- * usuario espera que su grupo complete el pago. El resto del router mantiene
- * el límite estricto de 3/s.
+ * Payment Routes
+ * GET /group/:token (polling de estado grupal) usa límite relajado (60/min).
+ * El resto del router mantiene el límite estricto de 3/s.
+ * Se aplica un único rateLimiter condicional para evitar que ambos se acumulen.
  */
-router.get('/payments/group/:token', rateLimiter({ max: 60, windowMs: 60000 }), paymentsRouter);
-router.use('/payments', rateLimiter({ max: 3, windowMs: 1000 }), paymentsRouter);
+router.use('/payments', (req, res, next) => {
+  const isGroupPoll = req.method === 'GET' && /^\/group\/[^/]+$/.test(req.path);
+  const limiter = isGroupPoll
+    ? rateLimiter({ max: 60, windowMs: 60000 })
+    : rateLimiter({ max: 3, windowMs: 1000 });
+  limiter(req, res, next);
+}, paymentsRouter);
 
 /**
  * Admin Login (ventana4 bloque 2) — público, montado ANTES del
