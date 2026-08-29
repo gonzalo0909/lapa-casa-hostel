@@ -121,7 +121,10 @@ async function crear() {
       })
     });
     const data = await r.json();
-    if (!data.success) throw new Error(data.error || 'Error al crear sesión');
+    if (!data.success) {
+      const msg = data.error || data.message || JSON.stringify(data);
+      throw new Error(msg);
+    }
 
     const links = data.data.memberLinks || [];
     const container = document.getElementById('links');
