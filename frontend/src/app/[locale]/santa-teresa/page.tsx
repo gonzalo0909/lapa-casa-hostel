@@ -549,6 +549,20 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
           </div>
         </section>
 
+        {/* ── Cross-link ── */}
+        <div className="mb-2 text-sm text-muted-foreground">
+          <Link
+            href={`/${locale}/grupos`}
+            className="underline hover:text-foreground transition-colors"
+          >
+            {locale === 'pt' ? '🎒 Viajando em grupo? Veja nossos descontos para grupos' :
+             locale === 'en' ? '🎒 Traveling with a group? See our group discounts' :
+             locale === 'es' ? '🎒 ¿Viajando en grupo? Descubre nuestros descuentos para grupos' :
+             locale === 'de' ? '🎒 Als Gruppe unterwegs? Gruppenrabatte entdecken' :
+             '🎒 En voyage de groupe ? Découvrez nos remises de groupe'}
+          </Link>
+        </div>
+
         {/* ── CTA ── */}
         <section className="py-12">
           <div className="bg-card border border-border rounded-xl p-8">
