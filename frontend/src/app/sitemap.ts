@@ -17,11 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: number;
     lastModified?: Date;
   }> = [
-    { path: '',              changeFrequency: 'weekly',  priority: 1.0 },
-    { path: '/hostel',       changeFrequency: 'weekly',  priority: 0.9 },
-    { path: '/apartamentos', changeFrequency: 'weekly',  priority: 0.9 },
-    { path: '/galeria',      changeFrequency: 'monthly', priority: 0.7 },
-    { path: '/parceiros',    changeFrequency: 'monthly', priority: 0.6 },
+    { path: '',                changeFrequency: 'weekly',  priority: 1.0 },
+    { path: '/hostel',         changeFrequency: 'weekly',  priority: 0.9 },
+    { path: '/apartamentos',   changeFrequency: 'weekly',  priority: 0.9 },
+    // Long-tail SEO + AEO content pages
+    { path: '/santa-teresa',   changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/grupos',         changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/galeria',        changeFrequency: 'monthly', priority: 0.7 },
+    { path: '/parceiros',      changeFrequency: 'monthly', priority: 0.6 },
   ];
 
   return locales.flatMap((locale) =>
