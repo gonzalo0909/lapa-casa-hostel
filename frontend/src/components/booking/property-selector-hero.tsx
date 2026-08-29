@@ -38,6 +38,12 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
               Apartamentos
             </button>
             <a
+              href={`/${locale}/santa-teresa`}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+            >
+              Santa Teresa
+            </a>
+            <a
               href={`/${locale}/parceiros`}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >

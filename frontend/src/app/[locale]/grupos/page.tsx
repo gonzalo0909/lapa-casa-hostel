@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { StructuredData } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
+import { SiteFooter } from '@/components/layout/site-footer';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 
@@ -896,6 +897,7 @@ export default async function GruposPage({ params }: { params: { locale: string 
           </li>
         </ol>
       </nav>
+      <SiteFooter locale={locale} />
     </main>
   );
 }
