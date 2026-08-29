@@ -197,6 +197,9 @@ const CSS = `
 .he-btn-group:hover:not(:disabled){background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.42)}
 .he-btn-group:disabled{opacity:.48;cursor:not-allowed}
 .he-group-err{font-size:.72rem;color:#F87171;margin:.35rem 0;text-align:center}
+.he-group-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.16);border-radius:8px;color:#F0EDE0;font-size:.82rem;font-family:inherit;padding:.55rem .75rem;margin-bottom:.55rem;outline:none;transition:border-color .18s ease}
+.he-group-input::placeholder{color:rgba(255,255,255,.35)}
+.he-group-input:focus{border-color:rgba(255,255,255,.45)}
 .he-glink-panel{padding:2rem 1.5rem;text-align:center}
 .he-glink-title{font-family:var(--font-cormorant),Georgia,serif;font-size:1.15rem;font-weight:600;color:#7BC47F;margin-bottom:.35rem}
 .he-glink-desc{font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.58;margin-bottom:1.25rem}
@@ -288,6 +291,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
   const [groupLinks, setGroupLinks]               = useState<Array<{ slotIndex: number; url: string; waUrl?: string }>>([]);
   const [copiedSlot, setCopiedSlot]               = useState<number | null>(null);
+  // Datos mínimos del titular para el flujo grupal desde Step 2
+  const [gpName, setGpName]   = useState('');
+  const [gpEmail, setGpEmail] = useState('');
 
   // ─ Estado del formulario ─
   const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
@@ -599,6 +605,13 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Crear sesión de pago grupal ─
   const handleGroupSession = useCallback(async () => {
     if (!checkIn || !checkOut || !price) return;
+    // Datos del titular: usa el formulario completo (step 4) o los campos mínimos (step 2)
+    const titularName  = form.name.trim()  || gpName.trim();
+    const titularEmail = form.email.trim() || gpEmail.trim();
+    if (!titularName || !titularEmail) {
+      setGroupError(lang === 'pt' ? 'Nome e e-mail são obrigatórios.' : lang === 'es' ? 'Nombre y email son requeridos.' : 'Name and email are required.');
+      return;
+    }
     setIsGroupLoading(true);
     setGroupError('');
     try {
@@ -612,8 +625,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         nights: price.nights,
         guestGender: gender,
         titular: {
-          full_name: form.name.trim(),
-          email:     form.email,
+          full_name: titularName,
+          email:     titularEmail,
           phone:     form.phone   || undefined,
           country:   form.country || undefined,
           language:  lang,
@@ -631,7 +644,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     } finally {
       setIsGroupLoading(false);
     }
-  }, [checkIn, checkOut, price, beds, totalBeds, form, lang, t]);
+  }, [checkIn, checkOut, price, beds, totalBeds, form, gpName, gpEmail, lang, t]);
 
   // ─ Datos del resumen (Step 4) ─
   const summaryDates = (() => {
@@ -735,15 +748,51 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
             {/* Step 2 — Cuartos */}
             {step === 2 && (
-              <HostelRoomSelector
-                lang={lang}
-                rooms={visibleRooms}
-                beds={beds}
-                revealed={revealed}
-                season={season}
-                totalBeds={totalBeds}
-                onChangeBeds={changeBeds}
-              />
+              <>
+                <HostelRoomSelector
+                  lang={lang}
+                  rooms={visibleRooms}
+                  beds={beds}
+                  revealed={revealed}
+                  season={season}
+                  totalBeds={totalBeds}
+                  onChangeBeds={changeBeds}
+                />
+
+                {/* ── Pago grupal (solo si hay 2+ camas y hay fechas) ── */}
+                {totalBeds >= 2 && checkIn && checkOut && (
+                  <>
+                    <div className="he-or-divider">{t.gpOr}</div>
+                    <div className="he-group-box">
+                      <div className="he-group-title">{t.gpTitle}</div>
+                      <div className="he-group-desc">{t.gpDesc}</div>
+                      <div className="he-group-meta">
+                        {totalBeds} {totalBeds === 1 ? t.tBed : t.tBeds} · {t.gpMetaEach} {price ? fmtMoney(Math.round(price.total / totalBeds)) : ''}
+                      </div>
+                      <input
+                        className="he-group-input"
+                        type="text"
+                        placeholder={t.lblName ?? 'Nome completo'}
+                        value={gpName}
+                        onChange={e => setGpName(e.target.value)}
+                        autoComplete="name"
+                      />
+                      <input
+                        className="he-group-input"
+                        type="email"
+                        placeholder={t.lblEmail ?? 'E-mail'}
+                        value={gpEmail}
+                        onChange={e => setGpEmail(e.target.value)}
+                        autoComplete="email"
+                      />
+                      {groupError && <div className="he-group-err">{groupError}</div>}
+                      <button className="he-btn-group" onClick={handleGroupSession} disabled={isGroupLoading || !gpName.trim() || !gpEmail.trim()}>
+                        {isGroupLoading ? t.gpLoading : t.gpBtn}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
             )}
 
             {/* Step 3 — Formulario del huésped */}
