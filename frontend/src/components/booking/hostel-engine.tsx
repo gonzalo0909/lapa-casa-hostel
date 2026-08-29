@@ -517,43 +517,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
 
-  // ─ Crear sesión de pago grupal ─
-  const handleGroupSession = useCallback(async () => {
-    setIsGroupLoading(true);
-    setGroupError('');
-    try {
-      const nights = Math.round((checkOut!.getTime() - checkIn!.getTime()) / 86400000);
-      const c6     = beds['cuarto6'] ?? 0;
-      const gender = c6 > 0 && totalBeds === c6 ? 'female' : 'mixed';
-      const result = await paymentAPI.createGroupSession({
-        checkIn:  checkIn!.toISOString().slice(0, 10),
-        checkOut: checkOut!.toISOString().slice(0, 10),
-        totalBeds,
-        nights,
-        guestGender: gender,
-        titular: {
-          full_name: form.name.trim(),
-          email:     form.email,
-          phone:     form.phone || undefined,
-          country:   form.country || undefined,
-          language:  lang,
-        },
-        specialRequests: form.requests || undefined,
-      });
-      const payload = result.data?.data ?? result.data;
-      setGroupLink(payload.groupPaymentUrl ?? '');
-      setGroupWaUrl(payload.waShareUrl ?? '');
-      setGroupResNum(payload.reservationNumber ?? '');
-      setGroupAmountPerBed(payload.amountPerBed ?? 0);
-      setGroupLinks([]);
-      setPhase('group');
-    } catch (err: any) {
-      setGroupError(err?.response?.data?.error || err?.message || t.gpErrGeneric || 'Error al crear sesión grupal');
-    } finally {
-      setIsGroupLoading(false);
-    }
-  }, [form, beds, checkIn, checkOut, lang, totalBeds]);
-
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
     let secs = 300;
@@ -662,7 +625,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setGroupWaUrl(payload.waShareUrl ?? '');
       setGroupResNum(payload.reservationNumber ?? '');
       setGroupAmountPerBed(payload.amountPerBed ?? 0);
-      setPhase('group-link');
+      setPhase('group');
     } catch (err: any) {
       setGroupError(err?.response?.data?.error || err?.message || t.gpErrGeneric);
     } finally {
