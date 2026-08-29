@@ -667,9 +667,12 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       <div className="he-wrap">
 
         {/* Volver al home */}
-        <div style={{ width: '100%', maxWidth: 500, padding: '.6rem 0 .1rem' }}>
+        <div style={{ width: '100%', maxWidth: 500, padding: '.6rem 0 .1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.75rem', color: 'rgba(255,255,255,.7)', textDecoration: 'none', fontWeight: 600, letterSpacing: '.04em' }}>
             ← Home
+          </Link>
+          <Link href={`/${lang}/santa-teresa`} style={{ fontSize: '.75rem', color: 'rgba(255,255,255,.55)', textDecoration: 'none', letterSpacing: '.04em' }}>
+            Santa Teresa
           </Link>
         </div>
 
