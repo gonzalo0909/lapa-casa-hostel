@@ -98,12 +98,21 @@ app.use(metricsMiddleware);
 // real vive en las rutas de la API (authenticateToken + requireRole).
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
-// Feature 2: página pública de pago grupal -- sin auth, la protección
-// real está en el token único de cada sesión (64 bytes hex, ~255 bits de
-// entropía) y en los checks internos del servicio (expiración, estado).
+// Feature 2 v2: páginas públicas de pago grupal.
+// Protección real: token de 64 bytes hex (~255 bits de entropía) + checks internos.
+// Página de prueba (solo para testing interno).
+app.get('/test-group', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'test-group.html'));
+});
 app.use('/group-payment', express.static(path.join(__dirname, 'public'), { index: false }));
 app.get('/group-payment/:token', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'group-payment.html'));
+});
+
+// Página individual del invitado (token único por persona)
+app.use('/group-payment-member', express.static(path.join(__dirname, 'public'), { index: false }));
+app.get('/group-payment-member/:memberToken', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'group-payment-member.html'));
 });
 
 app.get('/health', async (req: Request, res: Response) => {

@@ -296,6 +296,22 @@ export const ApartmentServiceSchema = {
 };
 
 /**
+ * Speakable schema — para asistentes de voz (Google Assistant, Alexa).
+ * Indica qué selectores CSS contienen el contenido más importante para ser leído.
+ * AEO: los motores de IA también usan esto para identificar el resumen principal.
+ */
+export const SpeakableSchema = {
+  '@context': 'https://schema.org',
+  '@type':    'WebPage',
+  name:       'Lapa Casa Hostel',
+  speakable:  {
+    '@type':      'SpeakableSpecification',
+    cssSelector:  ['h1', 'h2', '.speakable', '[data-speakable]'],
+  },
+  url: 'https://lapacasario.com',
+};
+
+/**
  * Generate WebSite schema with search action
  */
 export const WebSiteSchema = {

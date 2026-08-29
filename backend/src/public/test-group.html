@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test — Pago Grupal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 32px 16px;
+    }
+    .card {
+      max-width: 520px; margin: 0 auto; background: #fff;
+      border-radius: 14px; padding: 28px 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.1);
+    }
+    h1 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+    .sub { font-size: 0.8rem; color: #888; margin-bottom: 24px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .fg { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    label { font-size: 0.75rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+    input {
+      padding: 9px 11px; border: 1.5px solid #ddd; border-radius: 7px;
+      font-size: 0.9rem; outline: none; background: #fff; color: #1a1a1a;
+    }
+    input:focus { border-color: #1a1a1a; }
+    .btn {
+      width: 100%; background: #1a1a1a; color: #fff;
+      font-size: 0.92rem; font-weight: 700; padding: 12px;
+      border: none; border-radius: 8px; cursor: pointer; margin-top: 8px;
+    }
+    .btn:hover { background: #333; }
+    .btn:disabled { background: #aaa; cursor: not-allowed; }
+    .result { margin-top: 24px; display: none; }
+    .result-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 10px; }
+    .link-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; background: #f8f8f8; border-radius: 8px;
+      margin-bottom: 8px; gap: 10px;
+    }
+    .slot-num { font-size: 0.72rem; font-weight: 700; color: #aaa; min-width: 50px; }
+    .link-url {
+      font-size: 0.78rem; color: #1a1a1a; word-break: break-all;
+      text-decoration: none; flex: 1;
+    }
+    .link-url:hover { text-decoration: underline; }
+    .open-btn {
+      background: #1a1a1a; color: #fff; text-decoration: none;
+      font-size: 0.72rem; font-weight: 700; padding: 5px 12px;
+      border-radius: 5px; white-space: nowrap;
+    }
+    .open-btn:hover { background: #333; }
+    .error { color: #c0392b; font-size: 0.83rem; margin-top: 12px; display: none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🧪 Test — Pago Grupal</h1>
+  <p class="sub">Crea una sesión de prueba y obtené los links de cada invitado.</p>
+
+  <div class="row">
+    <div class="fg">
+      <label>Check-in</label>
+      <input type="date" id="checkIn" value="2026-09-20">
+    </div>
+    <div class="fg">
+      <label>Check-out</label>
+      <input type="date" id="checkOut" value="2026-09-23">
+    </div>
+  </div>
+  <div class="row">
+    <div class="fg">
+      <label>Camas (invitados)</label>
+      <input type="number" id="totalBeds" value="3" min="2" max="20">
+    </div>
+    <div class="fg">
+      <label>Noches</label>
+      <input type="number" id="nights" value="3" min="1">
+    </div>
+  </div>
+  <div class="fg">
+    <label>Nombre del titular</label>
+    <input type="text" id="titularName" value="Gonzalo Test">
+  </div>
+  <div class="fg">
+    <label>Email del titular</label>
+    <input type="email" id="titularEmail" value="lapacasa22@gmail.com">
+  </div>
+
+  <button class="btn" id="btn" onclick="crear()">Crear sesión y ver links</button>
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <div class="result-label">Links de los invitados</div>
+    <div id="links"></div>
+  </div>
+</div>
+
+<script>
+async function crear() {
+  const btn = document.getElementById('btn');
+  const errEl = document.getElementById('error');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Creando...';
+
+  try {
+    const r = await fetch('/api/v1/payments/group-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        checkIn:    document.getElementById('checkIn').value,
+        checkOut:   document.getElementById('checkOut').value,
+        totalBeds:  parseInt(document.getElementById('totalBeds').value),
+        nights:     parseInt(document.getElementById('nights').value),
+        titular: {
+          full_name: document.getElementById('titularName').value,
+          email:     document.getElementById('titularEmail').value,
+        }
+      })
+    });
+    const data = await r.json();
+    if (!data.success) {
+      const msg = data.error || data.message || JSON.stringify(data);
+      throw new Error(msg);
+    }
+
+    const links = data.data.memberLinks || [];
+    const container = document.getElementById('links');
+    container.innerHTML = links.map(l =>
+      '<div class="link-row">' +
+        '<span class="slot-num">Cama ' + l.slotIndex + '</span>' +
+        '<a class="link-url" href="' + l.url + '" target="_blank">' + l.url + '</a>' +
+        '<a class="open-btn" href="' + l.url + '" target="_blank">Abrir →</a>' +
+      '</div>'
+    ).join('');
+
+    document.getElementById('result').style.display = 'block';
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Crear sesión y ver links';
+  }
+}
+</script>
+</body>
+</html>
