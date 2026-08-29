@@ -477,7 +477,7 @@ const CONTENT: Record<Locale, Content> = {
         bullets: [
           'Dortoirs mixtes (7 à 12 lits) — option économique pour les petits groupes',
           'Dortoir réservé aux femmes — pour les groupes féminins',
-          'Chambres privées — pour les couples ou sous-groupes souhaitant plus d'intimité',
+          "Chambres privées — pour les couples ou sous-groupes souhaitant plus d'intimité",
           'Appartements indépendants — avec cuisine et salon',
           'Combinaisons mixtes (dortoir + privé) pour des groupes aux préférences variées',
         ],
@@ -497,7 +497,7 @@ const CONTENT: Record<Locale, Content> = {
         heading: "Ce Qui Est Inclus",
         body: "Pour tous les clients, quel que soit le type d'hébergement :",
         bullets: [
-          'Wi-Fi haut débit dans tout l'hostel',
+          "Wi-Fi haut débit dans tout l'hostel",
           'Cuisine commune entièrement équipée (réfrigérateur, cuisinière, micro-ondes)',
           "Grand espace commun — parfait pour rassembler le groupe",
           'Casiers individuels avec cadenas',
