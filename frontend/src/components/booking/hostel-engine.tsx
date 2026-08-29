@@ -289,6 +289,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [groupResNum, setGroupResNum]             = useState('');
   const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
   const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
+  const [_groupLinks, _setGroupLinks]             = useState<Array<{ slotIndex: number; url: string; waUrl?: string }>>([]);
   const [copiedSlot, setCopiedSlot]               = useState<number | null>(null);
   // Datos mínimos del titular para el flujo grupal desde Step 2
   const [gpName, setGpName]   = useState('');
