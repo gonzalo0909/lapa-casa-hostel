@@ -691,7 +691,7 @@ export async function generateMetadata({
   params: { locale },
 }: {
   params: { locale: string };
-}): Promise<import('next').Metadata> {
+}): Promise<Metadata> {
   setRequestLocale(locale);
   const l = (locales.includes(locale as Locale) ? locale : defaultLocale) as Locale;
   const { title, description } = META[l];
