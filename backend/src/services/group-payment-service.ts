@@ -1,15 +1,19 @@
 // lapa-casa-hostel/backend/src/services/group-payment-service.ts
-// Feature 2: Pago grupal con link compartible.
+// Feature 2 v2: tokens individuales por invitado.
+//
+// Flujo rediseñado:
+//   1. Titular crea la sesión desde la página principal → recibe N links
+//      individuales, uno por acompañante.
+//   2. Cada link es de un solo uso (member_token único). El titular reenvía
+//      cada link al invitado correspondiente por WhatsApp.
+//   3. El invitado abre su link, llena sus datos y paga su cama.
+//   4. Al expirar el tiempo: los que pagaron quedan confirmados, los que no
+//      reciben un link de reserva individual.
 //
 // Opción D de precios por overflow:
 //   baja     → todos pagan el precio de la habitación más barata del grupo
 //   media    → precio promedio ponderado entre habitaciones
-//   alta     → cada cama paga el precio real de su habitación
-//   carnaval → cada cama paga el precio real de su habitación
-//
-// Anti-overbooking: se respeta pg_advisory_xact_lock + EXCLUDE constraint,
-// igual que en booking-service.ts. Las camas se bloquean en la misma
-// transacción que crea la reserva (pending_group).
+//   alta/carnaval → cada cama paga el precio real de su habitación
 
 import crypto from 'crypto';
 import { PoolClient } from 'pg';
@@ -30,7 +34,7 @@ export interface GroupSessionInput {
   totalBeds: number;
   nights: number;
   guestGender: 'mixed' | 'female' | 'male';
-  /** Datos del titular (llena el formulario al crear la sesión) */
+  /** Datos del titular (capturados en la página principal al crear la sesión) */
   titular: {
     full_name: string;
     email: string;
@@ -40,17 +44,23 @@ export interface GroupSessionInput {
     language?: string;
   };
   specialRequests?: string;
-  /** URL base del frontend para armar el link compartible */
+  /** URL base del backend para armar los links de miembro */
   appBaseUrl: string;
 }
 
 export interface RoomAllocation {
   roomTypeId: string;
   roomCode: string;
-  basePricePerBed: number;      // precio base × noches (sin surcharge)
-  amountPerBed: number;         // precio final aplicando estrategia D
+  basePricePerBed: number;
+  amountPerBed: number;
   bedsCount: number;
   bedIds: string[];
+}
+
+export interface MemberLink {
+  slotIndex: number;
+  url: string;
+  waUrl: string;
 }
 
 export interface GroupSessionResult {
@@ -62,21 +72,24 @@ export interface GroupSessionResult {
   paidBeds: number;
   pricingStrategy: string;
   seasonType: string;
-  amountPerBed: number;         // monto base que paga cada miembro (sin recargo tarjeta)
+  amountPerBed: number;
   roomAllocations: RoomAllocation[];
   expiresAt: string;
-  waShareUrl: string;
+  /** Links individuales para cada invitado (uno por cama) */
+  memberLinks: MemberLink[];
+  /** URL de resumen de estado para el titular (solo lectura) */
   groupPaymentUrl: string;
+  waShareUrl: string;
 }
 
 export interface MemberPaymentInput {
-  token: string;
+  /** Token individual del slot del invitado */
+  memberToken: string;
   guest: {
     full_name: string;
     email: string;
     phone?: string;
     country?: string;
-    document?: string;
     language?: string;
   };
   paymentMethod: 'card' | 'pix';
@@ -87,11 +100,24 @@ export interface MemberPaymentResult {
   paymentMethod: 'card' | 'pix';
   amountCharged: number;
   cardSurcharge: number;
-  /** Stripe: URL de checkout. PIX: null (el QR viene en pixData) */
   checkoutUrl?: string;
-  /** Solo para PIX */
   pixData?: { qrCode: string; qrCodeBase64: string; expiresAt: string };
   providerPaymentId: string;
+}
+
+export interface MemberStatusResult {
+  found: boolean;
+  expired: boolean;
+  completed: boolean;
+  alreadyPaid: boolean;
+  memberId: string;
+  slotIndex: number;
+  sessionId: string;
+  totalBeds: number;
+  paidBeds: number;
+  amountPerBed: number;
+  expiresAt: string;
+  members: Array<{ guestName: string; paymentMethod: string }>;
 }
 
 // ── Helpers internos ─────────────────────────────────────────────────────────
@@ -101,7 +127,6 @@ const generateToken = (): string => crypto.randomBytes(32).toString('hex');
 const generateReservationNumber = (): string =>
   `LCH-G-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
 
-/** Lee card_surcharge_percent desde system_config (igual que process-deposit.ts). */
 async function getCardSurchargePercent(): Promise<number> {
   const { rows } = await query<{ value: number }>(
     `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`
@@ -116,18 +141,12 @@ async function getSeasonType(checkIn: string): Promise<string> {
   return rows[0].get_season_type;
 }
 
-/** Opción D: determina estrategia de precio según temporada. */
 function resolvePricingStrategy(seasonType: string): 'min' | 'weighted_avg' | 'per_room' {
   if (seasonType === 'baja') return 'min';
   if (seasonType === 'media') return 'weighted_avg';
-  return 'per_room'; // alta, carnaval
+  return 'per_room';
 }
 
-/**
- * Asigna beds del grupo a habitaciones en orden de prioridad:
- * rooms ordenados por capacidad DESC (cuartos grandes primero, minimiza splits).
- * Retorna la asignación por cuarto con los bed IDs ya seleccionados.
- */
 async function allocateGroupBeds(
   client: PoolClient,
   checkIn: string,
@@ -135,7 +154,6 @@ async function allocateGroupBeds(
   totalBeds: number,
   gender: 'mixed' | 'female' | 'male'
 ): Promise<RoomAllocation[]> {
-  // Traer habitaciones elegibles ordenadas: capacity DESC, flexible al final
   const { rows: rooms } = await client.query<{
     id: string; code: string; capacity: number; base_price: string; is_flexible: boolean;
   }>(
@@ -157,7 +175,6 @@ async function allocateGroupBeds(
   for (const room of rooms) {
     if (remaining <= 0) break;
 
-    // Para el cuarto flexible: verificar el gender efectivo en la fecha
     if (room.is_flexible && gender !== 'female') {
       const { rows: statusRows } = await client.query<{ effective_gender: string }>(
         `SELECT effective_gender FROM availability_cache
@@ -168,7 +185,6 @@ async function allocateGroupBeds(
       if (effectiveGender === 'female' && gender !== 'female') continue;
     }
 
-    // Seleccionar camas disponibles en este cuarto
     const { rows: beds } = await client.query<{ bed_id: string }>(
       `SELECT bed_id FROM check_availability($1::date, $2::date, $3::bed_gender)
        WHERE room_type_id = $4::uuid
@@ -189,7 +205,7 @@ async function allocateGroupBeds(
       roomTypeId: room.id,
       roomCode: room.code,
       basePricePerBed,
-      amountPerBed: 0,              // se calcula después con la estrategia D
+      amountPerBed: 0,
       bedsCount: bedIds.length,
       bedIds,
     });
@@ -206,10 +222,6 @@ async function allocateGroupBeds(
   return allocations;
 }
 
-/**
- * Aplica la estrategia D al amountPerBed de cada asignación.
- * nights: cantidad de noches de la reserva.
- */
 function applyPricingStrategy(
   allocations: RoomAllocation[],
   strategy: 'min' | 'weighted_avg' | 'per_room',
@@ -221,22 +233,18 @@ function applyPricingStrategy(
 
   if (strategy === 'min') {
     const minPrice = Math.min(...allocations.map(pricePerBed));
-    const updated = allocations.map((a) => ({ ...a, amountPerBed: minPrice }));
-    return { allocations: updated, defaultAmountPerBed: minPrice };
+    return { allocations: allocations.map((a) => ({ ...a, amountPerBed: minPrice })), defaultAmountPerBed: minPrice };
   }
 
   if (strategy === 'weighted_avg') {
     const totalBeds = allocations.reduce((s, a) => s + a.bedsCount, 0);
     const weightedSum = allocations.reduce((s, a) => s + pricePerBed(a) * a.bedsCount, 0);
     const avg = parseFloat((weightedSum / totalBeds).toFixed(2));
-    const updated = allocations.map((a) => ({ ...a, amountPerBed: avg }));
-    return { allocations: updated, defaultAmountPerBed: avg };
+    return { allocations: allocations.map((a) => ({ ...a, amountPerBed: avg })), defaultAmountPerBed: avg };
   }
 
-  // per_room: cada cama paga el precio real de su cuarto
   const updated = allocations.map((a) => ({ ...a, amountPerBed: pricePerBed(a) }));
-  const defaultAmt = pricePerBed(allocations[0]);
-  return { allocations: updated, defaultAmountPerBed: defaultAmt };
+  return { allocations: updated, defaultAmountPerBed: pricePerBed(allocations[0]) };
 }
 
 // ── Clase principal ───────────────────────────────────────────────────────────
@@ -245,16 +253,16 @@ export class GroupPaymentService {
 
   /**
    * Crea la sesión de pago grupal:
-   * 1. Asigna camas (overflow automático entre cuartos)
-   * 2. Determina precio por cama según temporada (Opción D)
-   * 3. Crea reserva en pending_group con beds bloqueados
-   * 4. Genera token + wa.me URL
+   * 1. Asigna camas (overflow automático)
+   * 2. Determina precio por cama (Opción D)
+   * 3. Crea reserva pending_group
+   * 4. Pre-crea N slots de miembro con tokens individuales
+   * 5. Retorna N links únicos para que el titular los reenvíe a cada invitado
    */
   async createGroupSession(input: GroupSessionInput): Promise<GroupSessionResult> {
     const seasonType = await getSeasonType(input.checkIn);
     const strategy = resolvePricingStrategy(seasonType);
 
-    // Multiplier de temporada para el precio
     const { rows: multRows } = await query<{ calculate_season_multiplier: string }>(
       `SELECT calculate_season_multiplier($1::date) AS calculate_season_multiplier`,
       [input.checkIn]
@@ -262,22 +270,18 @@ export class GroupPaymentService {
     const seasonMultiplier = parseFloat(multRows[0].calculate_season_multiplier);
 
     const result = await withTransaction(async (client) => {
-      // 1. Asignación de camas con overflow automático
       let rawAllocations = await allocateGroupBeds(
         client, input.checkIn, input.checkOut, input.totalBeds, input.guestGender
       );
 
-      // 2. Pricing estrategia D
       const { allocations, defaultAmountPerBed } = applyPricingStrategy(
         rawAllocations, strategy, input.nights, seasonMultiplier
       );
 
       const allBedIds = allocations.flatMap((a) => a.bedIds);
 
-      // 3. Advisory lock sobre todas las camas
       await acquireLock(client, allBedIds);
 
-      // 4. Re-verificar bajo lock
       const { rows: occupied } = await client.query(
         `SELECT bed_id FROM reservation_beds
          WHERE bed_id = ANY($1::uuid[])
@@ -288,7 +292,6 @@ export class GroupPaymentService {
         throw new Error('Algunas camas ya no están disponibles. Por favor intentá de nuevo.');
       }
 
-      // 5. Upsert del titular como guest
       const titular = await guestRepo.upsert({
         full_name: input.titular.full_name,
         email: input.titular.email,
@@ -297,7 +300,6 @@ export class GroupPaymentService {
         language: input.titular.language ?? null
       });
 
-      // 6. Canal "direct"
       const { rows: chRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
       if (chRows.length === 0) throw new Error('Canal direct no encontrado');
       const channelId = chRows[0].id;
@@ -305,20 +307,15 @@ export class GroupPaymentService {
       const reservationNumber = generateReservationNumber();
       const totalBeds = input.totalBeds;
 
-      // Precio total grupal: suma por cuarto
       const totalPrice = parseFloat(
         allocations.reduce((s, a) => s + a.amountPerBed * a.bedsCount, 0).toFixed(2)
       );
-
-      // Depósito: 30% estándar (sin lógica de 50% para grupos aquí — la
-      // sesión grupal tiene su propio flujo de confirmación por miembro)
       const depositPercent = 0.30;
       const depositAmount = parseFloat((totalPrice * depositPercent).toFixed(2));
       const remainingAmount = parseFloat((totalPrice - depositAmount).toFixed(2));
 
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-      // 7. Crear reserva en pending_group
       const { rows: resRows } = await client.query(
         `INSERT INTO reservations (
            reservation_number, guest_id, channel_id, guest_gender,
@@ -343,7 +340,6 @@ export class GroupPaymentService {
       );
       const reservation = resRows[0];
 
-      // 8. Insertar reservation_beds (anti-overbooking)
       for (const bedId of allBedIds) {
         await client.query(
           `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
@@ -352,13 +348,12 @@ export class GroupPaymentService {
         );
       }
 
-      // 9. Crear sesión grupal
-      const token = generateToken();
-      const groupPaymentUrl = `${input.appBaseUrl}/group-payment/${token}`;
-      const waText = encodeURIComponent(
-        `Hola! Te comparto el link para pagar tu cama en Lapa Casa Hostel:\n${groupPaymentUrl}`
-      );
-      const waShareUrl = `https://wa.me/?text=${waText}`;
+      // Sesión grupal (token del titular para ver el estado general)
+      const sessionToken = generateToken();
+      const groupPaymentUrl = `${input.appBaseUrl}/group-payment/${sessionToken}`;
+      const waShareUrl = `https://wa.me/?text=${encodeURIComponent(
+        `Hola! Te comparto el estado del pago grupal en Lapa Casa Hostel:\n${groupPaymentUrl}`
+      )}`;
 
       const { rows: sessionRows } = await client.query(
         `INSERT INTO group_payment_sessions
@@ -366,13 +361,37 @@ export class GroupPaymentService {
             pricing_strategy, season_type, wa_share_url, expires_at)
          VALUES ($1, $2, $3, 0, $4, $5, $6, $7)
          RETURNING id`,
-        [reservation.id, token, totalBeds, strategy, seasonType, waShareUrl, expiresAt.toISOString()]
+        [reservation.id, sessionToken, totalBeds, strategy, seasonType, waShareUrl, expiresAt.toISOString()]
       );
       const sessionId = sessionRows[0].id;
 
+      // Pre-crear N slots de miembro con tokens individuales
+      // Cada slot tiene asignada una cama específica desde el inicio
+      const memberLinks: MemberLink[] = [];
+      for (let i = 0; i < totalBeds; i++) {
+        const memberToken = generateToken();
+        const bedId = allBedIds[i] ?? null;
+
+        await client.query(
+          `INSERT INTO group_payment_members
+             (session_id, member_token, slot_index, bed_id, status)
+           VALUES ($1, $2, $3, $4::uuid, 'invited')`,
+          [sessionId, memberToken, i + 1, bedId]
+        );
+
+        const memberUrl = `${input.appBaseUrl}/group-payment-member/${memberToken}`;
+        memberLinks.push({
+          slotIndex: i + 1,
+          url: memberUrl,
+          waUrl: `https://wa.me/?text=${encodeURIComponent(
+            `Hola! Te invito a pagar tu cama en Lapa Casa Hostel:\n${memberUrl}`
+          )}`,
+        });
+      }
+
       return {
         sessionId,
-        token,
+        token: sessionToken,
         reservationId: reservation.id,
         reservationNumber: reservation.reservation_number,
         totalBeds,
@@ -382,18 +401,17 @@ export class GroupPaymentService {
         amountPerBed: defaultAmountPerBed,
         roomAllocations: allocations,
         expiresAt: expiresAt.toISOString(),
-        waShareUrl,
+        memberLinks,
         groupPaymentUrl,
+        waShareUrl,
       };
     });
 
-    // Fire-and-forget fuera de la transacción
     redisClient.delPattern('availability:*').catch(() => {});
-
     return result;
   }
 
-  /** Estado actual de la sesión (polling del link compartido). */
+  /** Estado general de la sesión (vista del titular — solo lectura). */
   async getSessionStatus(token: string): Promise<{
     found: boolean;
     expired: boolean;
@@ -425,7 +443,6 @@ export class GroupPaymentService {
 
     const session = rows[0];
 
-    // Precio por cama: del titular (base_price de la reserva)
     const { rows: resRows } = await query<{ base_price: string; season_multiplier: string; nights_count: number }>(
       `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
       [session.reservation_id]
@@ -465,19 +482,105 @@ export class GroupPaymentService {
   }
 
   /**
-   * Inicia el pago de un miembro del grupo.
-   * Crea el guest, reserva un slot (group_payment_members en pending),
-   * y genera el checkout de Stripe o el QR PIX de MercadoPago.
+   * Estado del slot individual de un invitado.
+   * Usado para la página /group-payment-member/:memberToken.
    */
-  async initiateMemberPayment(input: MemberPaymentInput): Promise<MemberPaymentResult> {
-    // Validar sesión
+  async getMemberStatus(memberToken: string): Promise<MemberStatusResult> {
+    const empty: MemberStatusResult = {
+      found: false, expired: false, completed: false, alreadyPaid: false,
+      memberId: '', slotIndex: 0, sessionId: '',
+      totalBeds: 0, paidBeds: 0, amountPerBed: 0, expiresAt: '', members: []
+    };
+
+    const { rows: memberRows } = await query<{
+      id: string; slot_index: number; status: string; session_id: string;
+    }>(
+      `SELECT id, slot_index, status, session_id
+       FROM group_payment_members WHERE member_token = $1`,
+      [memberToken]
+    );
+
+    if (memberRows.length === 0) return empty;
+    const member = memberRows[0];
+
     const { rows: sessionRows } = await query<{
       id: string; status: string; total_beds: number; paid_beds: number;
-      expires_at: string; reservation_id: string; pricing_strategy: string; season_type: string;
+      expires_at: string; reservation_id: string;
     }>(
-      `SELECT id, status, total_beds, paid_beds, expires_at, reservation_id, pricing_strategy, season_type
-       FROM group_payment_sessions WHERE token = $1`,
-      [input.token]
+      `SELECT id, status, total_beds, paid_beds, expires_at, reservation_id
+       FROM group_payment_sessions WHERE id = $1`,
+      [member.session_id]
+    );
+
+    if (sessionRows.length === 0) return empty;
+    const session = sessionRows[0];
+
+    const { rows: resRows } = await query<{ base_price: string; season_multiplier: string; nights_count: number }>(
+      `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
+      [session.reservation_id]
+    );
+    const res = resRows[0];
+    const amountPerBed = res
+      ? parseFloat((parseFloat(res.base_price) * parseFloat(res.season_multiplier) * res.nights_count).toFixed(2))
+      : 0;
+
+    const { rows: paidRows } = await query<{ guest_name: string; payment_method: string }>(
+      `SELECT g.full_name AS guest_name, m.payment_method
+       FROM group_payment_members m
+       LEFT JOIN guests g ON g.id = m.guest_id
+       WHERE m.session_id = $1 AND m.status = 'paid'
+       ORDER BY m.paid_at ASC`,
+      [session.id]
+    );
+
+    return {
+      found: true,
+      expired: session.status === 'expired',
+      completed: session.status === 'completed',
+      alreadyPaid: member.status === 'paid',
+      memberId: member.id,
+      slotIndex: member.slot_index,
+      sessionId: session.id,
+      totalBeds: session.total_beds,
+      paidBeds: session.paid_beds,
+      amountPerBed,
+      expiresAt: session.expires_at,
+      members: paidRows.map((m) => ({
+        guestName: m.guest_name,
+        paymentMethod: m.payment_method,
+      })),
+    };
+  }
+
+  /**
+   * Inicia el pago de un invitado usando su token individual.
+   * Actualiza el slot pre-creado (status: invited → pending) con los datos del guest.
+   * Race condition cubierta: el UPDATE con AND status='invited' falla atómicamente
+   * si alguien ya reclamó el slot.
+   */
+  async initiateMemberPayment(input: MemberPaymentInput): Promise<MemberPaymentResult> {
+    // Buscar slot por member_token
+    const { rows: memberRows } = await query<{
+      id: string; status: string; session_id: string; bed_id: string;
+    }>(
+      `SELECT id, status, session_id, bed_id
+       FROM group_payment_members WHERE member_token = $1`,
+      [input.memberToken]
+    );
+
+    if (memberRows.length === 0) throw new Error('Link de pago no encontrado');
+    const member = memberRows[0];
+
+    if (member.status === 'paid') throw new Error('Esta cama ya fue pagada');
+    if (member.status === 'pending') throw new Error('Ya hay un pago en proceso para este slot');
+
+    // Verificar sesión
+    const { rows: sessionRows } = await query<{
+      id: string; status: string; expires_at: string; reservation_id: string;
+    }>(
+      `SELECT id, status, expires_at, reservation_id
+       FROM group_payment_sessions WHERE id = $1`,
+      [member.session_id]
     );
 
     if (sessionRows.length === 0) throw new Error('Sesión de pago no encontrada');
@@ -486,36 +589,22 @@ export class GroupPaymentService {
     if (session.status !== 'open') throw new Error('Esta sesión ya está cerrada o expirada');
     if (new Date(session.expires_at) < new Date()) throw new Error('El tiempo para completar el pago grupal expiró');
 
-    // Contar slots pending + paid para no exceder total_beds
-    const { rows: slotRows } = await query<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM group_payment_members
-       WHERE session_id = $1 AND status IN ('pending', 'paid')`,
-      [session.id]
-    );
-    const usedSlots = parseInt(slotRows[0].count, 10);
-    if (usedSlots >= session.total_beds) throw new Error('Todas las camas ya fueron reservadas');
-
     // Precio base de la reserva
     const { rows: resRows } = await query<{
-      base_price: string; season_multiplier: string; nights_count: number; guest_gender: string;
+      base_price: string; season_multiplier: string; nights_count: number;
     }>(
-      `SELECT base_price, season_multiplier, nights_count, guest_gender FROM reservations WHERE id = $1`,
+      `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
       [session.reservation_id]
     );
     const res = resRows[0];
-    const nights = res.nights_count;
-    const seasonMultiplier = parseFloat(res.season_multiplier);
-
-    // Precio por cama según estrategia D (base_price ya tiene el precio mínimo o avg guardado)
     const basePricePerBed = parseFloat(res.base_price);
-    const amountPerBed = parseFloat((basePricePerBed * nights * seasonMultiplier).toFixed(2));
+    const amountPerBed = parseFloat((basePricePerBed * res.nights_count * parseFloat(res.season_multiplier)).toFixed(2));
 
-    // Surcharge de tarjeta
     const cardSurchargePct = input.paymentMethod === 'card' ? await getCardSurchargePercent() : 0;
     const cardSurcharge = parseFloat((amountPerBed * cardSurchargePct / 100).toFixed(2));
     const amountCharged = parseFloat((amountPerBed + cardSurcharge).toFixed(2));
 
-    // Crear/buscar guest
+    // Upsert del guest
     const guest = await guestRepo.upsert({
       full_name: input.guest.full_name,
       email: input.guest.email,
@@ -524,22 +613,25 @@ export class GroupPaymentService {
       language: input.guest.language ?? null
     });
 
-    // Crear registro de miembro en pending
-    const { rows: memberRows } = await query<{ id: string }>(
-      `INSERT INTO group_payment_members
-         (session_id, guest_id, amount_charged, payment_method, card_surcharge, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending')
+    // Actualizar el slot: claimed → pending (atómico, evita doble-claim)
+    const { rows: updatedRows } = await query<{ id: string }>(
+      `UPDATE group_payment_members
+       SET guest_id = $2, amount_charged = $3, payment_method = $4,
+           card_surcharge = $5, status = 'pending', updated_at = now()
+       WHERE id = $1 AND status = 'invited'
        RETURNING id`,
-      [session.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge]
+      [member.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge]
     );
-    const memberId = memberRows[0].id;
 
-    // La página del grupo la sirve el backend (/group-payment/:token)
+    if (updatedRows.length === 0) {
+      throw new Error('Esta cama ya fue reclamada por otro invitado');
+    }
+
+    const memberId = member.id;
     const appBaseUrl = process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
-    const successUrl = `${appBaseUrl}/group-payment/${input.token}?status=success&member=${memberId}`;
-    const cancelUrl  = `${appBaseUrl}/group-payment/${input.token}?status=cancel`;
+    const successUrl = `${appBaseUrl}/group-payment-member/${input.memberToken}?status=success`;
+    const cancelUrl  = `${appBaseUrl}/group-payment-member/${input.memberToken}?status=cancel`;
 
-    // Crear pago en el proveedor
     if (input.paymentMethod === 'card') {
       const { stripeHandler } = await import('../lib/payments/stripe-handler');
       const checkoutSession = await stripeHandler.createCheckoutSession({
@@ -556,7 +648,6 @@ export class GroupPaymentService {
       });
 
       logger.info('Group payment Stripe checkout creado', { memberId, sessionId: session.id });
-
       return {
         memberId,
         paymentMethod: 'card',
@@ -566,7 +657,6 @@ export class GroupPaymentService {
         providerPaymentId: checkoutSession.sessionId,
       };
     } else {
-      // PIX via MercadoPago
       const { mercadoPagoHandler } = await import('../lib/payments/mercado-pago-handler');
       const pixResult = await mercadoPagoHandler.createPaymentIntent({
         amount: amountCharged,
@@ -582,7 +672,6 @@ export class GroupPaymentService {
       });
 
       logger.info('Group payment PIX creado', { memberId, sessionId: session.id });
-
       return {
         memberId,
         paymentMethod: 'pix',
@@ -599,9 +688,8 @@ export class GroupPaymentService {
   }
 
   /**
-   * Confirma el pago de un miembro (llamado desde el webhook de Stripe
-   * o desde la confirmación de MercadoPago).
-   * Si es el último miembro → auto-confirma la reserva.
+   * Confirma el pago de un miembro (llamado desde webhook de Stripe o MP).
+   * Si es el último → auto-confirma la reserva y notifica al titular.
    */
   async confirmMemberPayment(params: {
     memberId: string;
@@ -619,7 +707,6 @@ export class GroupPaymentService {
     const member = memberRows[0];
     if (member.status === 'paid') return { reservationConfirmed: false };
 
-    // Marcar miembro como pagado, guardar provider_payment_id y (opcionalmente) bed_id
     await query(
       `UPDATE group_payment_members
        SET status = 'paid', paid_at = now(),
@@ -632,7 +719,6 @@ export class GroupPaymentService {
         : [params.memberId, params.providerPaymentId]
     );
 
-    // Incrementar paid_beds y leer estado
     const { rows: sessionRows } = await query<{
       id: string; total_beds: number; paid_beds: number; reservation_id: string;
     }>(
@@ -662,14 +748,44 @@ export class GroupPaymentService {
       `UPDATE group_payment_sessions SET status = 'completed', updated_at = now() WHERE id = $1`,
       [sessionId]
     );
+
+    // Notificar al titular
+    try {
+      const { rows: titularRows } = await query<{
+        guest_email: string; guest_name: string; reservation_number: string;
+        total_beds: number; check_in_date: string;
+      }>(
+        `SELECT g.email AS guest_email, g.full_name AS guest_name,
+                r.reservation_number, r.beds_count AS total_beds, r.check_in_date
+         FROM reservations r
+         JOIN guests g ON g.id = r.guest_id
+         WHERE r.id = $1`,
+        [reservationId]
+      );
+      if (titularRows.length > 0) {
+        const t = titularRows[0];
+        const { emailService } = await import('./email-service');
+        await emailService.sendGroupPaymentComplete({
+          titularEmail: t.guest_email,
+          titularName: t.guest_name,
+          reservationNumber: t.reservation_number,
+          totalBeds: t.total_beds,
+          checkIn: t.check_in_date,
+        });
+      }
+    } catch (err) {
+      logger.warn('Error al enviar email de confirmación grupal', { reservationId, err });
+    }
+
     enqueueSheetsExport(reservationId, 'upsert').catch(() => {});
     redisClient.delPattern('availability:*').catch(() => {});
     logger.info('Reserva grupal confirmada', { reservationId, sessionId });
   }
 
   /**
-   * Cancela sesiones expiradas y reembolsa pagos parciales.
-   * Llamado por BullMQ (grupo-pago-expirado job).
+   * Procesa sesiones expiradas:
+   * - Los que pagaron: sus camas quedan confirmadas (reserva individual)
+   * - Los que no pagaron: sus slots se liberan; reciben link para reservar individualmente
    */
   async cancelExpiredSessions(): Promise<number> {
     const { rows: expiredSessions } = await query<{
@@ -681,66 +797,117 @@ export class GroupPaymentService {
        RETURNING id, reservation_id`
     );
 
-    let cancelled = 0;
+    let processed = 0;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://lapacasario.com';
+
     for (const session of expiredSessions) {
       try {
-        // Reembolsar miembros que pagaron
         const { rows: paidMembers } = await query<{
+          id: string; bed_id: string; guest_id: string;
           payment_method: string; provider_payment_id: string; amount_charged: string;
         }>(
-          `SELECT payment_method, provider_payment_id, amount_charged
+          `SELECT id, bed_id, guest_id, payment_method, provider_payment_id, amount_charged
            FROM group_payment_members
            WHERE session_id = $1 AND status = 'paid'`,
           [session.id]
         );
 
-        for (const member of paidMembers) {
-          try {
-            if (member.payment_method === 'card' && member.provider_payment_id) {
-              const { stripeHandler } = await import('../lib/payments/stripe-handler');
-              await stripeHandler.createRefund({
-                paymentIntentId: member.provider_payment_id,
-                amount: parseFloat(member.amount_charged),
-              });
-            } else if (member.payment_method === 'pix' && member.provider_payment_id) {
-              const { mercadoPagoHandler } = await import('../lib/payments/mercado-pago-handler');
-              await mercadoPagoHandler.refundPayment({
-                paymentId: member.provider_payment_id,
-                amount: parseFloat(member.amount_charged),
-              });
-            }
-          } catch (refundErr) {
-            logger.error('Error al reembolsar miembro de sesión expirada', {
-              sessionId: session.id, error: refundErr
-            });
-          }
-        }
-
-        // Cancelar reserva (el trigger trg_release_beds libera las camas)
-        await query(
-          `UPDATE reservations
-           SET status = 'cancelled', cancelled_at = now(),
-               cancellation_reason = 'Sesión de pago grupal expirada'
-           WHERE id = $1 AND status = 'pending_group'`,
-          [session.reservation_id]
-        );
-
-        await query(
-          `UPDATE group_payment_members
-           SET status = 'refunded', updated_at = now()
-           WHERE session_id = $1 AND status = 'paid'`,
+        const { rows: unpaidMembers } = await query<{
+          id: string; guest_id: string;
+        }>(
+          `SELECT id, guest_id
+           FROM group_payment_members
+           WHERE session_id = $1 AND status IN ('invited', 'pending')`,
           [session.id]
         );
 
+        if (paidMembers.length > 0) {
+          // Hay pagos: confirmar los que pagaron, liberar el resto
+          const paidBedIds = paidMembers.map((m) => m.bed_id).filter(Boolean);
+
+          if (paidBedIds.length < paidMembers.length) {
+            // Algún miembro sin bed_id asignado — mantener todos los beds y confirmar la reserva parcialmente
+            logger.warn('Miembros pagados sin bed_id, confirmando reserva completa', { sessionId: session.id });
+            await query(
+              `UPDATE reservations
+               SET status = 'confirmed', updated_at = now()
+               WHERE id = $1 AND status = 'pending_group'`,
+              [session.reservation_id]
+            );
+          } else {
+            // Eliminar de reservation_beds los beds NO pagados
+            await query(
+              `DELETE FROM reservation_beds
+               WHERE reservation_id = $1
+                 AND bed_id NOT IN (SELECT unnest($2::uuid[]))`,
+              [session.reservation_id, paidBedIds]
+            );
+
+            // Confirmar la reserva con los beds pagados
+            await query(
+              `UPDATE reservations
+               SET status = 'confirmed',
+                   beds_count = $2,
+                   updated_at = now()
+               WHERE id = $1 AND status = 'pending_group'`,
+              [session.reservation_id, paidMembers.length]
+            );
+          }
+        } else {
+          // Nadie pagó: cancelar la reserva (trigger libera los beds)
+          await query(
+            `UPDATE reservations
+             SET status = 'cancelled', cancelled_at = now(),
+                 cancellation_reason = 'Sesión de pago grupal expirada sin pagos'
+             WHERE id = $1 AND status = 'pending_group'`,
+            [session.reservation_id]
+          );
+        }
+
+        // Marcar slots no pagados como expirados/fallidos
+        await query(
+          `UPDATE group_payment_members
+           SET status = 'failed', updated_at = now()
+           WHERE session_id = $1 AND status IN ('invited', 'pending')`,
+          [session.id]
+        );
+
+        // Notificar por email a los invitados que no pagaron (si tienen guest_id)
+        if (unpaidMembers.length > 0) {
+          const unpaidGuestIds = unpaidMembers.map((m) => m.guest_id).filter(Boolean);
+          if (unpaidGuestIds.length > 0) {
+            try {
+              const { rows: unpaidGuests } = await query<{ email: string; full_name: string }>(
+                `SELECT email, full_name FROM guests WHERE id = ANY($1::uuid[])`,
+                [unpaidGuestIds]
+              );
+              const { emailService } = await import('./email-service');
+              for (const g of unpaidGuests) {
+                await emailService.sendGroupPaymentExpiredToUnpaid({
+                  guestEmail: g.email,
+                  guestName: g.full_name,
+                  bookingUrl: `${frontendUrl}/pt/hostel`,
+                }).catch((err: Error) => logger.warn('Error al enviar email expirado a invitado', { err: err.message }));
+              }
+            } catch (err) {
+              logger.warn('Error al enviar emails a invitados no pagados', { sessionId: session.id, err });
+            }
+          }
+        }
+
         redisClient.delPattern('availability:*').catch(() => {});
-        cancelled++;
-        logger.info('Sesión grupal expirada cancelada', { sessionId: session.id });
+        processed++;
+        logger.info('Sesión grupal expirada procesada', {
+          sessionId: session.id,
+          paidCount: paidMembers.length,
+          unpaidCount: unpaidMembers.length,
+        });
       } catch (err) {
-        logger.error('Error al cancelar sesión grupal expirada', { sessionId: session.id, err });
+        logger.error('Error al procesar sesión grupal expirada', { sessionId: session.id, err });
       }
     }
 
-    return cancelled;
+    return processed;
   }
 }
 

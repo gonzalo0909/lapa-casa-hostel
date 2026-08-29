@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago de cama — Lapa Casa Hostel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* Banner */
+    .banner {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    .banner .hostel { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 4px; }
+    .banner h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .banner p { font-size: 0.85rem; color: #ccc; }
+
+    /* Contenedor principal */
+    .main { max-width: 480px; margin: 28px auto; padding: 0 16px; }
+
+    /* Barra de progreso del grupo */
+    .group-progress {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 20px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .group-progress-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: #aaa; margin-bottom: 8px; }
+    .bed-counter { display: flex; align-items: baseline; gap: 6px; margin-bottom: 10px; }
+    .bed-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .bed-total { font-size: 1rem; color: #aaa; }
+    .bed-label { font-size: 0.8rem; color: #666; }
+    .progress-bar { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+    .progress-fill { height: 100%; background: #1a1a1a; border-radius: 3px; transition: width 0.4s ease; }
+    .countdown { font-size: 0.82rem; color: #666; display: flex; align-items: center; gap: 5px; }
+    .countdown.urgent { color: #c0392b; font-weight: 600; }
+
+    /* Lista de pagados */
+    .members-section { margin-top: 12px; }
+    .members-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.7px; color: #bbb; margin-bottom: 6px; }
+    .member-item {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.83rem; padding: 6px 0; border-bottom: 1px solid #f2f2f2;
+    }
+    .member-item:last-child { border-bottom: none; }
+    .member-name { font-weight: 600; }
+    .member-method { font-size: 0.72rem; color: #999; text-transform: uppercase; }
+    .member-paid { font-size: 0.75rem; color: #27ae60; font-weight: 700; }
+
+    /* Card de pago */
+    .pay-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .pay-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #ddd; border-radius: 7px;
+      font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s; background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #1a1a1a; }
+
+    .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .method-btn {
+      border: 2px solid #ddd; border-radius: 8px; padding: 12px 10px;
+      text-align: center; cursor: pointer; transition: all 0.2s; background: #fff;
+    }
+    .method-btn.selected { border-color: #1a1a1a; background: #f8f8f8; }
+    .method-btn .method-name { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .method-btn .method-note { display: block; font-size: 0.7rem; color: #888; }
+
+    .price-summary { background: #f8f8f8; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; }
+    .price-row { display: flex; justify-content: space-between; font-size: 0.83rem; margin-bottom: 5px; color: #555; }
+    .price-row.total {
+      font-size: 0.95rem; font-weight: 700; color: #1a1a1a;
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; margin-bottom: 0;
+    }
+
+    .btn-pay {
+      width: 100%; background: #1a1a1a; color: #fff;
+      font-size: 0.95rem; font-weight: 700; padding: 13px;
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-pay:hover { background: #333; }
+    .btn-pay:disabled { background: #aaa; cursor: not-allowed; }
+
+    /* PIX block */
+    .pix-block { display: none; text-align: center; padding: 16px 0; }
+    .pix-block img { width: 180px; height: 180px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; }
+    .pix-code {
+      font-family: monospace; font-size: 0.76rem; word-break: break-all;
+      background: #f5f5f5; padding: 10px; border-radius: 6px; margin-bottom: 10px; color: #333;
+    }
+    .btn-copy {
+      font-size: 0.8rem; font-weight: 600; padding: 7px 14px;
+      border: 1.5px solid #1a1a1a; border-radius: 6px; background: #fff; cursor: pointer;
+    }
+    .btn-copy:hover { background: #f0f0f0; }
+
+    /* Estados */
+    .state-msg { text-align: center; padding: 40px 20px; }
+    .state-msg h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .state-msg p { color: #666; font-size: 0.88rem; line-height: 1.5; }
+    .state-paid h2 { color: #27ae60; }
+    .state-expired h2 { color: #c0392b; }
+    .state-expired a { color: #1a1a1a; font-weight: 600; }
+
+    .error-msg { color: #c0392b; font-size: 0.8rem; margin-top: 10px; text-align: center; }
+    .loading { text-align: center; padding: 40px; color: #888; }
+  </style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="hostel">Lapa Casa Hostel</div>
+  <h2>Tu cama en el grupo</h2>
+  <p>Completá tus datos y pagá tu lugar.</p>
+</div>
+
+<div class="main">
+  <div id="loading" class="loading">Cargando...</div>
+
+  <div id="expired-state" class="state-msg state-expired" style="display:none">
+    <h2>Tiempo expirado</h2>
+    <p>El tiempo para este pago grupal expiró.<br>
+      Si todavía querés reservar, podés hacerlo directamente:<br><br>
+      <a id="book-link" href="#">Reservar mi cama</a>
+    </p>
+  </div>
+
+  <div id="paid-state" class="state-msg state-paid" style="display:none">
+    <h2>Pago confirmado</h2>
+    <p>Tu cama en Lapa Casa Hostel esta reservada.<br>Vas a recibir un email de confirmacion a la brevedad.</p>
+  </div>
+
+  <!-- Progreso del grupo -->
+  <div id="group-progress" class="group-progress" style="display:none">
+    <div class="group-progress-label">Progreso del grupo</div>
+    <div class="bed-counter">
+      <div class="bed-num"><span id="paid-beds">0</span></div>
+      <div class="bed-total">/ <span id="total-beds">0</span></div>
+      <div class="bed-label">camas pagadas</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="countdown" id="countdown-box">
+      Tiempo restante: <strong id="countdown-text">--:--</strong>
+    </div>
+    <div id="members-section" class="members-section" style="display:none">
+      <div class="members-label">Ya pagaron</div>
+      <div id="members-list"></div>
+    </div>
+  </div>
+
+  <!-- Formulario de pago del invitado -->
+  <div id="pay-card" class="pay-card" style="display:none">
+    <h3>Tus datos</h3>
+    <form id="pay-form" autocomplete="on">
+      <div class="form-group">
+        <label>Nombre completo *</label>
+        <input type="text" id="f-name" required autocomplete="name" placeholder="Tu nombre completo">
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="f-email" required autocomplete="email" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Telefono</label>
+        <input type="tel" id="f-phone" autocomplete="tel" placeholder="+55 11 99999-9999">
+      </div>
+      <div class="form-group">
+        <label>Pais</label>
+        <input type="text" id="f-country" autocomplete="country-name" placeholder="Brasil">
+      </div>
+
+      <div style="margin-bottom:6px; font-size:0.78rem; font-weight:600; color:#555;">
+        Forma de pago *
+      </div>
+      <div class="payment-methods">
+        <div class="method-btn selected" id="btn-pix">
+          <span class="method-name">PIX</span>
+          <span class="method-note">Sin recargo</span>
+        </div>
+        <div class="method-btn" id="btn-card">
+          <span class="method-name">Tarjeta</span>
+          <span class="method-note">+<span id="surcharge-label">10</span>% recargo</span>
+        </div>
+      </div>
+
+      <div class="price-summary">
+        <div class="price-row">
+          <span>Precio por cama</span>
+          <span id="price-base">R$ —</span>
+        </div>
+        <div class="price-row" id="surcharge-row" style="display:none">
+          <span>Recargo tarjeta</span>
+          <span id="price-surcharge">R$ —</span>
+        </div>
+        <div class="price-row total">
+          <span>Total a pagar</span>
+          <span id="price-total">R$ —</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-pay" id="btn-pay">Continuar con el pago</button>
+      <div id="pay-error" class="error-msg" style="display:none"></div>
+    </form>
+
+    <div class="pix-block" id="pix-block">
+      <img id="pix-qr" src="" alt="QR PIX">
+      <div class="pix-code" id="pix-code"></div>
+      <button class="btn-copy" id="btn-copy-pix">Copiar codigo PIX</button>
+      <p style="margin-top:10px; font-size:0.78rem; color:#888;">Abri tu app bancaria y escanea el QR o pega el codigo</p>
+    </div>
+  </div>
+</div>
+
+<script src="group-payment-member.js"></script>
+</body>
+</html>

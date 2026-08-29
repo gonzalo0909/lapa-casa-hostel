@@ -457,6 +457,55 @@ export class EmailService {
     return dispatch(booking.guest.email, t.bookingExpiredTitle, html);
   }
 
+  /** Notifica al titular cuando todos los invitados completaron el pago grupal. */
+  async sendGroupPaymentComplete(params: {
+    titularEmail: string;
+    titularName: string;
+    reservationNumber: string;
+    totalBeds: number;
+    checkIn: string;
+  }): Promise<SendResult> {
+    const checkInFormatted = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'America/Sao_Paulo' }).format(new Date(params.checkIn));
+    const html = `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">Reserva grupal confirmada</h2>
+        <p style="font-size:14px;color:#555;margin-bottom:12px;">Hola ${escapeText(params.titularName)},</p>
+        <p style="font-size:14px;color:#555;margin-bottom:20px;">
+          Todos los miembros de tu grupo completaron el pago. Tu reserva grupal en Lapa Casa Hostel esta confirmada.
+        </p>
+        <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#333;">
+          <div><strong>Reserva:</strong> ${escapeText(params.reservationNumber)}</div>
+          <div><strong>Camas:</strong> ${params.totalBeds}</div>
+          <div><strong>Check-in:</strong> ${checkInFormatted}</div>
+        </div>
+        <p style="font-size:13px;color:#888;">Lapa Casa Hostel — Rio de Janeiro</p>
+      </div>
+    `;
+    return dispatch(params.titularEmail, `Reserva grupal confirmada — ${params.reservationNumber}`, html);
+  }
+
+  /** Notifica a un invitado que no pagó que el tiempo expiró, con link para reservar individualmente. */
+  async sendGroupPaymentExpiredToUnpaid(params: {
+    guestEmail: string;
+    guestName: string;
+    bookingUrl: string;
+  }): Promise<SendResult> {
+    const html = `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">El tiempo del pago grupal expiró</h2>
+        <p style="font-size:14px;color:#555;margin-bottom:12px;">Hola ${escapeText(params.guestName)},</p>
+        <p style="font-size:14px;color:#555;margin-bottom:20px;">
+          El tiempo para completar el pago grupal expiró y tu lugar no fue confirmado. Si todavia queres reservar una cama en Lapa Casa Hostel, podes hacerlo directamente:
+        </p>
+        <a href="${params.bookingUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:7px;text-decoration:none;">
+          Reservar mi cama
+        </a>
+        <p style="margin-top:20px;font-size:13px;color:#888;">Lapa Casa Hostel — Rio de Janeiro</p>
+      </div>
+    `;
+    return dispatch(params.guestEmail, 'Tu lugar en el grupo no fue confirmado — Lapa Casa Hostel', html);
+  }
+
   /** Alerta interna al administrador — siempre en portugués, no depende del idioma de un huésped. */
   async sendAdminAlert(type: string, data: Record<string, any>): Promise<SendResult> {
     const bookingSectionHtml = data.reservationNumber
