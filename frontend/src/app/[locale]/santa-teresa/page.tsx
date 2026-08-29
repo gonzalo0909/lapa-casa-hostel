@@ -54,7 +54,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   setRequestLocale(locale);
   const safeLocale = (locales.includes(locale as Locale) ? locale : 'en') as Locale;
-  const m = META[safeLocale];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const m = META[safeLocale]!;
   return {
     title:       m.title,
     description: m.description,
@@ -470,7 +471,8 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
   const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
   setRequestLocale(locale);
 
-  const c = CONTENT[locale] ?? CONTENT.en;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const c = CONTENT[locale]!;
 
   // FAQ schema for AEO
   const faqSchema = {

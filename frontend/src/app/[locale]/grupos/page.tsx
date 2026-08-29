@@ -649,7 +649,7 @@ function buildGroupHowToSchema(locale: Locale) {
   return {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
-    name: names[locale],
+    name: names[locale]!,
     description:
       locale === 'pt'
         ? 'Passo a passo para reservar seu grupo no Lapa Casa Hostel em Santa Teresa, Rio de Janeiro'
@@ -660,7 +660,7 @@ function buildGroupHowToSchema(locale: Locale) {
         : locale === 'de'
         ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
         : "Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Hostel à Santa Teresa, Rio de Janeiro",
-    step: steps[locale].map((text, i) => ({
+    step: (steps[locale] ?? []).map((text, i) => ({
       '@type': 'HowToStep',
       position: i + 1,
       text,
@@ -674,7 +674,8 @@ function buildGroupHowToSchema(locale: Locale) {
 }
 
 function buildGroupFAQSchema(locale: Locale) {
-  const c = CONTENT[locale];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const c = CONTENT[locale]!;
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -694,7 +695,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   setRequestLocale(locale);
   const l = (locales.includes(locale as Locale) ? locale : defaultLocale) as Locale;
-  const { title, description } = META[l];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const { title, description } = META[l]!;
   return {
     title,
     description,
@@ -719,7 +721,8 @@ export async function generateMetadata({
 export default async function GruposPage({ params }: { params: { locale: string } }) {
   const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
   setRequestLocale(locale);
-  const c = CONTENT[locale];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const c = CONTENT[locale]!;
 
   const WA_PHONE = '5521977157530';
   const waMsg = encodeURIComponent(c.ctaWa);
