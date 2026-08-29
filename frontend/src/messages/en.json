@@ -310,13 +310,21 @@
   "faq": {
     "title": "Frequently Asked Questions",
     "checkInTime": "What time is check-in?",
+    "checkInTimeAnswer": "Check-in is from 2:00 PM. We store your luggage free of charge before that time.",
     "checkOutTime": "What time is check-out?",
+    "checkOutTimeAnswer": "Check-out is by 11:00 AM. We can store your luggage after check-out at no extra cost.",
     "cancellationPolicy": "What is the cancellation policy?",
+    "cancellationPolicyAnswer": "Free cancellation up to 72 hours before check-in. After that, the first night is charged.",
     "groupDiscount": "Do you offer group discounts?",
+    "groupDiscountAnswer": "Yes! Groups of 6 or more beds get 10% off. Full room bookings get 15% off. Contact us for custom group quotes.",
     "paymentMethods": "What payment methods do you accept?",
+    "paymentMethodsAnswer": "We accept credit/debit cards (Stripe), PIX, and Mercado Pago. Installment payment available.",
     "wifi": "Is there free Wi-Fi?",
+    "wifiAnswer": "Yes, free high-speed Wi-Fi throughout the hostel.",
     "breakfast": "Is breakfast included?",
-    "parking": "Is there parking?"
+    "breakfastAnswer": "Breakfast is not included, but we have a shared kitchen available 24/7.",
+    "parking": "Is there parking?",
+    "parkingAnswer": "We do not have our own parking, but there is street parking near the hostel in Santa Teresa."
   },
   "seo": {
     "homeTitle": "Lapa Casa Hostel - Santa Teresa, Rio de Janeiro",
