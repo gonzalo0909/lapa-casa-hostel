@@ -100,7 +100,11 @@ app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Feature 2 v2: páginas públicas de pago grupal.
 // Protección real: token de 64 bytes hex (~255 bits de entropía) + checks internos.
-// Página de prueba (solo para testing interno).
+// Página de reserva grupal (titular crea la sesión y obtiene los links).
+app.get('/book-group', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'book-group.html'));
+});
+// Página de prueba interna (solo para testing).
 app.get('/test-group', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'test-group.html'));
 });
