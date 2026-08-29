@@ -100,6 +100,10 @@ app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Feature 2 v2: páginas públicas de pago grupal.
 // Protección real: token de 64 bytes hex (~255 bits de entropía) + checks internos.
+// Página de prueba (solo para testing interno).
+app.get('/test-group', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'test-group.html'));
+});
 app.use('/group-payment', express.static(path.join(__dirname, 'public'), { index: false }));
 app.get('/group-payment/:token', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'group-payment.html'));
