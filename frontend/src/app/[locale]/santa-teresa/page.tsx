@@ -53,7 +53,8 @@ export async function generateMetadata({
   params: { locale: string };
 }): Promise<Metadata> {
   setRequestLocale(locale);
-  const m = META[locale] ?? META.en;
+  const safeLocale = (locales.includes(locale as Locale) ? locale : 'en') as Locale;
+  const m = META[safeLocale];
   return {
     title:       m.title,
     description: m.description,
