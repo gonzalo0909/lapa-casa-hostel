@@ -187,6 +187,27 @@ const CSS = `
 .he-info-item svg{flex-shrink:0;margin-top:.12rem;color:#7A2E0A}
 .he-info-item strong{font-weight:700;color:#1E0800}
 @media(max-width:400px){.he-form-row-2{grid-template-columns:1fr}.he-dates-sel{flex-direction:column}.he-dep-box{grid-template-columns:1fr}.he-info-grid{grid-template-columns:1fr}}
+.he-or-divider{display:flex;align-items:center;gap:.75rem;margin:1rem 0;color:rgba(255,255,255,.32);font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.he-or-divider::before,.he-or-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
+.he-group-box{border:1.5px solid rgba(255,255,255,.14);border-radius:12px;padding:1rem 1.1rem;background:rgba(255,255,255,.04)}
+.he-group-title{font-size:.95rem;font-weight:700;color:#F0EDE0;margin-bottom:.35rem}
+.he-group-desc{font-size:.76rem;color:rgba(255,255,255,.7);line-height:1.58;margin-bottom:.75rem}
+.he-group-meta{font-size:.73rem;color:rgba(255,255,255,.48);margin-bottom:.8rem}
+.he-btn-group{padding:.68rem 1.5rem;border-radius:10px;font-size:.95rem;font-weight:700;background:transparent;color:#F0EDE0;width:100%;display:block;text-align:center;letter-spacing:.02em;cursor:pointer;border:1.5px solid rgba(255,255,255,.22);font-family:inherit;transition:background .2s ease,border-color .2s ease}
+.he-btn-group:hover:not(:disabled){background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.42)}
+.he-btn-group:disabled{opacity:.48;cursor:not-allowed}
+.he-group-err{font-size:.72rem;color:#F87171;margin:.35rem 0;text-align:center}
+.he-glink-panel{padding:2rem 1.5rem;text-align:center}
+.he-glink-title{font-family:var(--font-cormorant),Georgia,serif;font-size:1.15rem;font-weight:600;color:#7BC47F;margin-bottom:.35rem}
+.he-glink-desc{font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.58;margin-bottom:1.25rem}
+.he-glink-code{font-family:ui-monospace,'Cascadia Code',monospace;font-size:1rem;font-weight:700;letter-spacing:.1em;color:#A7DFB8;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:.5rem 1rem;display:inline-block;margin-bottom:.85rem}
+.he-glink-url{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:8px;padding:.6rem .85rem;font-size:.72rem;color:#A7DFB8;font-family:ui-monospace,monospace;word-break:break-all;margin-bottom:.85rem;text-align:left;line-height:1.4}
+.he-glink-btns{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem}
+.he-glink-copy{padding:.62rem 1rem;border-radius:8px;font-size:.9rem;font-weight:700;background:#2A5234;color:#fff;border:none;cursor:pointer;font-family:inherit;transition:background .15s}
+.he-glink-copy:hover{background:#3A6844}
+.he-glink-wa{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.62rem 1rem;border-radius:8px;font-size:.9rem;font-weight:600;color:#fff;background:#25D366;text-decoration:none;transition:background .15s}
+.he-glink-wa:hover{background:#1DAE55}
+.he-glink-meta{font-size:.72rem;color:rgba(255,255,255,.42);line-height:1.55}
 `;
 
 // ─── Reglas de info (con JSX bold) por idioma ────────────
@@ -256,6 +277,15 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [pixCopied, setPixCopied]       = useState(false);
   const [stripeUrl, setStripeUrl]       = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ─ Estado del pago grupal ─
+  const [isGroupLoading, setIsGroupLoading]       = useState(false);
+  const [groupError, setGroupError]               = useState('');
+  const [groupLink, setGroupLink]                 = useState('');
+  const [groupWaUrl, setGroupWaUrl]               = useState('');
+  const [groupResNum, setGroupResNum]             = useState('');
+  const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
+  const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
 
   // ─ Estado del formulario ─
   const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
@@ -564,6 +594,43 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     window.open(buildWaMsg(stripeLink), '_blank');
   };
 
+  // ─ Crear sesión de pago grupal ─
+  const handleGroupSession = useCallback(async () => {
+    if (!checkIn || !checkOut || !price) return;
+    setIsGroupLoading(true);
+    setGroupError('');
+    try {
+      const c6     = beds['cuarto6'] ?? 0;
+      const gender: 'mixed' | 'female' | 'male' =
+        c6 > 0 && totalBeds === c6 ? 'female' : 'mixed';
+      const result = await paymentAPI.createGroupSession({
+        checkIn:  checkIn.toISOString().slice(0, 10),
+        checkOut: checkOut.toISOString().slice(0, 10),
+        totalBeds,
+        nights: price.nights,
+        guestGender: gender,
+        titular: {
+          full_name: form.name.trim(),
+          email:     form.email,
+          phone:     form.phone   || undefined,
+          country:   form.country || undefined,
+          language:  lang,
+        },
+        specialRequests: form.requests || undefined,
+      });
+      const payload = result.data?.data ?? result.data;
+      setGroupLink(payload.groupPaymentUrl ?? '');
+      setGroupWaUrl(payload.waShareUrl ?? '');
+      setGroupResNum(payload.reservationNumber ?? '');
+      setGroupAmountPerBed(payload.amountPerBed ?? 0);
+      setPhase('group-link');
+    } catch (err: any) {
+      setGroupError(err?.response?.data?.error || err?.message || t.gpErrGeneric);
+    } finally {
+      setIsGroupLoading(false);
+    }
+  }, [checkIn, checkOut, price, beds, totalBeds, form, lang, t]);
+
   // ─ Datos del resumen (Step 4) ─
   const summaryDates = (() => {
     if (!checkIn || !checkOut || !price) return [];
@@ -809,6 +876,24 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                   <MessageCircle size={16} aria-hidden />
                   {isWaLoading ? '...' : t.btnWhatsApp}
                 </button>
+
+                {/* ── Pago grupal (solo si hay 2+ camas) ── */}
+                {totalBeds >= 2 && (
+                  <>
+                    <div className="he-or-divider">{t.gpOr}</div>
+                    <div className="he-group-box">
+                      <div className="he-group-title">{t.gpTitle}</div>
+                      <div className="he-group-desc">{t.gpDesc}</div>
+                      <div className="he-group-meta">
+                        {totalBeds} {totalBeds === 1 ? t.tBed : t.tBeds} · {t.gpMetaEach} {price ? fmtMoney(Math.round(price.total / totalBeds)) : ''}
+                      </div>
+                      {groupError && <div className="he-group-err">{groupError}</div>}
+                      <button className="he-btn-group" onClick={handleGroupSession} disabled={isGroupLoading}>
+                        {isGroupLoading ? t.gpLoading : t.gpBtn}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -917,6 +1002,50 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
               <div className="he-expired-title">{t.expiredTitle}</div>
               <div className="he-expired-sub">{t.expiredSub}</div>
               <button className="he-btn-confirm" onClick={() => window.location.reload()}>{t.btnTryAgain}</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Panel Link Grupal ── */}
+        {phase === 'group-link' && (
+          <div className="he-card">
+            <div className="he-glink-panel">
+              <div className="he-success-check">
+                <CheckCircle2 size={28} color="#1E5E40" aria-hidden />
+              </div>
+              {groupResNum && <div className="he-glink-code">{groupResNum}</div>}
+              <div className="he-glink-title">{t.gpTitle}</div>
+              <div className="he-glink-desc">{t.gpDesc}</div>
+              <div className="he-glink-url">{groupLink}</div>
+              <div className="he-glink-btns">
+                <button
+                  type="button"
+                  className="he-glink-copy"
+                  onClick={() => {
+                    navigator.clipboard.writeText(groupLink).catch(() => {});
+                    setGroupLinkCopied(true);
+                    setTimeout(() => setGroupLinkCopied(false), 3000);
+                  }}
+                >
+                  {groupLinkCopied ? t.gpCopied : t.gpCopy}
+                </button>
+                <a href={groupWaUrl} target="_blank" rel="noopener noreferrer" className="he-glink-wa">
+                  {t.gpShareWa}
+                </a>
+              </div>
+              <div className="he-glink-meta">
+                {groupAmountPerBed > 0 && (
+                  <>{totalBeds} {totalBeds === 1 ? t.tBed : t.tBeds} · {fmtMoney(groupAmountPerBed)} {t.tBed.toLowerCase()}<br /></>
+                )}
+                {t.gpExpire}
+              </div>
+              <button
+                className="he-btn-confirm"
+                style={{ marginTop: '1.25rem' }}
+                onClick={() => window.location.reload()}
+              >
+                {t.btnNewBooking}
+              </button>
             </div>
           </div>
         )}
