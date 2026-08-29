@@ -360,6 +360,20 @@ export const paymentAPI = {
    */
   stripeWaLink: (amountBRL: number, description: string, guestEmail?: string, frontendUrl?: string) =>
     api.post('/payments/stripe-wa-link', { amountBRL, description, guestEmail, frontendUrl }),
+
+  /**
+   * Crea una sesión de pago grupal — devuelve memberLinks[{slotIndex, url, waUrl}]
+   */
+  createGroupSession: (data: {
+    checkIn: string;
+    checkOut: string;
+    totalBeds: number;
+    nights: number;
+    guestGender?: 'mixed' | 'female' | 'male';
+    titular: { full_name: string; email: string; phone?: string; country?: string; language?: string };
+    specialRequests?: string;
+    appBaseUrl?: string;
+  }) => api.post('/payments/group-session', data),
 };
 
 /**

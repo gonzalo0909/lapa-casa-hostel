@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, CreditCard, Clock, Zap, MessageCircle, AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff } from 'lucide-react';
+import { CheckCircle2, CreditCard, Clock, Zap, MessageCircle, AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Users } from 'lucide-react';
 import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
@@ -257,6 +257,12 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [stripeUrl, setStripeUrl]       = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ─ Estado del pago grupal ─
+  const [groupLinks, setGroupLinks]     = useState<Array<{ slotIndex: number; url: string; waUrl?: string }>>([]);
+  const [isGroupLoading, setIsGroupLoading] = useState(false);
+  const [groupError, setGroupError]     = useState('');
+  const [copiedSlot, setCopiedSlot]     = useState<number | null>(null);
+
   // ─ Estado del formulario ─
   const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
   const [formErrors, setFormErrors]   = useState<FormErrors>({});
@@ -484,6 +490,39 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
+
+  // ─ Crear sesión de pago grupal ─
+  const handleGroupSession = useCallback(async () => {
+    setIsGroupLoading(true);
+    setGroupError('');
+    try {
+      const nights = Math.round((checkOut!.getTime() - checkIn!.getTime()) / 86400000);
+      const c6     = beds['cuarto6'] ?? 0;
+      const gender = c6 > 0 && totalBeds === c6 ? 'female' : 'mixed';
+      const result = await paymentAPI.createGroupSession({
+        checkIn:  checkIn!.toISOString().slice(0, 10),
+        checkOut: checkOut!.toISOString().slice(0, 10),
+        totalBeds,
+        nights,
+        guestGender: gender,
+        titular: {
+          full_name: form.name.trim(),
+          email:     form.email,
+          phone:     form.phone || undefined,
+          country:   form.country || undefined,
+          language:  lang,
+        },
+        specialRequests: form.requests || undefined,
+      });
+      const links: Array<{ slotIndex: number; url: string; waUrl?: string }> = result.data?.memberLinks ?? [];
+      setGroupLinks(links);
+      setPhase('group');
+    } catch (err: any) {
+      setGroupError(err?.response?.data?.error || err?.message || 'Error al crear sesión grupal');
+    } finally {
+      setIsGroupLoading(false);
+    }
+  }, [form, beds, checkIn, checkOut, lang, totalBeds]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -797,14 +836,33 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                       </div>
                     </div>
                   </button>
+                  {/* ── Pago grupal — visible solo cuando hay ≥2 camas ── */}
+                  {totalBeds >= 2 && (
+                    <button type="button" className={`he-pay-m${payMethod === 'group' ? ' selected' : ''}`} onClick={() => setPayMethod('group')}>
+                      <input type="radio" name="he-pay" value="group" checked={payMethod === 'group'} readOnly style={{ flexShrink: 0, accentColor: '#2A5234' }} />
+                      <div className="he-pm-info">
+                        <div className="he-pm-name">
+                          <Users size={13} aria-hidden />{t.pmGroup}
+                        </div>
+                        <div className="he-pm-detail">{t.pmGroupSub}</div>
+                      </div>
+                    </button>
+                  )}
                 </div>
                 <div className="he-pm-note">{t.pmNote}</div>
 
                 {bookingError && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{bookingError}</div>}
+                {groupError   && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{groupError}</div>}
 
-                <button className="he-btn-confirm" onClick={handleConfirm} disabled={isProcessing}>
-                  {isProcessing ? '...' : t.btnConfirm}
-                </button>
+                {payMethod === 'group' ? (
+                  <button className="he-btn-confirm" onClick={handleGroupSession} disabled={isGroupLoading}>
+                    {isGroupLoading ? (t.groupCreating ?? 'Criando…') : t.pmGroup}
+                  </button>
+                ) : (
+                  <button className="he-btn-confirm" onClick={handleConfirm} disabled={isProcessing}>
+                    {isProcessing ? '...' : t.btnConfirm}
+                  </button>
+                )}
                 <button className="he-btn-wa" onClick={handleWaClick} disabled={isWaLoading}>
                   <MessageCircle size={16} aria-hidden />
                   {isWaLoading ? '...' : t.btnWhatsApp}
@@ -917,6 +975,59 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
               <div className="he-expired-title">{t.expiredTitle}</div>
               <div className="he-expired-sub">{t.expiredSub}</div>
               <button className="he-btn-confirm" onClick={() => window.location.reload()}>{t.btnTryAgain}</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Panel Pago Grupal ── */}
+        {phase === 'group' && (
+          <div className="he-card">
+            <div className="he-success-panel">
+              <div className="he-success-check">
+                <Users size={28} color="#1E5E40" aria-hidden />
+              </div>
+              <div className="he-success-title">{t.groupTitle}</div>
+              <div className="he-success-sub">{t.groupSub}</div>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '.6rem', margin: '1rem 0' }}>
+                {groupLinks.map((link) => (
+                  <div key={link.slotIndex} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 10, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '.72rem', fontWeight: 700, color: 'rgba(255,255,255,.5)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      {t.groupSlot} {link.slotIndex}
+                    </div>
+                    <div style={{ fontSize: '.72rem', color: 'rgba(255,255,255,.75)', wordBreak: 'break-all', marginBottom: 8, fontFamily: 'monospace' }}>
+                      {link.url}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <a
+                        href={link.waUrl || `https://wa.me/?text=${encodeURIComponent(link.url)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ flex: 1, background: '#25D366', color: '#fff', textAlign: 'center', padding: '7px 10px', borderRadius: 7, fontSize: '.72rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                      >
+                        <MessageCircle size={13} aria-hidden />
+                        {t.groupShare}
+                      </a>
+                      <button
+                        type="button"
+                        style={{ background: 'rgba(255,255,255,.12)', color: copiedSlot === link.slotIndex ? '#7BC47F' : '#fff', border: 'none', padding: '7px 12px', borderRadius: 7, fontSize: '.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(link.url).catch(() => {});
+                          setCopiedSlot(link.slotIndex);
+                          setTimeout(() => setCopiedSlot(null), 2500);
+                        }}
+                      >
+                        {copiedSlot === link.slotIndex ? t.groupCopied : t.groupCopy}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: '.72rem', color: 'rgba(255,255,255,.5)', textAlign: 'center', marginBottom: '1rem' }}>
+                {t.groupNote}
+              </div>
+              <button className="he-btn-confirm" onClick={() => window.location.reload()}>
+                {t.groupDone}
+              </button>
             </div>
           </div>
         )}
