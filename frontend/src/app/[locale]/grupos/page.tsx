@@ -825,6 +825,20 @@ export default async function GruposPage({ params }: { params: { locale: string 
         </section>
       </div>
 
+      {/* Cross-link */}
+      <div className="max-w-3xl mx-auto px-4 pb-2 text-sm text-muted-foreground">
+        <a
+          href={`/${locale}/santa-teresa`}
+          className="underline hover:text-foreground transition-colors"
+        >
+          {locale === 'pt' ? '🗺️ Conheça Santa Teresa — o bairro onde estamos' :
+           locale === 'en' ? '🗺️ Discover Santa Teresa — our neighborhood' :
+           locale === 'es' ? '🗺️ Conoce Santa Teresa — el barrio donde estamos' :
+           locale === 'de' ? '🗺️ Santa Teresa entdecken — unser Stadtviertel' :
+           '🗺️ Découvrez Santa Teresa — notre quartier'}
+        </a>
+      </div>
+
       {/* CTA */}
       <section className="bg-primary/10 border-t border-primary/20 py-14 px-4">
         <div className="max-w-2xl mx-auto text-center">
