@@ -230,7 +230,7 @@ const TITLES: Record<string, string> = {
 
 export function FAQSection({ locale, title }: FAQSectionProps) {
   const lang   = locale in FAQ_CONTENT ? locale : 'en';
-  const items  = FAQ_CONTENT[lang];
+  const items  = FAQ_CONTENT[lang]!;
   const heading = title ?? TITLES[lang] ?? 'FAQ';
   const schema = buildFAQSchema(items);
 
