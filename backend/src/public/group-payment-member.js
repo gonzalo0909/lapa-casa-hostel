@@ -35,16 +35,17 @@ async function loadStatus() {
 function render() {
   document.getElementById('loading').style.display = 'none';
 
-  if (memberData.expired) { showState('expired'); return; }
   if (memberData.alreadyPaid || memberData.completed) { showState('paid'); return; }
 
-  // Progreso del grupo
+  // Mostrar progreso del grupo siempre (también en expirado)
   document.getElementById('group-progress').style.display = 'block';
   document.getElementById('paid-beds').textContent  = memberData.paidBeds;
   document.getElementById('total-beds').textContent = memberData.totalBeds;
   const pct = memberData.totalBeds > 0
     ? Math.round((memberData.paidBeds / memberData.totalBeds) * 100) : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
+
+  if (memberData.expired) { showExpiredInline(); return; }
 
   startCountdown(memberData.expiresAt);
 
@@ -68,14 +69,22 @@ function render() {
 
 function startCountdown(expiresAt) {
   if (countdownInterval) clearInterval(countdownInterval);
+  const box = document.getElementById('countdown-box');
+  const txt = document.getElementById('countdown-text');
   const update = () => {
     const ms = new Date(expiresAt) - new Date();
-    if (ms <= 0) { clearInterval(countdownInterval); loadStatus(); return; }
+    if (ms <= 0) {
+      clearInterval(countdownInterval);
+      txt.textContent = '00:00';
+      box.classList.remove('urgent');
+      box.classList.add('expired-time');
+      loadStatus();
+      return;
+    }
     const m = Math.floor(ms / 60000);
     const s = Math.floor((ms % 60000) / 1000);
-    document.getElementById('countdown-box').classList.toggle('urgent', ms < 5 * 60 * 1000);
-    document.getElementById('countdown-text').textContent =
-      String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    box.classList.toggle('urgent', ms < 5 * 60 * 1000);
+    txt.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
   };
   update();
   countdownInterval = setInterval(update, 1000);
@@ -115,6 +124,22 @@ function copyPix() {
   setTimeout(() => { btn.textContent = 'Copiar codigo PIX'; }, 2000);
 }
 
+// Expirado: el card de progreso queda visible; solo se oculta el formulario
+// y aparece el bloque inline con el link dentro del mismo card.
+function showExpiredInline() {
+  clearInterval(pollInterval);
+  clearInterval(countdownInterval);
+  document.getElementById('loading').style.display  = 'none';
+  document.getElementById('pay-card').style.display = 'none';
+  // Fijar el countdown en 00:00 con estilo rojo
+  const box = document.getElementById('countdown-box');
+  box.classList.remove('urgent');
+  box.classList.add('expired-time');
+  document.getElementById('countdown-text').textContent = '00:00';
+  // Mostrar bloque inline con link al hostel
+  document.getElementById('expired-inline').style.display = 'block';
+}
+
 function showState(state) {
   document.getElementById('loading').style.display       = 'none';
   document.getElementById('group-progress').style.display = 'none';
@@ -124,12 +149,6 @@ function showState(state) {
 
   if (state === 'paid') {
     document.getElementById('paid-state').style.display = 'block';
-  }
-  if (state === 'expired') {
-    document.getElementById('expired-state').style.display = 'block';
-    const bookLink = document.getElementById('book-link');
-    const frontendBase = 'https://lapacasario.com';
-    bookLink.href = frontendBase + '/pt/hostel';
   }
 }
 
