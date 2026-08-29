@@ -314,7 +314,7 @@ export class GroupPaymentService {
       const depositAmount = parseFloat((totalPrice * depositPercent).toFixed(2));
       const remainingAmount = parseFloat((totalPrice - depositAmount).toFixed(2));
 
-      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
       const { rows: resRows } = await client.query(
         `INSERT INTO reservations (
