@@ -114,13 +114,37 @@
     }
     .btn-copy:hover { background: #f0f0f0; }
 
-    /* Estados */
-    .state-msg { text-align: center; padding: 40px 20px; }
-    .state-msg h2 { font-size: 1.2rem; margin-bottom: 8px; }
-    .state-msg p { color: #666; font-size: 0.88rem; line-height: 1.5; }
-    .state-paid h2 { color: #27ae60; }
-    .state-expired h2 { color: #c0392b; }
-    .state-expired a { color: #1a1a1a; font-weight: 600; }
+    /* Estado pagado */
+    .state-paid { text-align: center; padding: 32px 20px; background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .state-paid h2 { font-size: 1.15rem; color: #27ae60; margin-bottom: 8px; }
+    .state-paid p { color: #666; font-size: 0.88rem; line-height: 1.5; }
+
+    /* Bloque de expirado — aparece dentro del card de progreso */
+    .expired-inline {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: #fff8f8;
+      border: 1px solid #f5c6c6;
+      border-radius: 9px;
+      text-align: center;
+    }
+    .expired-inline p { font-size: 0.83rem; color: #555; margin-bottom: 10px; line-height: 1.5; }
+    .btn-book {
+      display: inline-block;
+      background: #1a1a1a;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 22px;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .btn-book:hover { background: #333; }
+
+    /* Countdown expirado */
+    .countdown.expired-time { color: #c0392b; font-weight: 700; }
 
     .error-msg { color: #c0392b; font-size: 0.8rem; margin-top: 10px; text-align: center; }
     .loading { text-align: center; padding: 40px; color: #888; }
@@ -137,20 +161,13 @@
 <div class="main">
   <div id="loading" class="loading">Cargando...</div>
 
-  <div id="expired-state" class="state-msg state-expired" style="display:none">
-    <h2>Tiempo expirado</h2>
-    <p>El tiempo para este pago grupal expiró.<br>
-      Si todavía querés reservar, podés hacerlo directamente:<br><br>
-      <a id="book-link" href="#">Reservar mi cama</a>
-    </p>
+  <!-- Estado: pago confirmado -->
+  <div id="paid-state" class="state-paid" style="display:none">
+    <h2>✓ Pago confirmado</h2>
+    <p>Tu cama en Lapa Casa Hostel está reservada.<br>Vas a recibir un email de confirmación a la brevedad.</p>
   </div>
 
-  <div id="paid-state" class="state-msg state-paid" style="display:none">
-    <h2>Pago confirmado</h2>
-    <p>Tu cama en Lapa Casa Hostel esta reservada.<br>Vas a recibir un email de confirmacion a la brevedad.</p>
-  </div>
-
-  <!-- Progreso del grupo -->
+  <!-- Progreso del grupo — visible tanto durante la sesión como al expirar -->
   <div id="group-progress" class="group-progress" style="display:none">
     <div class="group-progress-label">Progreso del grupo</div>
     <div class="bed-counter">
@@ -164,6 +181,14 @@
     <div class="countdown" id="countdown-box">
       Tiempo restante: <strong id="countdown-text">--:--</strong>
     </div>
+
+    <!-- Se muestra cuando expira, dentro del mismo card -->
+    <div class="expired-inline" id="expired-inline">
+      <p>El tiempo para este pago grupal terminó.<br>
+         Si todavía querés reservar una cama, podés hacerlo directamente en nuestro sitio:</p>
+      <a id="book-link" class="btn-book" href="https://lapacasario.com/pt/hostel">Reservar mi cama →</a>
+    </div>
+
     <div id="members-section" class="members-section" style="display:none">
       <div class="members-label">Ya pagaron</div>
       <div id="members-list"></div>
