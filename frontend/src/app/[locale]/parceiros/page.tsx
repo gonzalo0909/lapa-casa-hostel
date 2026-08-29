@@ -36,9 +36,230 @@ export async function generateMetadata({
   };
 }
 
+// ── Partner FAQ content (B2B — property administrators) ──────────────────────
+type FaqEntry = { q: string; a: string };
+const PARTNER_FAQ: Record<Locale, FaqEntry[]> = {
+  pt: [
+    {
+      q: 'Qual é a comissão cobrada pela Lapa Casa?',
+      a: 'A comissão é de 5% sobre o valor líquido de cada reserva confirmada. Não há taxas de adesão nem mensalidade — você só paga quando recebe.',
+    },
+    {
+      q: 'Quem realiza o check-in e o atendimento aos hóspedes?',
+      a: 'A Lapa Casa cuida de todo o processo operacional: check-in, check-out, atendimento durante a estadia e comunicação com os hóspedes. Você não precisa estar disponível no imóvel.',
+    },
+    {
+      q: 'Quando e como recebo o repasse?',
+      a: 'Os repasses são realizados mensalmente, até o 10.º dia útil do mês seguinte ao das reservas liquidadas. O pagamento é feito via transferência bancária (TED/PIX) para a conta cadastrada.',
+    },
+    {
+      q: 'É necessário ter CNPJ para se tornar parceiro?',
+      a: 'Não. Tanto pessoas físicas (CPF) quanto pessoas jurídicas (CNPJ) podem participar do programa de parceiros. As condições contratuais são as mesmas em ambos os casos.',
+    },
+    {
+      q: 'Como faço para cadastrar meu imóvel?',
+      a: 'Preencha o formulário de contato nesta página com os dados do imóvel. Nossa equipe entrará em contato em até 48 horas úteis para agendar uma visita de avaliação e apresentar o contrato completo.',
+    },
+  ],
+  en: [
+    {
+      q: 'What commission does Lapa Casa charge?',
+      a: 'The commission is 5% of the net value of each confirmed booking. There are no sign-up fees or monthly charges — you only pay when you earn.',
+    },
+    {
+      q: 'Who handles guest check-in and support?',
+      a: 'Lapa Casa manages the entire operational side: check-in, check-out, in-stay support, and guest communication. You do not need to be on-site.',
+    },
+    {
+      q: 'When and how do I receive my payout?',
+      a: 'Payouts are processed monthly, by the 10th business day of the month following the settled bookings. Payment is made via bank transfer (TED/PIX) to your registered account.',
+    },
+    {
+      q: 'Do I need a registered business (CNPJ) to join?',
+      a: 'No. Both individuals (CPF) and legal entities (CNPJ) can join the partner program. The contract terms are the same in either case.',
+    },
+    {
+      q: 'How do I register my property?',
+      a: 'Fill out the contact form on this page with your property details. Our team will reach out within 48 business hours to schedule a property assessment and walk you through the full contract.',
+    },
+  ],
+  es: [
+    {
+      q: '¿Qué comisión cobra Lapa Casa?',
+      a: 'La comisión es del 5% sobre el valor neto de cada reserva confirmada. No hay tarifas de inscripción ni mensualidad — solo pagas cuando cobras.',
+    },
+    {
+      q: '¿Quién se encarga del check-in y la atención a los huéspedes?',
+      a: 'Lapa Casa gestiona todo el proceso operativo: check-in, check-out, atención durante la estadía y comunicación con los huéspedes. No necesitas estar en el inmueble.',
+    },
+    {
+      q: '¿Cuándo y cómo recibo mi pago?',
+      a: 'Los pagos se realizan mensualmente, antes del décimo día hábil del mes siguiente al de las reservas liquidadas. El pago se realiza mediante transferencia bancaria (TED/PIX) a la cuenta registrada.',
+    },
+    {
+      q: '¿Es necesario tener empresa registrada (CNPJ) para ser socio?',
+      a: 'No. Tanto personas físicas (CPF) como personas jurídicas (CNPJ) pueden participar en el programa de socios. Las condiciones contractuales son las mismas en ambos casos.',
+    },
+    {
+      q: '¿Cómo registro mi propiedad?',
+      a: 'Completa el formulario de contacto en esta página con los datos de tu propiedad. Nuestro equipo se pondrá en contacto en un plazo de 48 horas hábiles para programar una visita de evaluación y presentarte el contrato completo.',
+    },
+  ],
+  de: [
+    {
+      q: 'Welche Provision verlangt Lapa Casa?',
+      a: 'Die Provision beträgt 5% des Nettowerts jeder bestätigten Buchung. Es gibt keine Anmeldegebühren oder monatliche Kosten — Sie zahlen nur, wenn Sie verdienen.',
+    },
+    {
+      q: 'Wer kümmert sich um Check-in und Gästebetreuung?',
+      a: 'Lapa Casa übernimmt den gesamten operativen Bereich: Check-in, Check-out, Betreuung während des Aufenthalts und Gästekommunikation. Sie müssen nicht vor Ort sein.',
+    },
+    {
+      q: 'Wann und wie erhalte ich meine Auszahlung?',
+      a: 'Auszahlungen werden monatlich bis zum 10. Werktag des Folgemonats der abgerechneten Buchungen verarbeitet. Die Zahlung erfolgt per Banküberweisung (TED/PIX) auf Ihr registriertes Konto.',
+    },
+    {
+      q: 'Benötige ich ein eingetragenes Unternehmen (CNPJ), um Mitglied zu werden?',
+      a: 'Nein. Sowohl Privatpersonen (CPF) als auch juristische Personen (CNPJ) können am Partnerprogramm teilnehmen. Die Vertragsbedingungen sind in beiden Fällen identisch.',
+    },
+    {
+      q: 'Wie registriere ich meine Immobilie?',
+      a: 'Füllen Sie das Kontaktformular auf dieser Seite mit Ihren Immobiliendaten aus. Unser Team meldet sich innerhalb von 48 Arbeitsstunden, um eine Besichtigung zu vereinbaren und Ihnen den vollständigen Vertrag vorzustellen.',
+    },
+  ],
+  fr: [
+    {
+      q: 'Quelle commission Lapa Casa prélève-t-elle?',
+      a: "La commission est de 5% de la valeur nette de chaque réservation confirmée. Aucun frais d'inscription ni abonnement mensuel — vous ne payez que lorsque vous encaissez.",
+    },
+    {
+      q: "Qui gère le check-in et l'accueil des voyageurs?",
+      a: "Lapa Casa prend en charge l'ensemble du processus opérationnel : check-in, check-out, assistance pendant le séjour et communication avec les voyageurs. Vous n'avez pas besoin d'être sur place.",
+    },
+    {
+      q: 'Quand et comment est-ce que je reçois mon virement?',
+      a: "Les virements sont effectués mensuellement, au plus tard le 10e jour ouvrable du mois suivant celui des réservations réglées. Le paiement est effectué par virement bancaire (TED/PIX) sur le compte enregistré.",
+    },
+    {
+      q: 'Dois-je avoir une société enregistrée (CNPJ) pour devenir partenaire?',
+      a: "Non. Les particuliers (CPF) comme les personnes morales (CNPJ) peuvent rejoindre le programme de partenaires. Les conditions contractuelles sont les mêmes dans les deux cas.",
+    },
+    {
+      q: 'Comment inscrire mon bien immobilier?',
+      a: "Remplissez le formulaire de contact sur cette page avec les informations de votre bien. Notre équipe vous contactera sous 48 heures ouvrables pour planifier une visite d'évaluation et vous présenter le contrat complet.",
+    },
+  ],
+};
+
+// ── Service JSON-LD (B2B hospitality management) ─────────────────────────────
+function ServiceJsonLd({ locale }: { locale: Locale }) {
+  const faqItems = PARTNER_FAQ[locale];
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Service',
+        '@id': `${SITE_URL}/${locale}/parceiros#service`,
+        name: locale === 'pt' ? 'Gestão hoteleira para administradores de imóveis — Lapa Casa'
+          : locale === 'en' ? 'Hospitality management for property owners — Lapa Casa'
+          : locale === 'es' ? 'Gestión hotelera para administradores de inmuebles — Lapa Casa'
+          : locale === 'de' ? 'Hotelmanagement für Immobilienverwalter — Lapa Casa'
+          : 'Gestion hôtelière pour propriétaires — Lapa Casa',
+        description: locale === 'pt'
+          ? 'Programa de parceiros Lapa Casa: gerencie seu imóvel em Santa Teresa com 5% de comissão, check-in operacional completo e repasse mensal garantido.'
+          : locale === 'en'
+          ? 'Lapa Casa partner program: manage your Santa Teresa property with a 5% commission, full check-in operations, and guaranteed monthly payouts.'
+          : locale === 'es'
+          ? 'Programa de socios Lapa Casa: gestione su inmueble en Santa Teresa con 5% de comisión, operaciones de check-in completas y pagos mensuales garantizados.'
+          : locale === 'de'
+          ? 'Lapa Casa Partnerprogramm: Verwalten Sie Ihre Immobilie in Santa Teresa mit 5% Provision, vollständigem Check-in-Service und garantierten monatlichen Auszahlungen.'
+          : 'Programme partenaire Lapa Casa : gérez votre bien à Santa Teresa avec 5% de commission, opérations de check-in complètes et virements mensuels garantis.',
+        provider: {
+          '@type': 'LodgingBusiness',
+          '@id': `${SITE_URL}/#organization`,
+          name: 'Lapa Casa',
+          url: SITE_URL,
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Rio de Janeiro',
+          addressCountry: 'BR',
+        },
+        serviceType: locale === 'pt' ? 'Gestão hoteleira e aluguel por temporada'
+          : locale === 'en' ? 'Hospitality management and short-term rental'
+          : locale === 'es' ? 'Gestión hotelera y alquiler vacacional'
+          : locale === 'de' ? 'Hotelmanagement und Kurzzeitvermietung'
+          : 'Gestion hôtelière et location saisonnière',
+        offers: {
+          '@type': 'Offer',
+          name: locale === 'pt' ? 'Comissão de 5% por reserva confirmada'
+            : locale === 'en' ? '5% commission per confirmed booking'
+            : locale === 'es' ? 'Comisión del 5% por reserva confirmada'
+            : locale === 'de' ? '5% Provision pro bestätigter Buchung'
+            : '5% de commission par réservation confirmée',
+          price: '5',
+          priceCurrency: 'BRL',
+          priceSpecification: { '@type': 'UnitPriceSpecification', referenceQuantity: { '@type': 'QuantitativeValue', value: '100', unitText: 'percent of booking value' } },
+        },
+        url: `${SITE_URL}/${locale}/parceiros`,
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${SITE_URL}/${locale}/parceiros#faq`,
+        mainEntity: faqItems.map((item) => ({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a },
+        })),
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// ── Partner FAQ UI section ───────────────────────────────────────────────────
+function PartnerFaqSection({ locale }: { locale: Locale }) {
+  const faqItems = PARTNER_FAQ[locale];
+  const heading =
+    locale === 'pt' ? 'Perguntas frequentes de parceiros'
+    : locale === 'en' ? 'Partner FAQ'
+    : locale === 'es' ? 'Preguntas frecuentes de socios'
+    : locale === 'de' ? 'Häufige Fragen für Partner'
+    : 'Questions fréquentes des partenaires';
+
+  return (
+    <section
+      aria-label={heading}
+      className="max-w-3xl mx-auto px-4 py-10 border-t border-border mt-6"
+    >
+      <h2 className="text-xl font-semibold text-foreground mb-6">{heading}</h2>
+      <dl className="space-y-6">
+        {faqItems.map((item, i) => (
+          <div key={i}>
+            <dt className="font-medium text-foreground">{item.q}</dt>
+            <dd className="mt-1 text-sm text-muted-foreground leading-relaxed">{item.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export default async function ParceirosPage({ params }: { params: { locale: string } }) {
   const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
   setRequestLocale(locale);
 
-  return <PartnerContractPage locale={locale} />;
+  return (
+    <>
+      <ServiceJsonLd locale={locale} />
+      <PartnerContractPage locale={locale} />
+      <PartnerFaqSection locale={locale} />
+    </>
+  );
 }
