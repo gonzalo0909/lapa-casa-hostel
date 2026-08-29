@@ -3,8 +3,8 @@
 
 // ─── Tipos base ─────────────────────────────────────────
 export type Lang = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
-export type Phase = 'wizard' | 'success' | 'expired';
-export type PayMethod = 'pix' | 'card';
+export type Phase = 'wizard' | 'success' | 'expired' | 'group';
+export type PayMethod = 'pix' | 'card' | 'group';
 
 export interface RoomDef {
   id: string;
@@ -107,6 +107,11 @@ export const T = {
     pmCardTotal:'Total com cartão',
     pmNote:'PIX: 30% sem acréscimo · Cartão de crédito: 10% a mais',
     pmPixUnavailable:'Disponível apenas no Brasil',
+    pmGroup:'Pago grupal',pmGroupSub:'Cada pessoa paga a sua própria cama',
+    groupTitle:'Links para cada hóspede',groupSub:'Compartilhe cada link com seu companheiro de viagem via WhatsApp',
+    groupSlot:'Cama',groupShare:'Compartilhar pelo WhatsApp',groupCopy:'Copiar link',groupCopied:'✓ Copiado!',
+    groupDone:'Concluir',groupNote:'Cada hóspede paga 30% de depósito individualmente pelo seu link.',
+    groupCreating:'Criando sessão…',
   },
   es: {
     step1:'Fechas',step2:'Cuartos',step3:'Huésped',step4:'Resumen',
@@ -175,6 +180,11 @@ export const T = {
     pmCardTotal:'Total con tarjeta',
     pmNote:'PIX: 30% sin recargo · Tarjeta de crédito: 10% extra',
     pmPixUnavailable:'Disponible solo en Brasil',
+    pmGroup:'Pago grupal',pmGroupSub:'Cada persona paga su propia cama',
+    groupTitle:'Links para cada huésped',groupSub:'Compartí cada link con tus compañeros de viaje por WhatsApp',
+    groupSlot:'Cama',groupShare:'Compartir por WhatsApp',groupCopy:'Copiar link',groupCopied:'✓ ¡Copiado!',
+    groupDone:'Listo',groupNote:'Cada huésped paga el 30% de depósito individualmente con su link.',
+    groupCreating:'Creando sesión…',
   },
   en: {
     step1:'Dates',step2:'Rooms',step3:'Guest',step4:'Summary',
@@ -243,6 +253,11 @@ export const T = {
     pmCardTotal:'Total with card',
     pmNote:'PIX: 30% no surcharge · Credit card: 10% extra',
     pmPixUnavailable:'Available in Brazil only',
+    pmGroup:'Group payment',pmGroupSub:'Each guest pays for their own bed',
+    groupTitle:'Links for each guest',groupSub:'Share each link with your travel companions via WhatsApp',
+    groupSlot:'Bed',groupShare:'Share via WhatsApp',groupCopy:'Copy link',groupCopied:'✓ Copied!',
+    groupDone:'Done',groupNote:'Each guest pays the 30% deposit individually through their own link.',
+    groupCreating:'Creating session…',
   },
   fr: {
     step1:'Dates',step2:'Chambres',step3:'Voyageur',step4:'Récapitulatif',
@@ -311,6 +326,11 @@ export const T = {
     pmCardTotal:'Total avec carte',
     pmNote:'PIX: 30% sans frais · Carte de crédit: +10% en plus',
     pmPixUnavailable:'Disponible au Brésil uniquement',
+    pmGroup:'Paiement groupé',pmGroupSub:'Chaque personne paie son propre lit',
+    groupTitle:'Liens pour chaque voyageur',groupSub:'Partagez chaque lien avec vos compagnons de voyage via WhatsApp',
+    groupSlot:'Lit',groupShare:'Partager par WhatsApp',groupCopy:'Copier le lien',groupCopied:'✓ Copié !',
+    groupDone:'Terminer',groupNote:'Chaque voyageur paie l\'acompte de 30% individuellement via son lien.',
+    groupCreating:'Création de la session…',
   },
   de: {
     step1:'Daten',step2:'Zimmer',step3:'Gast',step4:'Übersicht',
@@ -379,6 +399,11 @@ export const T = {
     pmCardTotal:'Gesamt mit Karte',
     pmNote:'PIX: 30% ohne Aufpreis · Kreditkarte: +10% extra',
     pmPixUnavailable:'Nur in Brasilien verfügbar',
+    pmGroup:'Gruppenzahlung',pmGroupSub:'Jeder Gast zahlt sein eigenes Bett',
+    groupTitle:'Links für jeden Gast',groupSub:'Teilen Sie jeden Link per WhatsApp mit Ihren Mitreisenden',
+    groupSlot:'Bett',groupShare:'Per WhatsApp teilen',groupCopy:'Link kopieren',groupCopied:'✓ Kopiert!',
+    groupDone:'Fertig',groupNote:'Jeder Gast zahlt die 30%-Anzahlung individuell über seinen eigenen Link.',
+    groupCreating:'Sitzung wird erstellt…',
   },
   it: {
     step1:'Date',step2:'Camere',step3:'Ospite',step4:'Riepilogo',
@@ -447,6 +472,11 @@ export const T = {
     pmCardTotal:'Totale con carta',
     pmNote:'PIX: 30% senza costi aggiuntivi · Carta di credito: +10% in più',
     pmPixUnavailable:'Disponibile solo in Brasile',
+    pmGroup:'Pagamento di gruppo',pmGroupSub:'Ogni ospite paga il proprio letto',
+    groupTitle:'Link per ogni ospite',groupSub:'Condividi ogni link con i tuoi compagni di viaggio via WhatsApp',
+    groupSlot:'Letto',groupShare:'Condividi su WhatsApp',groupCopy:'Copia link',groupCopied:'✓ Copiato!',
+    groupDone:'Fine',groupNote:'Ogni ospite paga l\'acconto del 30% individualmente tramite il proprio link.',
+    groupCreating:'Creazione sessione…',
   },
 } as const;
 
