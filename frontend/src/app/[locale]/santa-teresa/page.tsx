@@ -13,6 +13,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { StructuredData } from '@/components/seo/structured-data';
+import { SiteFooter } from '@/components/layout/site-footer';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
@@ -589,6 +590,7 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
           </div>
         </section>
       </div>
+      <SiteFooter locale={locale} />
     </main>
   );
 }
