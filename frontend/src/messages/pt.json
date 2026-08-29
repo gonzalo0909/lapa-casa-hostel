@@ -310,13 +310,21 @@
   "faq": {
     "title": "Perguntas Frequentes",
     "checkInTime": "Qual é o horário de check-in?",
+    "checkInTimeAnswer": "O check-in é a partir das 14h. Guardamos sua bagagem gratuitamente antes desse horário.",
     "checkOutTime": "Qual é o horário de check-out?",
+    "checkOutTimeAnswer": "O check-out é até as 11h. Podemos guardar sua bagagem após o check-out sem custo adicional.",
     "cancellationPolicy": "Qual é a política de cancelamento?",
+    "cancellationPolicyAnswer": "Cancelamento gratuito até 72 horas antes do check-in. Após esse prazo, cobra-se o valor da primeira noite.",
     "groupDiscount": "Vocês oferecem descontos para grupos?",
+    "groupDiscountAnswer": "Sim! Grupos com 6 ou mais camas têm 10% de desconto. Quartos completos têm 15% de desconto. Entre em contato para orçamentos personalizados.",
     "paymentMethods": "Quais métodos de pagamento vocês aceitam?",
+    "paymentMethodsAnswer": "Aceitamos cartão de crédito/débito (Stripe), PIX e Mercado Pago. O pagamento pode ser parcelado.",
     "wifi": "Tem Wi-Fi grátis?",
+    "wifiAnswer": "Sim, Wi-Fi gratuito e de alta velocidade em todas as áreas do hostel.",
     "breakfast": "Café da manhã está incluído?",
-    "parking": "Tem estacionamento?"
+    "breakfastAnswer": "O café da manhã não está incluído, mas temos cozinha compartilhada disponível 24 horas.",
+    "parking": "Tem estacionamento?",
+    "parkingAnswer": "Não temos estacionamento próprio, mas há vagas na rua próximas ao hostel em Santa Teresa."
   },
   "seo": {
     "homeTitle": "Lapa Casa Hostel - Santa Teresa, Rio de Janeiro",

@@ -3,14 +3,23 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Inter, Poppins } from 'next/font/google';
+import Script from 'next/script';
 import { locales, type Locale } from '@/i18n';
 import '../globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+// display:'swap' evita el bloqueo de render en móviles (mejora CLS y FCP)
+const inter = Inter({
+  subsets:  ['latin'],
+  variable: '--font-inter',
+  display:  'swap',
+  preload:  true,
+});
 const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  subsets:  ['latin'],
+  weight:   ['400', '500', '600', '700'],
   variable: '--font-poppins',
+  display:  'swap',
+  preload:  false, // solo pre-cargamos Inter; Poppins se carga en diferido
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
@@ -93,6 +102,20 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
+
+        {/* Registro del Service Worker — mejora PWA y carga offline en móviles */}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                  .catch(function(err) {
+                    console.warn('SW registration failed:', err);
+                  });
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   );
