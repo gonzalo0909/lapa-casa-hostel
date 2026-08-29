@@ -10,6 +10,7 @@ services:
     # usuarios reales en Rio de Janeiro -- limitacion conocida, no un bug.
     region: oregon
     plan: free
+    branch: backup-front-20260821
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start
@@ -94,6 +95,7 @@ services:
   - type: web
     name: lapa-casa-hostel-landing
     env: static
+    branch: backup-front-20260821
     rootDir: public/landing
     buildCommand: ""
     staticPublishPath: .
@@ -118,6 +120,7 @@ services:
     env: node
     region: oregon
     plan: free
+    branch: backup-front-20260821
     rootDir: frontend
     # --include=dev: next.config.js importa @next/bundle-analyzer sin
     # condicion (solo su USO es condicional a ANALYZE=true), y es una
