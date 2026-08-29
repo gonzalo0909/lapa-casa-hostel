@@ -362,7 +362,7 @@ export const paymentAPI = {
     api.post('/payments/stripe-wa-link', { amountBRL, description, guestEmail, frontendUrl }),
 
   /**
-   * Crea una sesión de pago grupal — el titular organiza y todos pagan via link
+   * Crea una sesión de pago grupal — el titular organiza y todos pagan via un único link compartible
    */
   createGroupSession: (data: {
     checkIn: string;
@@ -372,6 +372,7 @@ export const paymentAPI = {
     guestGender?: 'mixed' | 'female' | 'male';
     titular: { full_name: string; email: string; phone?: string; country?: string; language?: string };
     specialRequests?: string;
+    appBaseUrl?: string;
   }) => api.post('/payments/group-session', data),
 };
 

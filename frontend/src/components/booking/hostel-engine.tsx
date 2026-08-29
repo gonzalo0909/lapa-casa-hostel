@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, CreditCard, Clock, Zap, MessageCircle, AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff } from 'lucide-react';
+import { CheckCircle2, CreditCard, Clock, Zap, MessageCircle, AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Users } from 'lucide-react';
 import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
@@ -286,6 +286,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [groupResNum, setGroupResNum]             = useState('');
   const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
   const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
+  const [groupLinks, setGroupLinks]               = useState<Array<{ slotIndex: number; url: string; waUrl?: string }>>([]);
+  const [copiedSlot, setCopiedSlot]               = useState<number | null>(null);
 
   // ─ Estado del formulario ─
   const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
@@ -514,6 +516,43 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
+
+  // ─ Crear sesión de pago grupal ─
+  const handleGroupSession = useCallback(async () => {
+    setIsGroupLoading(true);
+    setGroupError('');
+    try {
+      const nights = Math.round((checkOut!.getTime() - checkIn!.getTime()) / 86400000);
+      const c6     = beds['cuarto6'] ?? 0;
+      const gender = c6 > 0 && totalBeds === c6 ? 'female' : 'mixed';
+      const result = await paymentAPI.createGroupSession({
+        checkIn:  checkIn!.toISOString().slice(0, 10),
+        checkOut: checkOut!.toISOString().slice(0, 10),
+        totalBeds,
+        nights,
+        guestGender: gender,
+        titular: {
+          full_name: form.name.trim(),
+          email:     form.email,
+          phone:     form.phone || undefined,
+          country:   form.country || undefined,
+          language:  lang,
+        },
+        specialRequests: form.requests || undefined,
+      });
+      const payload = result.data?.data ?? result.data;
+      setGroupLink(payload.groupPaymentUrl ?? '');
+      setGroupWaUrl(payload.waShareUrl ?? '');
+      setGroupResNum(payload.reservationNumber ?? '');
+      setGroupAmountPerBed(payload.amountPerBed ?? 0);
+      setGroupLinks([]);
+      setPhase('group');
+    } catch (err: any) {
+      setGroupError(err?.response?.data?.error || err?.message || t.gpErrGeneric || 'Error al crear sesión grupal');
+    } finally {
+      setIsGroupLoading(false);
+    }
+  }, [form, beds, checkIn, checkOut, lang, totalBeds]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -864,14 +903,33 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                       </div>
                     </div>
                   </button>
+                  {/* ── Pago grupal — visible solo cuando hay ≥2 camas ── */}
+                  {totalBeds >= 2 && (
+                    <button type="button" className={`he-pay-m${payMethod === 'group' ? ' selected' : ''}`} onClick={() => setPayMethod('group')}>
+                      <input type="radio" name="he-pay" value="group" checked={payMethod === 'group'} readOnly style={{ flexShrink: 0, accentColor: '#2A5234' }} />
+                      <div className="he-pm-info">
+                        <div className="he-pm-name">
+                          <Users size={13} aria-hidden />{t.pmGroup}
+                        </div>
+                        <div className="he-pm-detail">{t.pmGroupSub}</div>
+                      </div>
+                    </button>
+                  )}
                 </div>
                 <div className="he-pm-note">{t.pmNote}</div>
 
                 {bookingError && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{bookingError}</div>}
+                {groupError   && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{groupError}</div>}
 
-                <button className="he-btn-confirm" onClick={handleConfirm} disabled={isProcessing}>
-                  {isProcessing ? '...' : t.btnConfirm}
-                </button>
+                {payMethod === 'group' ? (
+                  <button className="he-btn-confirm" onClick={handleGroupSession} disabled={isGroupLoading}>
+                    {isGroupLoading ? (t.groupCreating ?? 'Criando…') : t.pmGroup}
+                  </button>
+                ) : (
+                  <button className="he-btn-confirm" onClick={handleConfirm} disabled={isProcessing}>
+                    {isProcessing ? '...' : t.btnConfirm}
+                  </button>
+                )}
                 <button className="he-btn-wa" onClick={handleWaClick} disabled={isWaLoading}>
                   <MessageCircle size={16} aria-hidden />
                   {isWaLoading ? '...' : t.btnWhatsApp}
@@ -1007,7 +1065,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         )}
 
         {/* ── Panel Link Grupal ── */}
-        {phase === 'group-link' && (
+        {phase === 'group' && (
           <div className="he-card">
             <div className="he-glink-panel">
               <div className="he-success-check">

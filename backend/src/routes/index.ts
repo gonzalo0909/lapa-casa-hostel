@@ -95,7 +95,11 @@ router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000 }), bookingsRouter)
  * Se aplica un único rateLimiter condicional para evitar que ambos se acumulen.
  */
 router.use('/payments', (req, res, next) => {
-  const isGroupPoll = req.method === 'GET' && /^\/group\/[^/]+$/.test(req.path);
+  // GETs de polling de pago grupal (titular y miembro) → límite relajado
+  const isGroupPoll = req.method === 'GET' && (
+    /^\/group\/[^/]+$/.test(req.path) ||
+    /^\/group-member\/[^/]+$/.test(req.path)
+  );
   const limiter = isGroupPoll
     ? rateLimiter({ max: 60, windowMs: 60000 })
     : rateLimiter({ max: 3, windowMs: 1000 });

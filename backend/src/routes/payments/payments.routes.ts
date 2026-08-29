@@ -154,7 +154,7 @@ router.post('/group-session', async (req, res, next) => {
   }
 });
 
-// GET /payments/group/:token — estado público de la sesión (sin auth)
+// GET /payments/group/:token — estado general de la sesión (vista del titular)
 router.get('/group/:token', async (req, res, next) => {
   try {
     const { token } = req.params;
@@ -169,10 +169,25 @@ router.get('/group/:token', async (req, res, next) => {
   }
 });
 
-// POST /payments/group/:token/pay — un miembro inicia su pago
-router.post('/group/:token/pay', async (req, res, next) => {
+// GET /payments/group-member/:memberToken — estado del slot individual del invitado
+router.get('/group-member/:memberToken', async (req, res, next) => {
   try {
-    const { token } = req.params;
+    const { memberToken } = req.params;
+    const status = await groupPaymentService.getMemberStatus(memberToken);
+    if (!status.found) {
+      res.status(404).json(ApiResponse.error('Link de pago no encontrado'));
+      return;
+    }
+    res.status(200).json(ApiResponse.success(status, 'Estado del slot de invitado'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /payments/group-member/:memberToken/pay — el invitado inicia su pago
+router.post('/group-member/:memberToken/pay', async (req, res, next) => {
+  try {
+    const { memberToken } = req.params;
     const { guest, paymentMethod } = req.body as {
       guest: { full_name: string; email: string; phone?: string; country?: string; language?: string };
       paymentMethod: 'card' | 'pix';
@@ -187,16 +202,16 @@ router.post('/group/:token/pay', async (req, res, next) => {
       return;
     }
 
-    const result = await groupPaymentService.initiateMemberPayment({ token, guest, paymentMethod });
-    logger.info('Pago de miembro grupal iniciado', { token, memberId: result.memberId, paymentMethod });
+    const result = await groupPaymentService.initiateMemberPayment({ memberToken, guest, paymentMethod });
+    logger.info('Pago de invitado grupal iniciado', { memberToken, memberId: result.memberId, paymentMethod });
     res.status(200).json(ApiResponse.success(result, 'Pago iniciado'));
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    if (msg.includes('expiró') || msg.includes('cerrada') || msg.includes('todas las camas')) {
+    if (msg.includes('expiró') || msg.includes('cerrada') || msg.includes('ya fue pagada') || msg.includes('ya fue reclamada')) {
       res.status(409).json(ApiResponse.error(msg));
       return;
     }
-    logger.error('Error al iniciar pago de miembro grupal', { error: msg });
+    logger.error('Error al iniciar pago de invitado grupal', { error: msg });
     next(error);
   }
 });
