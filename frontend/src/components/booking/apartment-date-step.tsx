@@ -224,8 +224,8 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
           <button
             type="button"
             className={styles.gcntBtn}
-            disabled={guestCount >= 4}
-            onClick={() => onGuestCountChange(Math.min(4, guestCount + 1))}
+            disabled={guestCount >= 2}
+            onClick={() => onGuestCountChange(Math.min(2, guestCount + 1))}
           >
             +
           </button>
