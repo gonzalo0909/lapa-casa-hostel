@@ -620,6 +620,7 @@
     "illustrativePhoto": "Foto ilustrativa",
     "cardCapacity": "hasta {count} huésped(es)",
     "insufficientCapacity": "Capacidad insuficiente",
+    "shareWhatsApp": "Compartir por WhatsApp",
     "checking": "Verificando…",
     "apartmentOccupied": "Este apartamento está ocupado en esas fechas — otros pueden estar disponibles",
     "backToOriginalDates": "Volver a las fechas originales ({from} → {to})",

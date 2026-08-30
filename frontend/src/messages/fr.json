@@ -620,6 +620,7 @@
     "illustrativePhoto": "Photo illustrative",
     "cardCapacity": "jusqu'à {count} voyageur(s)",
     "insufficientCapacity": "Capacité insuffisante",
+    "shareWhatsApp": "Partager sur WhatsApp",
     "checking": "Vérification…",
     "apartmentOccupied": "Cet appartement est déjà réservé à ces dates — d'autres peuvent être disponibles",
     "backToOriginalDates": "Revenir aux dates initiales ({from} → {to})",
