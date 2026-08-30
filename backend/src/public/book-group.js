@@ -31,18 +31,21 @@ function updatePrice() {
   var nights = Math.round((d2 - d1) / 86400000);
   var mult = getSeason(d1);
   // Descuento de grupo
+  // El descuento se basa en el grupo completo (N), pero el total cubre N-1 invitados
+  // (el titular reserva su propia cama por separado)
   var disc = 0;
   if (beds >= 10) disc = 0.15;
   else if (beds >= 6)  disc = 0.10;
   else if (beds >= 4)  disc = 0.05;
   var pbn = Math.round(PRICE_PER_BED_NIGHT * mult);
-  var total = Math.round(pbn * beds * nights * (1 - disc));
+  var total = Math.round(pbn * (beds - 1) * nights * (1 - disc));
   var depPerPerson = Math.round(pbn * nights * DEPOSIT_RATE * (1 - disc));
   document.getElementById('priceBox').style.display = 'flex';
   document.getElementById('depPerPerson').textContent = 'R$ ' + depPerPerson.toFixed(0);
   document.getElementById('totalPrice').textContent   = 'R$ ' + total.toFixed(0);
   document.getElementById('pricePerInfo').innerHTML   =
     'R$ ' + pbn + '/cama/noche<br>' + nights + ' noche' + (nights > 1 ? 's' : '') +
+    '<br>' + (beds - 1) + ' invitado' + ((beds - 1) > 1 ? 's' : '') +
     (disc ? '<br><span style="color:#7BC47F">−' + (disc*100) + '% grupo</span>' : '');
 }
 
