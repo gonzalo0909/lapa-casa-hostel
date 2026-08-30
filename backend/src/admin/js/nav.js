@@ -12,11 +12,12 @@ function renderNav(activePage) {
     { href: '/admin/pricing.html', label: 'Precios', page: 'pricing' },
     { href: '/admin/conflicts.html', label: 'Conflictos', page: 'conflicts' },
     { href: '/admin/photos.html', label: 'Fotos huésp.', page: 'photos' },
-    { href: '/admin/apartments.html', label: 'Fotos apts.', page: 'apartments' },
+    { href: '/admin/apartments.html', label: 'Apartamentos', page: 'apartments' },
     { href: '/admin/blocking.html', label: 'Bloqueos', page: 'blocking' },
     { href: '/admin/ical.html', label: 'iCal / OTAs', page: 'ical' },
     { href: '/admin/offers.html', label: 'Ofertas', page: 'offers' },
-    { href: '/admin/dynamic-pricing.html', label: 'Precios Din.', page: 'dynamic-pricing' }
+    { href: '/admin/dynamic-pricing.html', label: 'Precios Din.', page: 'dynamic-pricing' },
+    { href: '/admin/blacklist.html', label: 'Lista negra', page: 'blacklist' }
   ];
 
   const linksHtml = links.map(l =>
