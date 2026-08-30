@@ -127,7 +127,15 @@ const LABELS: Record<Language, Record<string, string>> = {
     bookingExpiredIntro: 'Vimos que você começou uma reserva no Lapa Casa, mas o pagamento do depósito não foi concluído a tempo, então as camas foram liberadas.',
     bookingExpiredCta: 'Se ainda quiser se hospedar, você pode iniciar uma nova reserva quando quiser.',
     bookingExpiredHelp: 'Se teve algum problema no pagamento ou precisa de ajuda, é só responder este email ou nos chamar no WhatsApp.',
-    tryAgain: 'Reservar novamente'
+    tryAgain: 'Reservar novamente',
+    checkinReminderTitle: 'Seu check-in e amanha!',
+    checkinReminderIntro: 'So falta um dia! Estamos ansiosos para receber voce no Lapa Casa. Aqui estao as informacoes para o seu check-in:',
+    checkinReminderClosing: 'Qualquer duvida, e so responder este email ou nos chamar no WhatsApp.',
+    reviewRequestTitle: 'Como foi a sua estadia?',
+    reviewRequestIntro: 'Esperamos que sua estadia no Lapa Casa tenha sido otima!',
+    reviewRequestBody: 'Sua opiniao e muito importante para nos e ajuda outros viajantes a conhecerem o Lapa Casa. Levaria apenas 2 minutinhos — ficariamos muito gratos!',
+    reviewRequestClosing: 'Obrigado pela sua visita. Esperamos te ver de novo em breve!',
+    leaveReview: 'Deixar uma avaliacao'
   },
   en: {
     greeting: 'Hello', bookingConfirmationTitle: 'Booking Confirmed!',
@@ -158,7 +166,15 @@ const LABELS: Record<Language, Record<string, string>> = {
     bookingExpiredIntro: 'We saw you started a booking at Lapa Casa, but the deposit payment wasn\'t completed in time, so the beds were released.',
     bookingExpiredCta: 'If you\'d still like to stay with us, you can start a new booking whenever you\'re ready.',
     bookingExpiredHelp: 'If something went wrong with the payment or you need help, just reply to this email or message us on WhatsApp.',
-    tryAgain: 'Book again'
+    tryAgain: 'Book again',
+    checkinReminderTitle: 'Your check-in is tomorrow!',
+    checkinReminderIntro: 'Just one more day! We\'re looking forward to welcoming you at Lapa Casa. Here is everything you need for check-in:',
+    checkinReminderClosing: 'Any questions? Just reply to this email or message us on WhatsApp.',
+    reviewRequestTitle: 'How was your stay?',
+    reviewRequestIntro: 'We hope you had a wonderful stay at Lapa Casa!',
+    reviewRequestBody: 'Your feedback means a lot to us and helps other travelers discover Lapa Casa. It only takes 2 minutes — we\'d really appreciate it!',
+    reviewRequestClosing: 'Thank you for your visit. Hope to see you again soon!',
+    leaveReview: 'Leave a review'
   },
   es: {
     greeting: 'Hola', bookingConfirmationTitle: '¡Reserva Confirmada!',
@@ -189,7 +205,15 @@ const LABELS: Record<Language, Record<string, string>> = {
     bookingExpiredIntro: 'Vimos que empezaste una reserva en Lapa Casa, pero el pago del depósito no se completó a tiempo, así que las camas quedaron liberadas.',
     bookingExpiredCta: 'Si todavía querés hospedarte, podés iniciar una nueva reserva cuando quieras.',
     bookingExpiredHelp: 'Si tuviste algún problema con el pago o necesitás ayuda, respondé este email o escribinos por WhatsApp.',
-    tryAgain: 'Reservar de nuevo'
+    tryAgain: 'Reservar de nuevo',
+    checkinReminderTitle: 'Tu check-in es manana!',
+    checkinReminderIntro: 'Solo falta un dia! Estamos ansiosos por recibirte en Lapa Casa. Aqui tenes todo lo que necesitas para el check-in:',
+    checkinReminderClosing: 'Cualquier duda, respondé este email o escribinos por WhatsApp.',
+    reviewRequestTitle: 'Como fue tu estadía?',
+    reviewRequestIntro: 'Esperamos que tu estadía en Lapa Casa haya sido genial!',
+    reviewRequestBody: 'Tu opinion es muy importante para nosotros y ayuda a otros viajeros a conocer Lapa Casa. Solo te lleva 2 minutos — te lo agradeceriamos mucho!',
+    reviewRequestClosing: 'Gracias por tu visita. Esperamos verte de nuevo pronto!',
+    leaveReview: 'Dejar una reseña'
   }
 };
 
@@ -504,6 +528,86 @@ export class EmailService {
       </div>
     `;
     return dispatch(params.guestEmail, 'Tu lugar en el grupo no fue confirmado — Lapa Casa Hostel', html);
+  }
+
+  /**
+   * Recordatorio 48h antes del check-in.
+   * Enviado por el cleanup worker a reservas confirmadas con check-in entre 46h y 50h desde ahora.
+   */
+  async sendCheckinReminder(booking: BookingWithGuest): Promise<SendResult> {
+    const language = resolveLanguage(booking.guest.language);
+    const t = LABELS[language];
+    const isApt = await isApartmentBooking(booking.id);
+
+    const APT_ADDRESS_MSG: Record<Language, string> = {
+      pt: 'O endereço sera enviado por e-mail em breve.',
+      en: 'The address will be sent to you by email shortly.',
+      es: 'La direccion se enviara por email pronto.',
+    };
+
+    const checkOutDate = new Date(booking.check_out_date);
+    const html = renderEmailTemplate('checkin-reminder', {
+      emailTitle: t.checkinReminderTitle,
+      labelTitle: t.checkinReminderTitle,
+      labelGreeting: t.greeting,
+      labelIntro: t.checkinReminderIntro,
+      labelReservation: t.reservation,
+      labelCheckIn: t.checkIn,
+      labelCheckOut: t.checkOut,
+      labelAddress: t.address,
+      labelTipsTitle: t.tipsTitle,
+      labelTip1: t.tip1,
+      labelTip2: t.tip2,
+      labelTip3: t.tip3,
+      labelClosing: t.checkinReminderClosing,
+      guestName: booking.guest.full_name,
+      reservationNumber: booking.reservation_number,
+      checkInFormatted: formatDate(booking.check_in_date, language),
+      checkOutFormatted: formatDate(checkOutDate, language),
+      checkInTime: isApt ? '15:00' : '14:00',
+      address: isApt ? APT_ADDRESS_MSG[language] : 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro',
+    });
+
+    const subjects: Record<Language, string> = {
+      pt: `Lembrete: seu check-in e amanha — ${booking.reservation_number}`,
+      en: `Reminder: your check-in is tomorrow — ${booking.reservation_number}`,
+      es: `Recordatorio: tu check-in es manana — ${booking.reservation_number}`,
+    };
+    return dispatch(booking.guest.email, subjects[language], html);
+  }
+
+  /**
+   * Email post-checkout pidiendo reseña.
+   * Enviado por el cleanup worker 24-48h después del check-out de reservas completadas.
+   */
+  async sendReviewRequest(booking: BookingWithGuest): Promise<SendResult> {
+    const language = resolveLanguage(booking.guest.language);
+    const t = LABELS[language];
+
+    // URL de reseña de Google Maps (configurable via env var)
+    const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/lapacasahostel/review';
+
+    const html = renderEmailTemplate('review-request', {
+      emailTitle: t.reviewRequestTitle,
+      labelTitle: t.reviewRequestTitle,
+      labelGreeting: t.greeting,
+      labelIntro: t.reviewRequestIntro,
+      labelReservation: t.reservation,
+      labelCheckOut: t.checkOut,
+      labelBody: t.reviewRequestBody,
+      labelClosing: t.reviewRequestClosing,
+      guestName: booking.guest.full_name,
+      reservationNumber: booking.reservation_number,
+      checkOutFormatted: formatDate(booking.check_out_date, language),
+      reviewButtonHtml: paymentButtonHtml(reviewUrl, t.leaveReview),
+    });
+
+    const subjects: Record<Language, string> = {
+      pt: `Como foi a sua estadia no Lapa Casa?`,
+      en: `How was your stay at Lapa Casa?`,
+      es: `Como fue tu estadía en Lapa Casa?`,
+    };
+    return dispatch(booking.guest.email, subjects[language], html);
   }
 
   /** Alerta interna al administrador — siempre en portugués, no depende del idioma de un huésped. */

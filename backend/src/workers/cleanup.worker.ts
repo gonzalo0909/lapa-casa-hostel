@@ -68,6 +68,65 @@ async function notifyExpiredPending(): Promise<void> {
   }
 }
 
+/**
+ * Recordatorio de check-in: reservas confirmadas con check-in entre 46h y 50h desde ahora.
+ * La ventana de 4h (no 1h exacta) absorbe corridas desfasadas del cron sin
+ * enviar duplicados -- el NOT EXISTS en la tabla notifications hace el trabajo real.
+ */
+async function notifyCheckinReminders(): Promise<void> {
+  const { rows } = await query<{ id: string }>(
+    `SELECT r.id FROM reservations r
+     WHERE r.status = 'confirmed'
+       AND r.check_in_date::date = (NOW() AT TIME ZONE 'America/Sao_Paulo' + INTERVAL '2 days')::date
+       AND NOT EXISTS (
+         SELECT 1 FROM notifications n
+         WHERE n.reservation_id = r.id AND n.template = 'checkin_reminder' AND n.status = 'sent'
+       )`
+  );
+
+  for (const row of rows) {
+    const booking = await bookingRepo.findById(row.id);
+    if (!booking?.guest) {
+      logger.warn('Reserva sin guest para recordatorio de check-in', { reservationId: row.id });
+      continue;
+    }
+    try {
+      await notificationService.notify('checkin_reminder', booking as BookingWithGuest);
+    } catch (error: any) {
+      logger.error('Error enviando recordatorio de check-in', { reservationId: row.id, error: error.message });
+    }
+  }
+}
+
+/**
+ * Solicitud de reseña post-checkout: reservas completadas cuyo check-out fue ayer o avant-hier.
+ * Se espera ~24h para dar tiempo al huesped de llegar a destino antes de pedirle la reseña.
+ */
+async function notifyPostCheckoutReviews(): Promise<void> {
+  const { rows } = await query<{ id: string }>(
+    `SELECT r.id FROM reservations r
+     WHERE r.status = 'completed'
+       AND r.check_out_date::date = (NOW() AT TIME ZONE 'America/Sao_Paulo' - INTERVAL '1 day')::date
+       AND NOT EXISTS (
+         SELECT 1 FROM notifications n
+         WHERE n.reservation_id = r.id AND n.template = 'review_request' AND n.status = 'sent'
+       )`
+  );
+
+  for (const row of rows) {
+    const booking = await bookingRepo.findById(row.id);
+    if (!booking?.guest) {
+      logger.warn('Reserva sin guest para solicitud de reseña', { reservationId: row.id });
+      continue;
+    }
+    try {
+      await notificationService.notify('review_request', booking as BookingWithGuest);
+    } catch (error: any) {
+      logger.error('Error enviando solicitud de reseña', { reservationId: row.id, error: error.message });
+    }
+  }
+}
+
 export function startCleanupWorker(): Worker {
   const worker = new Worker(
     'cleanup',
@@ -77,6 +136,8 @@ export function startCleanupWorker(): Worker {
       await query('CALL sp_release_no_show()');
       await notifyPendingNoShows();
       await notifyExpiredPending();
+      await notifyCheckinReminders();
+      await notifyPostCheckoutReviews();
       // Feature 2: cancelar sesiones de pago grupal expiradas (timer 30 min)
       const cancelled = await groupPaymentService.cancelExpiredSessions();
       if (cancelled > 0) logger.info('Sesiones grupales expiradas canceladas', { count: cancelled });
