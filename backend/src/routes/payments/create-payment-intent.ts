@@ -96,7 +96,7 @@ export const createPaymentIntentHandler = async (
         },
         reservation: {
           id: reservationId,
-          confirmationNumber: `LCH-${reservationId.substring(0, 8).toUpperCase()}`,
+          confirmationNumber: booking.reservation_number,
           finalPrice: Number(booking.final_price),
           depositAmount: Number(booking.deposit_amount),
           remainingAmount: Number(booking.remaining_amount),
