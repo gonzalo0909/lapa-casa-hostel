@@ -15,7 +15,12 @@
 --   6. Tabla owner_transfers — log de las transferencias Stripe a los admins.
 --      (un registro por cada Transfer de Stripe creado hacia acct_xxx)
 
-BEGIN;
+-- FIX (auditoría 2026-08-30): se quita el BEGIN/COMMIT propio de este
+-- archivo. migrate.js ya envuelve cada migración en su propia transacción
+-- (BEGIN/COMMIT o ROLLBACK a nivel de cliente) -- el COMMIT de acá abajo
+-- cerraba esa transacción antes de tiempo, dejando el INSERT de
+-- schema_migrations y el COMMIT final de migrate.js corriendo ya sin
+-- transacción activa.
 
 -- ─── 1. Enum estado del onboarding Stripe Connect ────────────────────────────
 
@@ -147,21 +152,21 @@ CREATE INDEX IF NOT EXISTS idx_owner_transfers_status
   WHERE status = 'pending';
 
 -- ─── Trigger updated_at para las dos nuevas tablas ───────────────────────────
--- (el mismo patrón que usan las tablas existentes, asume que la función
---  set_updated_at() ya existe desde 0006_triggers.sql)
+-- (el mismo patrón que usan las tablas existentes; la función real es
+--  fn_set_updated_at(), definida en 0006_triggers.sql -- FIX auditoría
+--  2026-08-30: acá abajo se invocaba sin el prefijo fn_, función
+--  inexistente que hacía fallar toda la migración)
 
 DO $$ BEGIN
   CREATE TRIGGER trg_apartment_owners_updated_at
     BEFORE UPDATE ON apartment_owners
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
   CREATE TRIGGER trg_owner_transfers_updated_at
     BEFORE UPDATE ON owner_transfers
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
-
-COMMIT;

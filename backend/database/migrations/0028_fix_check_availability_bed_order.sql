@@ -1,33 +1,16 @@
--- 0016_room_blocks.sql
+-- 0028_fix_check_availability_bed_order.sql
 --
--- Bloqueo manual de fechas por habitación (mantenimiento/evento privado).
--- date-blocker.ts ya existía pero nunca estuvo conectado a ninguna ruta,
--- y además apuntaba a una tabla "rooms" y una columna "beds.room_id" que
--- no existen (es room_types / beds.room_type_id) -- quedó corregido en el
--- mismo commit. Se usa una tabla propia en vez de system_config: un
--- listado de bloqueos con rango de fechas necesita índice y CHECK real,
--- no un blob JSONB por fila con parsing manual.
+-- FIX (auditoría 2026-08-30): 0016_room_blocks.sql redefinió
+-- check_availability() copiando el ORDER BY plano de la versión de
+-- 0005 en vez de la corregida en 0011_fix_bed_code_sort_order.sql,
+-- reintroduciendo el orden lexicográfico (A10, A11, A12 antes que
+-- A2..A9) en vez del orden natural. Como 0016 ya corrió en la base real,
+-- corregir el archivo histórico no alcanza -- CREATE OR REPLACE acá
+-- vuelve a dejar la función con el orden correcto sin depender de si
+-- 0016 quedó (o no) marcada como aplicada en schema_migrations.
 --
--- check_availability (0005) se actualiza para que un bloqueo también
--- vuelva la cama no disponible -- si no, el bloqueo sería cosmético (el
--- admin lo vería en el panel pero un huésped podría igual reservarla).
--- is_occupied se deja SIN tocar (sigue significando "tiene una reserva
--- real"), solo is_available pasa a considerar los bloqueos.
-
-CREATE TABLE room_blocks (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  room_type_id  UUID NOT NULL REFERENCES room_types(id) ON DELETE CASCADE,
-  start_date    DATE NOT NULL,
-  end_date      DATE NOT NULL,
-  block_type    VARCHAR(20) NOT NULL DEFAULT 'other',
-  reason        TEXT,
-  notes         TEXT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CHECK (end_date > start_date)
-);
-
-CREATE INDEX idx_room_blocks_room_dates ON room_blocks(room_type_id, start_date, end_date);
+-- El cuerpo de la función es idéntico al de 0016 (incluye el JOIN con
+-- room_blocks agregado ahí), solo cambia el ORDER BY final.
 
 CREATE OR REPLACE FUNCTION check_availability(
   p_check_in DATE,
@@ -82,10 +65,6 @@ RETURNS TABLE (
   FROM beds b
   JOIN room_types rt ON rt.id = b.room_type_id
   LEFT JOIN room_conversion_logs rcl ON rcl.room_type_id = rt.id AND rcl.target_date = p_check_in
-  -- FIX (auditoría 2026-08-30): esta migración copió la version de 0005
-  -- en vez de la corregida en 0011_fix_bed_code_sort_order.sql, y
-  -- reintrodujo el orden lexicográfico plano (A10, A11, A12 antes que
-  -- A2..A9). Se restaura el orden natural de 0011.
   ORDER BY
     rt.code,
     regexp_replace(b.bed_code, '[0-9]+$', ''),

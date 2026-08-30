@@ -37,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_gps_expires     ON group_payment_sessions(expires
 DROP TRIGGER IF EXISTS trg_gps_updated_at ON group_payment_sessions;
 CREATE TRIGGER trg_gps_updated_at
   BEFORE UPDATE ON group_payment_sessions
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 
 -- ── 3) group_payment_members ──────────────────────────────────────────────────
 -- Un registro por persona que completó (o intenta) el pago de su cama.
@@ -68,4 +68,4 @@ CREATE INDEX IF NOT EXISTS idx_gpm_status   ON group_payment_members(status);
 DROP TRIGGER IF EXISTS trg_gpm_updated_at ON group_payment_members;
 CREATE TRIGGER trg_gpm_updated_at
   BEFORE UPDATE ON group_payment_members
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
