@@ -256,8 +256,8 @@ export class GroupPaymentService {
    * 1. Asigna camas (overflow automático)
    * 2. Determina precio por cama (Opción D)
    * 3. Crea reserva pending_group
-   * 4. Pre-crea N slots de miembro con tokens individuales
-   * 5. Retorna N links únicos para que el titular los reenvíe a cada invitado
+   * 4. Pre-crea N-1 slots de miembro con tokens individuales (el titular reserva por separado)
+   * 5. Retorna N-1 links únicos — uno por invitado, sin incluir la cama del titular
    */
   async createGroupSession(input: GroupSessionInput): Promise<GroupSessionResult> {
     const seasonType = await getSeasonType(input.checkIn);
@@ -270,8 +270,11 @@ export class GroupPaymentService {
     const seasonMultiplier = parseFloat(multRows[0].calculate_season_multiplier);
 
     const result = await withTransaction(async (client) => {
+      // input.totalBeds es el tamaño total del grupo (incluyendo al titular).
+      // El titular reserva su propia cama directamente en el motor del hostel,
+      // por lo que la sesión grupal solo cubre a los N-1 invitados restantes.
       let rawAllocations = await allocateGroupBeds(
-        client, input.checkIn, input.checkOut, input.totalBeds, input.guestGender
+        client, input.checkIn, input.checkOut, input.totalBeds - 1, input.guestGender
       );
 
       const { allocations, defaultAmountPerBed } = applyPricingStrategy(
@@ -305,7 +308,8 @@ export class GroupPaymentService {
       const channelId = chRows[0].id;
 
       const reservationNumber = generateReservationNumber();
-      const totalBeds = input.totalBeds;
+      // N-1: el titular reserva su propia cama directamente, no ocupa un slot del grupo
+      const totalBeds = input.totalBeds - 1;
 
       const totalPrice = parseFloat(
         allocations.reduce((s, a) => s + a.amountPerBed * a.bedsCount, 0).toFixed(2)

@@ -384,21 +384,21 @@
 
       <!-- Camas -->
       <div class="field">
-        <label>Cantidad de camas</label>
+        <label>Total de camas del grupo <span style="color:#aaa;font-weight:400">(incluida la tuya)</span></label>
         <div class="beds-picker">
           <button class="beds-btn" id="bedsDown" onclick="changeBeds(-1)">−</button>
           <span class="beds-val" id="bedsVal">2</span>
           <button class="beds-btn" id="bedsUp" onclick="changeBeds(1)">+</button>
         </div>
-        <div class="beds-hint">Mínimo 2 · Máximo 20 · Con 6+ camas: descuento de grupo</div>
+        <div class="beds-hint">Mínimo 2 · Máximo 20 · Con 6+ camas: descuento de grupo · Vos reservás la tuya aparte</div>
       </div>
 
       <!-- Precio estimado -->
       <div id="priceBox" class="price-box" style="display:none">
         <div>
-          <div class="price-lbl">Depósito por persona (30%)</div>
+          <div class="price-lbl">Depósito por invitado (30%)</div>
           <div class="price-val" id="depPerPerson">R$ —</div>
-          <div class="price-note">Precio total: <span id="totalPrice">—</span></div>
+          <div class="price-note">Total invitados: <span id="totalPrice">—</span></div>
         </div>
         <div class="price-per" id="pricePerInfo"></div>
       </div>
