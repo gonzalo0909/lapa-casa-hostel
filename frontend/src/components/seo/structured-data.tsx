@@ -434,14 +434,9 @@ export function useStructuredData() {
   };
 }
 
-/**
- * Predefined structured data for common pages
- */
-export const PAGE_SCHEMAS = {
-  home: [OrganizationSchema, LocalBusinessSchema, WebSiteSchema],
-  about: [OrganizationSchema, LocalBusinessSchema],
-  contact: [OrganizationSchema, LocalBusinessSchema],
-  rooms: [OrganizationSchema, LocalBusinessSchema]
-} as const;
+// FIX (auditoría 2026-08-30): se eliminó PAGE_SCHEMAS -- agrupación de
+// ejemplo sin ningún import en el resto del frontend (cada página arma
+// su propio JSON-LD importando los schemas individuales de arriba
+// directamente, ej. LocalBusinessSchema).
 
 export default StructuredData;

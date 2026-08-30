@@ -272,35 +272,9 @@ export function usePageMeta() {
   };
 }
 
-/**
- * Predefined meta configurations for common pages
- */
-export const PAGE_METAS = {
-  home: {
-    title: 'Group Accommodation in Santa Teresa',
-    description: 'Premium hostel specializing in group bookings. 45 beds, 4 rooms. Perfect for international groups and corporate events in Rio de Janeiro.',
-    keywords: ['group hostel rio', 'santa teresa hostel', 'corporate accommodation']
-  },
-  booking: {
-    title: 'Book Your Group Stay',
-    description: 'Reserve beds at Lapa Casa with instant confirmation. Group discounts available. Flexible cancellation policy.',
-    keywords: ['hostel booking', 'group reservation', 'book hostel rio']
-  },
-  rooms: {
-    title: 'Our Rooms & Dormitories',
-    description: 'Explore our 4 spacious dormitories: Mixto 12A, Mixto 12B, Mixto 7, and Flexible 7. All rooms with modern amenities.',
-    keywords: ['hostel rooms', 'dormitory', 'shared accommodation']
-  },
-  about: {
-    title: 'About Lapa Casa',
-    description: 'Learn about our hostel in the heart of Santa Teresa. Family-run business focused on creating memorable experiences for groups.',
-    keywords: ['about hostel', 'santa teresa', 'hostel history']
-  },
-  contact: {
-    title: 'Contact Us',
-    description: 'Get in touch with Lapa Casa. Located at Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Quick response guaranteed.',
-    keywords: ['contact hostel', 'hostel address', 'hostel phone']
-  }
-} as const;
+// FIX (auditoría 2026-08-30): se eliminó PAGE_METAS -- objeto de metadata
+// de ejemplo en inglés, sin ningún import en el resto del frontend (las
+// páginas reales generan su metadata con generateMetadata()/meta-generator.ts,
+// no con esto).
 
 export default MetaTags;
