@@ -89,7 +89,11 @@ router.get('/dashboard', async (req, res, next) => {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    const [bookingStats, occupancy, revenue, channels, groups, upcoming] = await Promise.all([
+    // FIX (auditoría 2026-08-30): antes traía acá un top-10 de próximos
+    // check-ins con una query que no seleccionaba check_out_date ni
+    // status (el frontend los mostraba vacíos/rotos). Esa vista ahora la
+    // cubre GET /admin/bookings/upcoming, con las columnas completas.
+    const [bookingStats, occupancy, revenue, channels, groups] = await Promise.all([
       bookingService.getBookingStats(
         `${year}-${String(month).padStart(2, '0')}-01`,
         new Date(year, month, 0).toISOString().slice(0, 10)
@@ -97,13 +101,7 @@ router.get('/dashboard', async (req, res, next) => {
       statsService.getOccupancyStats(month, year),
       statsService.getRevenueStats(month, year),
       statsService.getChannelStats(month, year),
-      statsService.getGroupStats(month, year),
-      query<{ id: string; reservation_number: string; check_in_date: string; guest_name: string; beds_count: number }>(
-        `SELECT r.id, r.reservation_number, r.check_in_date::text, g.full_name AS guest_name, r.beds_count
-         FROM reservations r JOIN guests g ON g.id = r.guest_id
-         WHERE r.status = 'confirmed' AND r.check_in_date >= CURRENT_DATE
-         ORDER BY r.check_in_date ASC LIMIT 10`
-      )
+      statsService.getGroupStats(month, year)
     ]);
 
     res.status(200).json(
@@ -113,8 +111,7 @@ router.get('/dashboard', async (req, res, next) => {
         occupancy: { averagePercent: occupancy.averageOccupancyPercent, byRoom: occupancy.byRoom },
         revenue,
         channels,
-        groups,
-        upcomingCheckIns: upcoming.rows
+        groups
       }, 'Dashboard data retrieved')
     );
   } catch (error) {

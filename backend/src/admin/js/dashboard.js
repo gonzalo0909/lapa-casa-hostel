@@ -60,41 +60,75 @@ async function loadDashboard() {
       data.revenue.byChannel.map(c => ({ label: c.channelName, value: c.grossRevenue })),
       { formatValue: v => fmtCurrency(v) }
     );
-
-    const tbody = document.querySelector('#upcoming-table tbody');
-    tbody.innerHTML = data.upcomingCheckIns.map(b => `
-      <tr>
-        <td>${escapeHtml(b.reservation_number)}</td>
-        <td>${escapeHtml(b.guest_name)}</td>
-        <td>${fmtDate(b.check_in_date)}</td>
-        <td>${fmtDate(b.check_out_date)}</td>
-        <td>${b.beds_count}</td>
-        <td><span class="badge ${b.status}">${statusLabel(b.status)}</span></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" style="color:#888;">Sin check-ins próximos</td></tr>';
   } catch (err) {
     showMsg('dashboard-msg', err.message, 'error');
   }
 }
 
-async function loadTodayCheckIns() {
-  const today = new Date().toISOString().slice(0, 10);
+/**
+ * FIX (auditoría 2026-08-30): antes esta tarjeta solo mostraba check-ins
+ * (vía /admin/bookings?from=hoy&to=hoy) y no mostraba check-outs del día
+ * en absoluto. GET /admin/bookings/today ya existía en el backend --
+ * pensado para el panel React que se eliminó -- con check-ins, check-outs
+ * y ocupación de hoy en una sola llamada. Se conecta acá.
+ */
+async function loadTodayActivity() {
   try {
-    const data = await apiFetch(`/admin/bookings?from=${today}&to=${today}&limit=50`);
-    const tbody = document.querySelector('#today-checkins-table tbody');
-    const rows = data.bookings ?? [];
-    tbody.innerHTML = rows.map(b => `
+    const data = await apiFetch('/admin/bookings/today');
+
+    document.getElementById('today-occupancy').textContent =
+      `— Ocupación: ${data.occupancyToday}/${data.totalBeds} camas`;
+
+    const checkInsBody = document.querySelector('#today-checkins-table tbody');
+    checkInsBody.innerHTML = data.checkIns.map(b => `
       <tr>
-        <td>${escapeHtml(b.reservation_number)}</td>
-        <td>${escapeHtml(b.guest_name)}</td>
-        <td style="font-size:12px;color:#888;">${escapeHtml(b.guest_email)}</td>
-        <td>${b.beds_count}</td>
-        <td>${fmtDate(b.check_out_date)}</td>
+        <td>${escapeHtml(b.confirmationNumber)}</td>
+        <td>${escapeHtml(b.guestName)}</td>
+        <td>${b.bedsCount}</td>
+        <td>${fmtDate(b.checkOut)}</td>
         <td><span class="badge ${b.status}">${statusLabel(b.status)}</span></td>
       </tr>
-    `).join('') || '<tr><td colspan="6" style="color:#888;">Sin check-ins hoy</td></tr>';
+    `).join('') || '<tr><td colspan="5" style="color:#888;">Sin check-ins hoy</td></tr>';
+
+    const checkOutsBody = document.querySelector('#today-checkouts-table tbody');
+    checkOutsBody.innerHTML = data.checkOuts.map(b => `
+      <tr>
+        <td>${escapeHtml(b.confirmationNumber)}</td>
+        <td>${escapeHtml(b.guestName)}</td>
+        <td>${b.bedsCount}</td>
+        <td>${fmtDate(b.checkIn)}</td>
+        <td><span class="badge ${b.status}">${statusLabel(b.status)}</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="5" style="color:#888;">Sin check-outs hoy</td></tr>';
   } catch (err) {
     showMsg('today-checkins-msg', err.message, 'error');
+  }
+}
+
+/**
+ * FIX (auditoría 2026-08-30): la tabla de próximos check-ins usaba
+ * data.upcomingCheckIns de GET /admin/dashboard, cuya query nunca
+ * seleccionaba check_out_date ni status -- las columnas correspondientes
+ * salían vacías/rotas. GET /admin/bookings/upcoming ya existía (también
+ * pensado para el panel React eliminado) con las columnas completas y
+ * bien nombradas -- se conecta acá en su lugar.
+ */
+async function loadUpcoming() {
+  try {
+    const data = await apiFetch('/admin/bookings/upcoming?days=7');
+    const tbody = document.querySelector('#upcoming-table tbody');
+    tbody.innerHTML = data.bookings.map(b => `
+      <tr>
+        <td>${escapeHtml(b.confirmationNumber)}</td>
+        <td>${escapeHtml(b.guestName)}</td>
+        <td>${fmtDate(b.checkIn)}</td>
+        <td>${fmtDate(b.checkOut)}</td>
+        <td>${b.bedsCount}</td>
+        <td><span class="badge ${b.status}">${statusLabel(b.status)}</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="color:#888;">Sin check-ins próximos</td></tr>';
+  } catch (err) {
+    showMsg('upcoming-msg', err.message, 'error');
   }
 }
 
@@ -104,7 +138,8 @@ function initDashboard() {
   document.getElementById('dashboard-screen').classList.remove('hidden');
   renderNav('dashboard');
   loadDashboard();
-  loadTodayCheckIns();
+  loadTodayActivity();
+  loadUpcoming();
 }
 
 // M-02: ya no hay token en localStorage — verificamos la sesión consultando
