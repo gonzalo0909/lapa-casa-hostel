@@ -19,19 +19,36 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
  * Analytics configuration
+ *
+ * FIX (auditoría 2026-08-30): antes estos dos IDs eran placeholders
+ * hardcodeados ('G-XXXXXXXXXX' / '1234567890') que nunca se
+ * reemplazaron -- y este componente, además, nunca se montaba en
+ * ningún lado del árbol de la app (código muerto completo). Ahora lee
+ * las variables de entorno reales; si no están configuradas, ese
+ * servicio puntual simplemente no se carga (ver ga4Configured /
+ * fbPixelConfigured más abajo) en vez de mandar tracking a un ID falso.
  */
 const ANALYTICS_CONFIG = {
-  ga4MeasurementId: 'G-XXXXXXXXXX', // Replace with actual GA4 ID
-  facebookPixelId: '1234567890', // Replace with actual FB Pixel ID
+  ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '',
+  facebookPixelId: process.env.NEXT_PUBLIC_FB_PIXEL_ID || '',
   enableDebug: process.env.NODE_ENV === 'development',
   cookieConsent: true
 } as const;
 
+const ga4Configured = ANALYTICS_CONFIG.ga4MeasurementId.length > 0;
+const fbPixelConfigured = ANALYTICS_CONFIG.facebookPixelId.length > 0;
+
 /**
  * Event parameters interface
+ *
+ * FIX (auditoría 2026-08-30): el índice solo aceptaba primitivos, pero
+ * trackBookingInitiated/Completed/trackRoomView ya mandaban un array
+ * `items` (formato ecommerce estándar de GA4) -- nunca se detectó
+ * porque este archivo estaba excluido de tsc en tsconfig.json (nunca se
+ * montaba en la app). Ahora que sí se monta, se tipa correctamente.
  */
 interface EventParams {
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | number | boolean | undefined | Array<Record<string, string | number | undefined>>;
 }
 
 /**
@@ -83,11 +100,26 @@ const AnalyticsContext = createContext<AnalyticsContextValue | null>(null);
 
 /**
  * Declare gtag function for TypeScript
+ *
+ * FIX (auditoría 2026-08-30): fbq no es solo una función -- el snippet
+ * estándar de Facebook Pixel le cuelga propiedades extra (callMethod,
+ * queue, push, loaded, version) al mismo objeto función. Tiparlo como
+ * "(...args) => void" a secas rompía en tsc; nunca se detectó porque
+ * este archivo estaba excluido de tsc (ver nota de EventParams arriba).
  */
+interface FbqFunction {
+  (...args: any[]): void;
+  callMethod?: (...args: any[]) => void;
+  queue?: unknown[];
+  push?: FbqFunction;
+  loaded?: boolean;
+  version?: string;
+}
+
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
-    fbq?: (...args: any[]) => void;
+    fbq?: FbqFunction;
     dataLayer?: any[];
   }
 }
@@ -447,32 +479,36 @@ export function AnalyticsProvider({
 
   return (
     <AnalyticsContext.Provider value={contextValue}>
-      {/* Google Analytics 4 */}
-      <Script
-        id="ga4-script"
-        strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.ga4MeasurementId}`}
-        onLoad={initializeGA4}
-      />
+      {/* Google Analytics 4 — solo si NEXT_PUBLIC_GA4_MEASUREMENT_ID está configurada */}
+      {ga4Configured && (
+        <Script
+          id="ga4-script"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.ga4MeasurementId}`}
+          onLoad={initializeGA4}
+        />
+      )}
 
-      {/* Facebook Pixel */}
-      <Script
-        id="fb-pixel"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-          `
-        }}
-        onLoad={initializeFacebookPixel}
-      />
+      {/* Facebook Pixel — solo si NEXT_PUBLIC_FB_PIXEL_ID está configurada */}
+      {fbPixelConfigured && (
+        <Script
+          id="fb-pixel"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+            `
+          }}
+          onLoad={initializeFacebookPixel}
+        />
+      )}
 
       {children}
     </AnalyticsContext.Provider>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
@@ -5,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { Inter, Poppins } from 'next/font/google';
 import Script from 'next/script';
 import { locales, type Locale } from '@/i18n';
+import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
 import '../globals.css';
 
 // display:'swap' evita el bloqueo de render en móviles (mejora CLS y FCP)
@@ -100,7 +102,16 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${inter.variable} ${poppins.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          {/* AnalyticsProvider usa useSearchParams() (next/navigation) para
+              trackear page views en cada cambio de ruta -- Next.js exige un
+              Suspense boundary alrededor de cualquier consumidor de
+              useSearchParams(), si no toda página estática que pase por acá
+              (todas, este es el layout raíz) se ve forzada a render dinámico. */}
+          <Suspense fallback={<>{children}</>}>
+            <AnalyticsProvider>
+              {children}
+            </AnalyticsProvider>
+          </Suspense>
         </NextIntlClientProvider>
 
         {/* Registro del Service Worker — mejora PWA y carga offline en móviles */}
