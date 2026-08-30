@@ -550,6 +550,7 @@
     "guestDataTitle": "Guest details",
     "fullNameLabel": "Full name",
     "fullNamePlaceholder": "Your full name",
+    "companionNamePlaceholder": "Companion's full name",
     "emailLabel": "Email",
     "emailPlaceholder": "you@email.com",
     "emailValid": "Valid email",
