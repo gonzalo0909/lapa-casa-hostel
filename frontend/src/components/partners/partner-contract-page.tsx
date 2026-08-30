@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { MapPin, FileText, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Mail } from 'lucide-react';
+import { partnersAPI } from '@/lib/api';
 
 interface Props {
   locale: string;
@@ -261,8 +262,9 @@ function ContactForm() {
     setSending(true);
     setError(null);
     try {
-      // TODO: connect to real endpoint once backend route exists
-      await new Promise(r => setTimeout(r, 1000));
+      // FIX (auditoría 2026-08-30): antes esto era un setTimeout que
+      // fingía éxito sin enviar nada (TODO explícito en el código).
+      await partnersAPI.contact(form);
       setSent(true);
     } catch {
       setError('Erro ao enviar. Tente novamente ou entre em contato por e-mail.');
