@@ -112,12 +112,6 @@ lapa-casa-hostel/
 │   ├── frontend/            # Frontend tests
 │   └── backend/             # Backend tests
 │
-├── infrastructure/           # DevOps configuration
-│   ├── docker-compose.yml
-│   ├── kubernetes/
-│   ├── scripts/
-│   └── monitoring/
-│
 └── docs/                     # Documentation
     ├── api/
     ├── deployment/

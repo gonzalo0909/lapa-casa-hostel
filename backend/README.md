@@ -269,16 +269,18 @@ npm run test:e2e
 ```
 
 ### Test Structure
-```
-tests/
-├── backend/
-│   ├── booking-service.test.ts
-│   ├── pricing-service.test.ts
-│   ├── payments.test.ts
-│   └── api.test.ts
-└── shared/
-    └── mock-bookings.json
-```
+
+Los tests reales viven en `backend/database/tests/` (payment, concurrency,
+lock-middleware, cancel-release, flexible-room, pricing) y corren contra
+Postgres real vía `npm test` (usa `backend/jest.config.js`).
+
+> FIX (auditoría 2026-08-30): existió una carpeta `tests/backend/` en la
+> raíz del repo con su propio `jest.config.js`, nunca referenciada por
+> ningún script ni CI -- nunca se ejecutó. Probaba además una API que ya
+> no coincidía con el código real (constructor de `BookingService` con
+> argumentos que no existen, mensajes de error inventados, rutas HTTP sin
+> el prefijo real `/api/v1`). Se eliminó en vez de dejarla dando falsa
+> sensación de cobertura.
 
 ---
 
@@ -329,7 +331,6 @@ backend/
 │   ├── app.ts            # Express app
 │   └── server.ts         # Server entry point
 ├── tests/                # Test files
-├── infrastructure/       # Docker, K8s, CI/CD
 ├── logs/                 # Application logs
 ├── .env                  # Environment variables
 ├── docker-compose.yml    # Docker services

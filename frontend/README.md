@@ -114,10 +114,8 @@ frontend/
 │   ├── favicon.ico
 │   └── manifest.json
 │
-├── tests/                     # Test files
-│   └── frontend/
-│
-└── infrastructure/            # DevOps configs
+└── tests/                     # Test files
+    └── frontend/
 
 ```
 

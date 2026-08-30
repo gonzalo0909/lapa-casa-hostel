@@ -451,7 +451,7 @@ export function calculatePrice(
 
 Pricing logic must have **100% test coverage** due to business criticality.
 
-Location: `tests/backend/pricing-service.test.ts`
+Location: `backend/database/tests/pricing.test.ts` (corre contra Postgres real vía `npm test`)
 
 ---
 
