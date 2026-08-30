@@ -298,6 +298,58 @@
       vertical-align: middle;
       margin-right: 6px;
     }
+
+    /* ── Nota treliches en banner ── */
+    .banner-note {
+      font-size: 0.7rem;
+      color: #777;
+      margin-top: 10px;
+      background: rgba(255,255,255,.06);
+      border-radius: 20px;
+      padding: 5px 14px;
+      display: inline-block;
+      line-height: 1.5;
+      max-width: 380px;
+    }
+
+    /* ── Tu cama (titular) card — Step 3 ── */
+    .titular-card {
+      background: #f0faf4;
+      border: 2px solid #2d7a4e;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+    .titular-card .tc-badge {
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #2d7a4e; margin-bottom: 7px;
+    }
+    .titular-card .tc-url {
+      font-size: 0.7rem; color: #555; word-break: break-all;
+      font-family: 'SFMono-Regular','Consolas',monospace; line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .btn-go-pay {
+      display: block; width: 100%; text-align: center;
+      background: #2d7a4e; color: #fff; text-decoration: none;
+      font-size: 0.92rem; font-weight: 800; padding: 12px;
+      border-radius: 8px; transition: background .2s;
+    }
+    .btn-go-pay:hover { background: #256b44; }
+
+    /* ── Sección invitados ── */
+    .guests-lbl {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px;
+      color: #bbb; margin: 18px 0 10px;
+    }
+
+    /* ── Nota no pagadores ── */
+    .note-nopay {
+      background: #f8f5f0; border-radius: 9px;
+      padding: 12px 14px; font-size: 0.78rem; color: #666;
+      line-height: 1.55; margin-top: 16px; text-align: left;
+    }
+    .note-nopay a { color: #1a1a1a; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -306,6 +358,7 @@
   <div class="hostel">Lapa Casa Hostel · Santa Teresa, Rio de Janeiro</div>
   <h1>Reserva Grupal</h1>
   <p>Cada persona paga su propia cama</p>
+  <p class="banner-note">🛏️ Camas tipo litera de tres pisos — si tenés más de 50 años o alguna dificultad de movilidad, te recomendamos consultarnos antes de reservar</p>
 </div>
 
 <div class="main">
@@ -432,12 +485,29 @@
 
       <div class="session-info" id="sessionInfo"></div>
 
+      <!-- Tu cama — titular completa su propio pago primero -->
+      <div class="titular-card" id="titularCard" style="display:none">
+        <div class="tc-badge">🔑 Tu cama — completá tu pago primero</div>
+        <div class="tc-url" id="titularUrl"></div>
+        <a class="btn-go-pay" id="btnGoReserve" href="#" target="_blank">Ir a mi reserva →</a>
+      </div>
+
+      <!-- Links para los invitados -->
+      <div class="guests-lbl" id="guestsLbl" style="display:none">Links para tus invitados</div>
       <div class="links-panel" id="linksPanel"></div>
 
       <div class="note">
         <strong>Cada link es único e intransferible.</strong><br>
-        Cada persona tiene <strong>10 minutos</strong> para completar su pago.<br>
+        Cada persona tiene <strong>30 minutos</strong> para completar su pago.<br>
         Las camas pagadas quedan confirmadas automáticamente.
+      </div>
+
+      <!-- Nota para quienes no completan el pago -->
+      <!-- Reemplazá XXXXXXXXXXX con el número real de WhatsApp del hostel (solo dígitos, sin +) -->
+      <div class="note-nopay">
+        ℹ️ <strong>¿Alguien no completa el pago a tiempo?</strong><br>
+        Puede reservar directamente en nuestra página o escribirnos por
+        <a href="https://wa.me/55XXXXXXXXXXX" target="_blank" rel="noopener">WhatsApp</a>.
       </div>
 
       <div class="divider"></div>
