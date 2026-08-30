@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface CurrencyInfo {
+export interface CurrencyInfo {
   code: string;   // 'USD'
   symbol: string; // 'USD' | '€' | '£' …
   rate: number;   // cuántas unidades de la moneda local vale 1 BRL
