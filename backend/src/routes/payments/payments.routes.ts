@@ -277,7 +277,13 @@ router.post(
         return;
       }
 
-      logger.info('Webhook MercadoPago recibido y verificado', { body: req.body });
+      // FIX (auditoría 2026-08-30): antes se logueaba req.body completo,
+      // que puede incluir el email del pagador -- se loguean solo los
+      // campos no sensibles necesarios para trazabilidad.
+      logger.info('Webhook MercadoPago recibido y verificado', {
+        type: (req.body as any)?.type,
+        dataId,
+      });
       await paymentService.handleMercadoPagoWebhook(req.body);
       res.status(200).json({ received: true });
     } catch (error) {
