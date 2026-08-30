@@ -210,6 +210,16 @@ NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
 NEXT_PUBLIC_GTM_ID=GTM-...
 ```
 
+### Optional (Analytics)
+```bash
+# FIX (auditoría 2026-08-30): AnalyticsProvider (components/analytics/
+# analytics-provider.tsx) ahora lee estas dos en vez de tener IDs de
+# ejemplo hardcodeados. Si cualquiera de las dos falta, ese servicio
+# puntual simplemente no se carga -- no rompe nada dejarlas vacías.
+NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_FB_PIXEL_ID=1234567890
+```
+
 See `.env.local` for complete list with descriptions.
 
 ## 🧪 Testing
