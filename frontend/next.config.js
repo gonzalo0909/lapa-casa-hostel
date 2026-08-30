@@ -198,8 +198,7 @@ const nextConfig = {
     } : false,
   },
 
-  // Output configuration
-  output: 'standalone',
+  // Output configuration — standalone incompatible con 'next start' en Render
   distDir: '.next',
   poweredByHeader: false,
   compress: true,
