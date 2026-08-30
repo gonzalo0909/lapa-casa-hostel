@@ -41,16 +41,25 @@
   </div>
 
   <div class="card">
-    <h2>Check-ins de hoje</h2>
+    <h2>Hoje <span id="today-occupancy" style="font-weight:400;font-size:14px;color:#888;"></span></h2>
     <div id="today-checkins-msg"></div>
+
+    <h3 style="margin-top:0;">Check-ins</h3>
     <table id="today-checkins-table">
-      <thead><tr><th>Reserva</th><th>Huésped</th><th>Email</th><th>Camas</th><th>Check-out</th><th>Estado</th></tr></thead>
-      <tbody><tr><td colspan="6" style="color:#888;">Cargando...</td></tr></tbody>
+      <thead><tr><th>Reserva</th><th>Huésped</th><th>Camas</th><th>Check-out</th><th>Estado</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#888;">Cargando...</td></tr></tbody>
+    </table>
+
+    <h3>Check-outs</h3>
+    <table id="today-checkouts-table">
+      <thead><tr><th>Reserva</th><th>Huésped</th><th>Camas</th><th>Check-in</th><th>Estado</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#888;">Cargando...</td></tr></tbody>
     </table>
   </div>
 
   <div class="card">
     <h2>Próximos check-ins — 7 días</h2>
+    <div id="upcoming-msg"></div>
     <table id="upcoming-table">
       <thead><tr><th>Reserva</th><th>Huésped</th><th>Check-in</th><th>Check-out</th><th>Camas</th><th>Estado</th></tr></thead>
       <tbody></tbody>
