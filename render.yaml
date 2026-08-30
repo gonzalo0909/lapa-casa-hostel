@@ -159,6 +159,66 @@ services:
         sync: false
     autoDeploy: true
 
+  # Worker de colas BullMQ (FIX auditoría 2026-08-30): antes no existía
+  # ningún servicio que corriera `npm run worker` -- el backend seguía
+  # ENCOLANDO jobs con total normalidad (REDIS_URL ya está configurada
+  # arriba) pero nada los consumía nunca. Sin esto: el cobro de saldo a
+  # 7 días nunca se dispara, los emails programados (bienvenida,
+  # recordatorios) nunca salen, los holds de reservas pendientes
+  # vencidas nunca se liberan, y el sync con Airbnb/Hostelworld (cada 5
+  # min vía ICAL_IMPORT_INTERVAL_MINUTES) nunca corre solo.
+  #
+  # OJO: el plan "free" de Render históricamente NO soporta Background
+  # Workers (solo Web Services) -- verificar el plan mínimo requerido
+  # en el dashboard de Render antes de crear este servicio; puede
+  # implicar un costo mensual que no existía con los 3 servicios
+  # actuales (todos en plan free).
+  - type: worker
+    name: lapa-casa-hostel-worker
+    env: node
+    region: oregon
+    plan: starter
+    branch: backup-front-20260821
+    rootDir: backend
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run worker
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: TIMEZONE
+        value: America/Sao_Paulo
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: reservas@lapacasahostel.com
+      - key: EMAIL_FROM
+        value: reservas@lapacasahostel.com
+      - key: EMAIL_FROM_NAME
+        value: Lapa Casa Hostel
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+        sync: false
+      - key: GOOGLE_SHEETS_SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_SHEETS_SHEET_NAME
+        value: Hoja 1
+    autoDeploy: true
+
 # No hay bloque "databases": la base es la Supabase real
 # (proyecto rpowardrcwnhbkzjsiok), no una base gestionada por Render.
 # DATABASE_URL se carga a mano en el dashboard (ver envVars del backend).
