@@ -42,11 +42,10 @@
     /* ── Contenedor ── */
     .main { max-width: 480px; margin: 28px auto 48px; padding: 0 16px; }
 
-    /* ── Steps indicator ── */
+    /* ── Steps indicator (2 pasos) ── */
     .steps {
       display: flex;
       align-items: center;
-      gap: 0;
       margin-bottom: 20px;
     }
     .step-dot {
@@ -75,6 +74,16 @@
     .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
     .card-sub   { font-size: 0.78rem; color: #888; margin-bottom: 20px; }
 
+    /* ── Sección dentro del card ── */
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #aaa;
+      margin-bottom: 14px;
+      margin-top: 4px;
+    }
+
     /* ── Formulario ── */
     .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
     label  { font-size: 0.72rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -96,7 +105,6 @@
     .beds-picker {
       display: flex;
       align-items: center;
-      gap: 0;
       border: 1.5px solid #e0e0e0;
       border-radius: 8px;
       overflow: hidden;
@@ -151,6 +159,32 @@
     .price-note { font-size: 0.7rem; color: #aaa; margin-top: 2px; }
     .price-per { font-size: 0.75rem; color: #aaa; text-align: right; }
 
+    /* ── Restricción de edad — obligatorio ── */
+    .restriction-box {
+      background: #fff8e8;
+      border: 1.5px solid #f5c842;
+      border-radius: 9px;
+      padding: 14px 15px;
+      margin-bottom: 16px;
+    }
+    .restriction-label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      cursor: pointer;
+      font-size: 0.83rem;
+      color: #444;
+      line-height: 1.5;
+    }
+    .restriction-input {
+      margin-top: 3px;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+    }
+
     /* ── Botón principal ── */
     .btn-main {
       width: 100%;
@@ -167,20 +201,6 @@
     }
     .btn-main:hover:not(:disabled) { background: #333; }
     .btn-main:disabled { background: #aaa; cursor: not-allowed; }
-    .btn-back {
-      width: 100%;
-      background: transparent;
-      color: #888;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 10px;
-      border: 1.5px solid #ddd;
-      border-radius: 9px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: border-color .2s;
-    }
-    .btn-back:hover { border-color: #aaa; color: #555; }
 
     /* ── Error ── */
     .error-msg {
@@ -194,20 +214,15 @@
       display: none;
     }
 
+    /* ── Divider ── */
+    .divider { height: 1px; background: #f0f0f0; margin: 18px 0; }
+
     /* ── Links panel ── */
-    .links-panel { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+    .links-panel { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 18px; }
     .link-card {
       border: 1.5px solid #e8e8e8;
       border-radius: 11px;
       padding: 14px 15px;
-    }
-    .link-num {
-      font-size: 0.68rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #bbb;
-      margin-bottom: 6px;
     }
     .link-url {
       font-size: 0.72rem;
@@ -259,7 +274,33 @@
       font-size: 1.5rem;
     }
     .success-title { font-size: 1.1rem; font-weight: 800; text-align: center; margin-bottom: 4px; }
-    .success-sub { font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 0; }
+    .success-sub { font-size: 0.78rem; color: #888; margin-bottom: 0; line-height: 1.5; }
+
+    /* ── Botón "Reservar mi cama" — titular ── */
+    .btn-go-hostel {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: #2d7a4e;
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 800;
+      padding: 13px;
+      border-radius: 9px;
+      transition: background .2s;
+      margin-bottom: 4px;
+    }
+    .btn-go-hostel:hover { background: #256b44; }
+
+    /* ── Nota invitados ── */
+    .guests-lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
 
     /* ── Note ── */
     .note {
@@ -267,11 +308,9 @@
       color: #aaa;
       text-align: center;
       line-height: 1.5;
-      margin-top: 16px;
+      margin-top: 4px;
     }
     .note strong { color: #888; }
-
-    .divider { height: 1px; background: #f0f0f0; margin: 18px 0; }
 
     /* ── Totales sesión ── */
     .session-info {
@@ -286,6 +325,14 @@
     .session-info .si-row:last-child { margin-bottom: 0; }
     .session-info .si-val { font-weight: 700; color: #1a1a1a; }
 
+    /* ── Nota no pagadores ── */
+    .note-nopay {
+      background: #f8f5f0; border-radius: 9px;
+      padding: 12px 14px; font-size: 0.78rem; color: #666;
+      line-height: 1.55; margin-top: 16px; text-align: left;
+    }
+    .note-nopay a { color: #1a1a1a; font-weight: 700; }
+
     /* ── spinner ── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
@@ -298,58 +345,6 @@
       vertical-align: middle;
       margin-right: 6px;
     }
-
-    /* ── Nota treliches en banner ── */
-    .banner-note {
-      font-size: 0.7rem;
-      color: #777;
-      margin-top: 10px;
-      background: rgba(255,255,255,.06);
-      border-radius: 20px;
-      padding: 5px 14px;
-      display: inline-block;
-      line-height: 1.5;
-      max-width: 380px;
-    }
-
-    /* ── Tu cama (titular) card — Step 3 ── */
-    .titular-card {
-      background: #f0faf4;
-      border: 2px solid #2d7a4e;
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin-bottom: 14px;
-    }
-    .titular-card .tc-badge {
-      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.8px; color: #2d7a4e; margin-bottom: 7px;
-    }
-    .titular-card .tc-url {
-      font-size: 0.7rem; color: #555; word-break: break-all;
-      font-family: 'SFMono-Regular','Consolas',monospace; line-height: 1.4;
-      margin-bottom: 12px;
-    }
-    .btn-go-pay {
-      display: block; width: 100%; text-align: center;
-      background: #2d7a4e; color: #fff; text-decoration: none;
-      font-size: 0.92rem; font-weight: 800; padding: 12px;
-      border-radius: 8px; transition: background .2s;
-    }
-    .btn-go-pay:hover { background: #256b44; }
-
-    /* ── Sección invitados ── */
-    .guests-lbl {
-      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px;
-      color: #bbb; margin: 18px 0 10px;
-    }
-
-    /* ── Nota no pagadores ── */
-    .note-nopay {
-      background: #f8f5f0; border-radius: 9px;
-      padding: 12px 14px; font-size: 0.78rem; color: #666;
-      line-height: 1.55; margin-top: 16px; text-align: left;
-    }
-    .note-nopay a { color: #1a1a1a; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -357,27 +352,25 @@
 <div class="banner">
   <div class="hostel">Lapa Casa Hostel · Santa Teresa, Rio de Janeiro</div>
   <h1>Reserva Grupal</h1>
-  <p>Cada persona paga su propia cama</p>
-  <p class="banner-note">🛏️ Camas tipo litera de tres pisos — si tenés más de 50 años o alguna dificultad de movilidad, te recomendamos consultarnos antes de reservar</p>
+  <p>Cada persona paga su propia cama · Mínimo 2 personas</p>
 </div>
 
 <div class="main">
 
-  <!-- Steps -->
+  <!-- Steps (2) -->
   <div class="steps">
     <div class="step-dot active" id="dot1">1</div>
     <div class="step-line" id="line1"></div>
     <div class="step-dot" id="dot2">2</div>
-    <div class="step-line" id="line2"></div>
-    <div class="step-dot" id="dot3">3</div>
   </div>
 
-  <!-- ── STEP 1: Fechas + camas ── -->
+  <!-- ── STEP 1: Formulario combinado ── -->
   <div id="step1">
     <div class="card">
-      <div class="card-title">Fechas y camas</div>
-      <div class="card-sub">¿Cuándo llegan y cuántas camas necesitan?</div>
+      <div class="card-title">Fechas y datos</div>
+      <div class="card-sub">Completá los datos del grupo y generá los links de pago</div>
 
+      <!-- Fechas -->
       <div class="row2">
         <div class="field">
           <label>Check-in</label>
@@ -389,6 +382,7 @@
         </div>
       </div>
 
+      <!-- Camas -->
       <div class="field">
         <label>Cantidad de camas</label>
         <div class="beds-picker">
@@ -396,9 +390,10 @@
           <span class="beds-val" id="bedsVal">2</span>
           <button class="beds-btn" id="bedsUp" onclick="changeBeds(1)">+</button>
         </div>
-        <div class="beds-hint">Mínimo 2 personas · Máximo 20</div>
+        <div class="beds-hint">Mínimo 2 · Máximo 20 · Con 6+ camas: descuento de grupo</div>
       </div>
 
+      <!-- Precio estimado -->
       <div id="priceBox" class="price-box" style="display:none">
         <div>
           <div class="price-lbl">Depósito por persona (30%)</div>
@@ -408,22 +403,8 @@
         <div class="price-per" id="pricePerInfo"></div>
       </div>
 
-      <div class="error-msg" id="err1"></div>
-
-      <button class="btn-main" onclick="goStep2()">Siguiente →</button>
-    </div>
-
-    <div class="info-box">
-      🏠 <strong>¿Cómo funciona?</strong><br>
-      Completá los datos del titular, generás los links y cada persona recibe <strong>su propio link para pagar su cama individualmente</strong> — sin coordinar el dinero entre todos.
-    </div>
-  </div>
-
-  <!-- ── STEP 2: Datos del titular ── -->
-  <div id="step2" style="display:none">
-    <div class="card">
-      <div class="card-title">Tus datos</div>
-      <div class="card-sub">Responsable de la reserva grupal</div>
+      <div class="divider"></div>
+      <div class="section-label">Responsable de la reserva</div>
 
       <div class="field">
         <label>Nombre completo</label>
@@ -465,45 +446,58 @@
         <input type="text" id="titularRequests" placeholder="Ej: camas contiguas, piso bajo…">
       </div>
 
-      <div class="error-msg" id="err2"></div>
+      <!-- ⚠️ Restricción de edad — obligatorio para continuar -->
+      <div class="restriction-box">
+        <label class="restriction-label">
+          <input type="checkbox" id="age-check" class="restriction-input">
+          <span>Confirmo que <strong>ningún integrante del grupo tiene más de 50 años de edad</strong>. Las camas son literas de tres pisos — no aptas para personas con movilidad reducida o dificultad para subir escalones.</span>
+        </label>
+      </div>
+
+      <div class="error-msg" id="err-form"></div>
 
       <button class="btn-main" id="btnConfirm" onclick="crearSesion()">
         Generar links de pago
       </button>
-      <button class="btn-back" onclick="goStep1()">← Volver</button>
+    </div>
+
+    <div class="info-box">
+      🏠 <strong>¿Cómo funciona?</strong><br>
+      Completás los datos, generás los links y cada invitado recibe el suyo para pagar su cama individualmente — sin coordinar el dinero entre todos. Vos también reservás tu propia cama directamente desde nuestra página.
     </div>
   </div>
 
-  <!-- ── STEP 3: Links generados ── -->
-  <div id="step3" style="display:none">
+  <!-- ── STEP 2: Links generados ── -->
+  <div id="step2" style="display:none">
     <div class="card">
       <div class="success-icon">🎉</div>
       <div class="success-title">¡Links generados!</div>
-      <div class="success-sub">Compartí cada link con su destinatario</div>
 
       <div class="divider"></div>
 
       <div class="session-info" id="sessionInfo"></div>
 
-      <!-- Tu cama — titular completa su propio pago primero -->
-      <div class="titular-card" id="titularCard" style="display:none">
-        <div class="tc-badge">🔑 Tu cama — completá tu pago primero</div>
-        <div class="tc-url" id="titularUrl"></div>
-        <a class="btn-go-pay" id="btnGoReserve" href="#" target="_blank">Ir a mi reserva →</a>
+      <!-- El titular reserva su propia cama directamente — no usa ninguno de estos links -->
+      <a class="btn-go-hostel" href="https://lapacasario.com/pt/hostel" target="_blank" rel="noopener">
+        🏨 Reservar mi propia cama →
+      </a>
+
+      <div class="divider"></div>
+
+      <div class="guests-lbl">Links para distribuir a tus invitados</div>
+      <div class="success-sub" style="margin-bottom:0">
+        Cada link es de <strong>un solo uso</strong> — no puede reenviarse ni usarse más de una vez. Enviá cada uno por WhatsApp a quien quieras.
       </div>
 
-      <!-- Links para los invitados -->
-      <div class="guests-lbl" id="guestsLbl" style="display:none">Links para tus invitados</div>
       <div class="links-panel" id="linksPanel"></div>
 
       <div class="note">
-        <strong>Cada link es único e intransferible.</strong><br>
-        Cada persona tiene <strong>30 minutos</strong> para completar su pago.<br>
+        Cada invitado tiene <strong>30 minutos</strong> para completar su pago.<br>
         Las camas pagadas quedan confirmadas automáticamente.
       </div>
 
       <!-- Nota para quienes no completan el pago -->
-      <!-- Reemplazá XXXXXXXXXXX con el número real de WhatsApp del hostel (solo dígitos, sin +) -->
+      <!-- Reemplazá 55XXXXXXXXXXX con el número real de WhatsApp del hostel (sin +, solo dígitos) -->
       <div class="note-nopay">
         ℹ️ <strong>¿Alguien no completa el pago a tiempo?</strong><br>
         Puede reservar directamente en nuestra página o escribirnos por

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pago de cama — Lapa Casa Hostel</title>
+  <title>Lapa Casa Hostel — Pago de cama</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -44,6 +44,7 @@
     .progress-fill { height: 100%; background: #1a1a1a; border-radius: 3px; transition: width 0.4s ease; }
     .countdown { font-size: 0.82rem; color: #666; display: flex; align-items: center; gap: 5px; }
     .countdown.urgent { color: #c0392b; font-weight: 600; }
+    .countdown.expired-time { color: #c0392b; font-weight: 700; }
 
     /* Lista de pagados */
     .members-section { margin-top: 12px; }
@@ -92,6 +93,32 @@
       margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; margin-bottom: 0;
     }
 
+    /* ── Restricción — obligatoria antes de pagar ── */
+    .restriction-box {
+      background: #fff8e8;
+      border: 1.5px solid #f5c842;
+      border-radius: 9px;
+      padding: 13px 14px;
+      margin-bottom: 14px;
+    }
+    .restriction-label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: #444;
+      line-height: 1.5;
+    }
+    .restriction-input {
+      margin-top: 3px;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+    }
+
     .btn-pay {
       width: 100%; background: #1a1a1a; color: #fff;
       font-size: 0.95rem; font-weight: 700; padding: 13px;
@@ -117,9 +144,9 @@
     /* Estado pagado */
     .state-paid { text-align: center; padding: 32px 20px; background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
     .state-paid h2 { font-size: 1.15rem; color: #27ae60; margin-bottom: 8px; }
-    .state-paid p { color: #666; font-size: 0.88rem; line-height: 1.5; }
+    .state-paid p { color: #666; font-size: 0.88rem; line-height: 1.5; white-space: pre-line; }
 
-    /* Bloque de expirado — aparece dentro del card de progreso */
+    /* Bloque expirado — dentro del card de progreso */
     .expired-inline {
       display: none;
       margin-top: 14px;
@@ -129,7 +156,7 @@
       border-radius: 9px;
       text-align: center;
     }
-    .expired-inline p { font-size: 0.83rem; color: #555; margin-bottom: 10px; line-height: 1.5; }
+    .expired-inline p { font-size: 0.83rem; color: #555; margin-bottom: 10px; line-height: 1.5; white-space: pre-line; }
     .btn-book {
       display: inline-block;
       background: #1a1a1a;
@@ -143,13 +170,16 @@
     }
     .btn-book:hover { background: #333; }
 
-    /* Countdown expirado */
-    .countdown.expired-time { color: #c0392b; font-weight: 700; }
+    /* WhatsApp en expirado */
+    .wa-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #25D366; color: #fff; text-decoration: none;
+      font-size: 0.85rem; font-weight: 700; padding: 9px 18px;
+      border-radius: 7px; transition: background .2s; margin-top: 10px;
+    }
+    .wa-btn:hover { background: #1fb759; }
 
-    .error-msg { color: #c0392b; font-size: 0.8rem; margin-top: 10px; text-align: center; }
-    .loading { text-align: center; padding: 40px; color: #888; }
-
-    /* ── Foto del documento ── */
+    /* Foto del documento */
     .doc-upload-wrap { position: relative; }
     .doc-upload-input {
       position: absolute; inset: 0; opacity: 0; cursor: pointer;
@@ -170,93 +200,87 @@
       font-size: 0.73rem; cursor: pointer; text-decoration: underline; padding: 0;
     }
 
-    /* ── WhatsApp en expirado ── */
-    .wa-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #25D366; color: #fff; text-decoration: none;
-      font-size: 0.85rem; font-weight: 700; padding: 9px 18px;
-      border-radius: 7px; transition: background .2s; margin-top: 10px;
-    }
-    .wa-btn:hover { background: #1fb759; }
+    .error-msg { color: #c0392b; font-size: 0.8rem; margin-top: 10px; text-align: center; }
+    .loading { text-align: center; padding: 40px; color: #888; }
   </style>
 </head>
 <body>
 
 <div class="banner">
   <div class="hostel">Lapa Casa Hostel</div>
-  <h2>Tu cama en el grupo</h2>
-  <p>Completá tus datos y pagá tu lugar.</p>
+  <h2 id="banner-title">Tu cama en el grupo</h2>
+  <p id="banner-sub">Completá tus datos y pagá tu lugar.</p>
 </div>
 
 <div class="main">
-  <div id="loading" class="loading">Cargando...</div>
+  <div id="loading" class="loading">...</div>
 
   <!-- Estado: pago confirmado -->
   <div id="paid-state" class="state-paid" style="display:none">
-    <h2>✓ Pago confirmado</h2>
-    <p>Tu cama en Lapa Casa Hostel está reservada.<br>Vas a recibir un email de confirmación a la brevedad.</p>
+    <h2 id="paid-title">✓ Pago confirmado</h2>
+    <p id="paid-msg">Tu cama en Lapa Casa Hostel está reservada.&#10;Vas a recibir un email de confirmación a la brevedad.</p>
   </div>
 
-  <!-- Progreso del grupo — visible tanto durante la sesión como al expirar -->
+  <!-- Progreso del grupo -->
   <div id="group-progress" class="group-progress" style="display:none">
-    <div class="group-progress-label">Progreso del grupo</div>
+    <div class="group-progress-label" id="progress-label">Progreso del grupo</div>
     <div class="bed-counter">
       <div class="bed-num"><span id="paid-beds">0</span></div>
       <div class="bed-total">/ <span id="total-beds">0</span></div>
-      <div class="bed-label">camas pagadas</div>
+      <div class="bed-label" id="bed-label">camas pagadas</div>
     </div>
     <div class="progress-bar">
       <div class="progress-fill" id="progress-fill" style="width:0%"></div>
     </div>
     <div class="countdown" id="countdown-box">
-      Tiempo restante: <strong id="countdown-text">--:--</strong>
+      <span id="countdown-prefix">Tiempo restante:</span> <strong id="countdown-text">--:--</strong>
     </div>
 
-    <!-- Se muestra cuando expira, dentro del mismo card -->
+    <!-- Bloque expirado -->
     <!-- Reemplazá 55XXXXXXXXXXX con el número real de WhatsApp del hostel (sin +, solo dígitos) -->
     <div class="expired-inline" id="expired-inline">
-      <p>El tiempo para este pago grupal terminó.<br>
-         Si todavía querés reservar una cama, podés hacerlo directamente:</p>
+      <p id="expired-msg">El tiempo para este pago grupal terminó.&#10;Si todavía querés reservar una cama, podés hacerlo directamente:</p>
       <a id="book-link" class="btn-book" href="https://lapacasario.com/pt/hostel">Reservar mi cama →</a>
       <br>
       <a class="wa-btn" href="https://wa.me/55XXXXXXXXXXX" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
         </svg>
-        Escribinos por WhatsApp
+        <span id="wa-btn-text">Escribinos por WhatsApp</span>
       </a>
     </div>
 
     <div id="members-section" class="members-section" style="display:none">
-      <div class="members-label">Ya pagaron</div>
+      <div class="members-label" id="members-label">Ya pagaron</div>
       <div id="members-list"></div>
     </div>
   </div>
 
   <!-- Formulario de pago del invitado -->
   <div id="pay-card" class="pay-card" style="display:none">
-    <h3>Tus datos</h3>
+    <h3 id="pay-form-title">Tus datos</h3>
     <form id="pay-form" autocomplete="on">
+
       <div class="form-group">
-        <label>Nombre completo *</label>
+        <label id="lbl-name">Nombre completo *</label>
         <input type="text" id="f-name" required autocomplete="name" placeholder="Tu nombre completo">
       </div>
       <div class="form-group">
-        <label>Email *</label>
+        <label id="lbl-email">Email *</label>
         <input type="email" id="f-email" required autocomplete="email" placeholder="tu@email.com">
       </div>
       <div class="form-group">
-        <label>Telefono</label>
+        <label id="lbl-phone">Teléfono</label>
         <input type="tel" id="f-phone" autocomplete="tel" placeholder="+55 11 99999-9999">
       </div>
       <div class="form-group">
-        <label>Pais</label>
+        <label id="lbl-country">País</label>
         <input type="text" id="f-country" autocomplete="country-name" placeholder="Brasil">
       </div>
 
       <!-- Foto del documento — obligatoria -->
       <div class="form-group">
-        <label>Foto del documento (DNI / Pasaporte) *</label>
+        <label id="lbl-doc">Foto del documento (DNI / Pasaporte) *</label>
         <div class="doc-upload-wrap">
           <input type="file" id="f-doc-photo" class="doc-upload-input" accept="image/*" required>
           <div class="doc-upload-btn" id="doc-upload-btn">
@@ -264,38 +288,47 @@
           </div>
         </div>
         <div class="doc-preview" id="doc-preview">
-          <img id="doc-img" src="" alt="Vista previa del documento">
+          <img id="doc-img" src="" alt="">
           <button type="button" class="btn-change-doc" id="btn-change-doc">Cambiar foto</button>
         </div>
       </div>
 
-      <div style="margin-bottom:6px; font-size:0.78rem; font-weight:600; color:#555;">
+      <!-- Forma de pago -->
+      <div style="margin-bottom:6px; font-size:0.78rem; font-weight:600; color:#555;" id="lbl-pay-method">
         Forma de pago *
       </div>
       <div class="payment-methods">
         <div class="method-btn selected" id="btn-pix">
           <span class="method-name">PIX</span>
-          <span class="method-note">Sin recargo</span>
+          <span class="method-note" id="pix-note-text">Sin recargo</span>
         </div>
         <div class="method-btn" id="btn-card">
           <span class="method-name">Tarjeta</span>
-          <span class="method-note">+<span id="surcharge-label">10</span>% recargo</span>
+          <span class="method-note" id="card-note-text">+<span id="surcharge-label">10</span>% recargo</span>
         </div>
       </div>
 
       <div class="price-summary">
         <div class="price-row">
-          <span>Precio por cama</span>
+          <span id="price-bed-label">Precio por cama</span>
           <span id="price-base">R$ —</span>
         </div>
         <div class="price-row" id="surcharge-row" style="display:none">
-          <span>Recargo tarjeta</span>
+          <span id="surcharge-label-text">Recargo tarjeta</span>
           <span id="price-surcharge">R$ —</span>
         </div>
         <div class="price-row total">
-          <span>Total a pagar</span>
+          <span id="total-label-text">Total a pagar</span>
           <span id="price-total">R$ —</span>
         </div>
+      </div>
+
+      <!-- ⚠️ Restricción de edad y movilidad — obligatoria -->
+      <div class="restriction-box">
+        <label class="restriction-label">
+          <input type="checkbox" id="restriction-check" class="restriction-input" required>
+          <span id="restriction-label-text">Confirmo que tengo menos de 50 años y he leído y acepto las restricciones: las camas son literas de tres pisos, no aptas para personas con movilidad reducida.</span>
+        </label>
       </div>
 
       <button type="submit" class="btn-pay" id="btn-pay">Continuar con el pago</button>
@@ -305,12 +338,12 @@
     <div class="pix-block" id="pix-block">
       <img id="pix-qr" src="" alt="QR PIX">
       <div class="pix-code" id="pix-code"></div>
-      <button class="btn-copy" id="btn-copy-pix">Copiar codigo PIX</button>
-      <p style="margin-top:10px; font-size:0.78rem; color:#888;">Abri tu app bancaria y escanea el QR o pega el codigo</p>
+      <button class="btn-copy" id="btn-copy-pix">Copiar código PIX</button>
+      <p id="pix-instr" style="margin-top:10px; font-size:0.78rem; color:#888;">Abrí tu app bancaria y escaneá el QR o pegá el código</p>
     </div>
   </div>
 </div>
 
-<script src="group-payment-member.js"></script>
+<script src="/assets/group-payment-member.js"></script>
 </body>
 </html>
