@@ -276,6 +276,73 @@ router.get('/bookings/upcoming', async (req, res, next) => {
 });
 
 /**
+ * GET /admin/bookings/export — descarga CSV con filtros opcionales (status, from, to)
+ * Responde con Content-Disposition: attachment para que el browser descargue el archivo.
+ */
+router.get('/bookings/export', async (req, res, next) => {
+  try {
+    const { status, from, to } = req.query as Record<string, string>;
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (status) { params.push(status); conditions.push(`r.status = $${params.length}`); }
+    if (from)   { params.push(from);   conditions.push(`r.check_in_date >= $${params.length}::date`); }
+    if (to)     { params.push(to);     conditions.push(`r.check_in_date <= $${params.length}::date`); }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const { rows } = await query(
+      `SELECT
+         r.reservation_number  AS "Reserva",
+         g.full_name           AS "Huesped",
+         g.email               AS "Email",
+         g.phone               AS "Telefono",
+         g.country             AS "Pais",
+         r.check_in_date::text AS "Check-in",
+         r.check_out_date::text AS "Check-out",
+         (r.check_out_date - r.check_in_date)::int AS "Noches",
+         r.beds_count          AS "Camas",
+         c.code                AS "Canal",
+         r.status              AS "Estado",
+         r.final_price         AS "Precio total",
+         r.deposit_amount      AS "Deposito",
+         r.remaining_amount    AS "Saldo pendiente",
+         r.special_requests    AS "Notas",
+         r.created_at::text    AS "Creada"
+       FROM reservations r
+       JOIN guests g ON g.id = r.guest_id
+       JOIN channels c ON c.id = r.channel_id
+       ${where}
+       ORDER BY r.check_in_date DESC, r.created_at DESC`,
+      params
+    );
+
+    const escapeCell = (v: any): string => {
+      if (v == null) return '';
+      const s = String(v);
+      return (s.includes(',') || s.includes('"') || s.includes('\n'))
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    };
+
+    const headers = rows.length ? Object.keys(rows[0]!) : [
+      'Reserva','Huesped','Email','Telefono','Pais','Check-in','Check-out',
+      'Noches','Camas','Canal','Estado','Precio total','Deposito','Saldo pendiente','Notas','Creada'
+    ];
+    const lines = [
+      headers.join(','),
+      ...rows.map(row => headers.map(h => escapeCell(row[h])).join(','))
+    ];
+    // BOM UTF-8 para que Excel abra sin problemas de encoding
+    const csv = '﻿' + lines.join('\n');
+
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="reservas-${date}.csv"`);
+    res.send(csv);
+  } catch (err) { next(err); }
+});
+
+/**
  * PUT /admin/bookings/:id — corrección manual (no toca fechas/habitaciones/status, ver nota arriba)
  */
 router.put('/bookings/:id', async (req, res, next) => {
