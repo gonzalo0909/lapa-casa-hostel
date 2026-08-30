@@ -182,7 +182,7 @@ async function allocateGroupBeds(
         [room.id, checkIn]
       );
       const effectiveGender = statusRows[0]?.effective_gender ?? 'female';
-      if (effectiveGender === 'female' && gender !== 'female') continue;
+      if (effectiveGender === 'female') continue;
     }
 
     const { rows: beds } = await client.query<{ bed_id: string }>(

@@ -3,10 +3,9 @@
 // FIX (auditoría de seguridad 2026-08-30): este archivo era un stub 100%
 // en memoria (un Map por proceso) que nunca se conectaba a Redis real,
 // pese a que lo usan piezas de seguridad críticas: revocación de tokens
-// admin (middleware/auth.ts, admin-auth.routes.ts), rate-limiting
-// (middleware/rate-limiter.ts) y locks anti-overbooking
-// (lib/anti-overbooking/{room-allocator,availability-checker}.ts). En un
-// deploy con más de una instancia, cada una tenía su propio Map aislado:
+// admin (middleware/auth.ts, admin-auth.routes.ts) y rate-limiting
+// (middleware/rate-limiter.ts). En un deploy con más de una instancia,
+// cada una tenía su propio Map aislado:
 // el rate-limit de login se podía eludir repartiendo requests entre
 // instancias, un logout en una instancia no revocaba el token en las
 // demás, y los locks no eran realmente distribuidos.
