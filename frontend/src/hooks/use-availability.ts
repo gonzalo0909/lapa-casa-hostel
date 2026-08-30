@@ -2,11 +2,8 @@
 
 import { useCallback, useState } from 'react';
 import { availabilityAPI, handleAPIError } from '@/lib/api';
+import { toDateOnly } from '@/lib/utils';
 import type { GroupDiscountTier, RoomAvailability } from '@/types/global';
-
-function toDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
 
 interface BackendRoom {
   roomId: string;

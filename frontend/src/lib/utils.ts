@@ -97,27 +97,9 @@ export function formatDate(
   }).format(dateObj);
 }
 
-/**
- * Calculate number of nights between two dates
- * 
- * @param checkIn - Check-in date
- * @param checkOut - Check-out date
- * @returns Number of nights
- * 
- * @example
- * ```ts
- * calculateNights('2025-01-15', '2025-01-18') // Returns: 3
- * ```
- */
-export function calculateNights(checkIn: string | Date, checkOut: string | Date): number {
-  const checkInDate = typeof checkIn === 'string' ? new Date(checkIn) : checkIn;
-  const checkOutDate = typeof checkOut === 'string' ? new Date(checkOut) : checkOut;
-
-  const diffTime = checkOutDate.getTime() - checkInDate.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays > 0 ? diffDays : 0;
-}
+// FIX (auditoría 2026-08-30): calculateNights duplicada acá sin ningún
+// import externo -- la versión real en uso es lib/pricing.ts (usada
+// internamente por calculateTotalPrice/etc ahí mismo).
 
 /**
  * Generate unique ID with optional prefix
@@ -415,30 +397,12 @@ export function getDateRange(startDate: string | Date, endDate: string | Date): 
   return dates;
 }
 
-/**
- * Format phone number to Brazilian format
- * 
- * @param phone - Phone number string
- * @returns Formatted phone number
- * 
- * @example
- * ```ts
- * formatPhone('21987654321') // Returns: '(21) 98765-4321'
- * ```
- */
-export function formatPhone(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
-
-  if (cleaned.length === 11) {
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
-  }
-
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-  }
-
-  return phone;
-}
+// FIX (auditoría 2026-08-30): formatPhone duplicada acá sin ningún import
+// externo -- la versión real en uso (con soporte de "+55" en vivo
+// mientras se tipea) es components/booking/hostel-engine.utils.ts. No es
+// el mismo algoritmo (esta era una versión más simple para exactamente
+// 10-11 dígitos), así que no se puede fusionar sin decidir cuál
+// comportamiento es el correcto -- se elimina la que nadie usa.
 
 /**
  * Format date as YYYY-MM-DD (date-only, no time component)
@@ -501,4 +465,32 @@ export function getNestedValue(obj: any, path: string, defaultValue?: any): any 
   }
 
   return result !== undefined ? result : defaultValue;
+}
+
+// FIX (auditoría 2026-08-30): validateCPF/formatCPF estaban duplicadas
+// -- byte por byte el mismo algoritmo, solo con estilo distinto -- en
+// components/booking/apartment-engine.utils.ts y hostel-engine.utils.ts.
+// Se consolidan acá; ambos motores ahora importan de este único lugar.
+
+/** Valida un CPF brasileño por dígito verificador (módulo 11). */
+export function validateCPF(raw: string): boolean {
+  const cpf = raw.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) { return false; }
+  let s = 0;
+  for (let i = 0; i < 9; i++) { s += parseInt(cpf[i] ?? '0', 10) * (10 - i); }
+  let d = (s * 10) % 11; if (d >= 10) { d = 0; }
+  if (d !== parseInt(cpf[9] ?? '0', 10)) { return false; }
+  s = 0;
+  for (let i = 0; i < 10; i++) { s += parseInt(cpf[i] ?? '0', 10) * (11 - i); }
+  d = (s * 10) % 11; if (d >= 10) { d = 0; }
+  return d === parseInt(cpf[10] ?? '0', 10);
+}
+
+/** Formatea dígitos de CPF progresivamente como 000.000.000-00 mientras se tipea. */
+export function formatCPF(v: string): string {
+  const digits = v.replace(/\D/g, '').slice(0, 11);
+  if (digits.length > 9) { return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`; }
+  if (digits.length > 6) { return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`; }
+  if (digits.length > 3) { return `${digits.slice(0, 3)}.${digits.slice(3)}`; }
+  return digits;
 }

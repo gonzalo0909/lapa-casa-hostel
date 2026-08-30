@@ -94,29 +94,10 @@ export function rankApartments(
 }
 
 // ─── Validadores y formateadores de datos del huésped ────────────────────────
-
-/** Valida un CPF brasileño (11 dígitos, dígitos verificadores). */
-export function validateCPF(raw: string): boolean {
-  const cpf = raw.replace(/\D/g, '');
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) { return false; }
-  let s = 0;
-  for (let i = 0; i < 9; i++) { s += parseInt(cpf[i] ?? '0', 10) * (10 - i); }
-  let d = (s * 10) % 11; if (d >= 10) { d = 0; }
-  if (d !== parseInt(cpf[9] ?? '0', 10)) { return false; }
-  s = 0;
-  for (let i = 0; i < 10; i++) { s += parseInt(cpf[i] ?? '0', 10) * (11 - i); }
-  d = (s * 10) % 11; if (d >= 10) { d = 0; }
-  return d === parseInt(cpf[10] ?? '0', 10);
-}
-
-/** Formatea una cadena de dígitos como CPF: 000.000.000-00. */
-export function formatCPF(v: string): string {
-  const digits = v.replace(/\D/g, '').slice(0, 11);
-  if (digits.length > 9) { return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`; }
-  if (digits.length > 6) { return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`; }
-  if (digits.length > 3) { return `${digits.slice(0, 3)}.${digits.slice(3)}`; }
-  return digits;
-}
+// FIX (auditoría 2026-08-30): validateCPF/formatCPF vivían acá duplicadas
+// (idénticas) con hostel-engine.utils.ts -- consolidadas en @/lib/utils,
+// re-exportadas de vuelta para no tener que tocar cada import existente.
+export { validateCPF, formatCPF } from '@/lib/utils';
 
 /** Devuelve true si el string tiene formato de e-mail válido. */
 export function isEmailFmt(v: string): boolean {

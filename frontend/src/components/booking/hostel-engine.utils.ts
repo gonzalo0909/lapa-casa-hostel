@@ -34,28 +34,12 @@ export function calcPrice(
   return { nights, beds: totalB, season, pbn, subtotal, disc, discAmt: subtotal * disc, total, deposit: total * 0.3 };
 }
 
-// ─── Validación CPF (sin acceso por índice a string) ──────
-export function validateCPF(raw: string): boolean {
-  const c = raw.replace(/\D/g, '');
-  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
-  const d0 = (i: number) => c.charCodeAt(i) - 48;
-  let s = 0;
-  for (let i = 0; i < 9; i++) s += d0(i) * (10 - i);
-  let d = (s * 10) % 11; if (d >= 10) d = 0; if (d !== d0(9)) return false;
-  s = 0;
-  for (let i = 0; i < 10; i++) s += d0(i) * (11 - i);
-  d = (s * 10) % 11; if (d >= 10) d = 0;
-  return d === d0(10);
-}
-
-// ─── Formateo CPF ─────────────────────────────────────────
-export function formatCPF(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 11);
-  if (d.length > 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
-  if (d.length > 6) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`;
-  if (d.length > 3) return `${d.slice(0,3)}.${d.slice(3)}`;
-  return d;
-}
+// ─── Validación y formateo CPF ─────────────────────────────
+// FIX (auditoría 2026-08-30): validateCPF/formatCPF vivían acá duplicadas
+// (mismo algoritmo, distinto estilo) con apartment-engine.utils.ts --
+// consolidadas en @/lib/utils, re-exportadas de vuelta para no tener que
+// tocar cada import existente.
+export { validateCPF, formatCPF } from '@/lib/utils';
 
 // ─── Formateo teléfono ────────────────────────────────────
 export function formatPhone(raw: string): string {
