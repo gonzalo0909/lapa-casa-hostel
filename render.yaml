@@ -37,19 +37,22 @@ services:
         generateValue: true
       - key: PORT
         value: 10000
-      # Todos los orígenes autorizados: el frontend principal (channel1008/channelbackend),
-      # el frontend solo-hostel (channelhostel) y el frontend solo-apartamentos
-      # (channelapartamentos). Todos comparten ESTE mismo backend.
-      # Actualizar a dominios custom cuando estén configurados en Render.
+      # CORS_ORIGINS, APP_URL y FRONTEND_URL dependen de la cuenta de Render
+      # (cada cuenta genera URLs con sufijo distinto, ej. -fxz0).
+      # sync: false = se cargan a mano en el dashboard de Render.
+      # Valores a usar (ajustar según los URLs reales del dashboard):
+      #   CORS_ORIGINS  → https://<frontend-url>.onrender.com (separados por coma si hay varios)
+      #   APP_URL       → https://<backend-url>.onrender.com
+      #   FRONTEND_URL  → https://<frontend-url>.onrender.com
       - key: CORS_ORIGINS
-        value: https://lapa-casa-hostel-landing.onrender.com,https://lapa-casa-hostel-frontend.onrender.com,https://lapa-casa-hostel-frontend-hostel.onrender.com,https://lapa-casa-hostel-frontend-apartamentos.onrender.com
+        sync: false
       - key: APP_URL
-        value: https://lapa-casa-hostel-api.onrender.com
+        sync: false
       # Apunta al frontend real: frontend/src/app/[locale]/payment/[id]/
       # (PaymentConfirmationPage, con countdown) ya existe y es donde el
       # link de pago de los emails de confirmacion tiene que aterrizar.
       - key: FRONTEND_URL
-        value: https://lapa-casa-hostel-frontend.onrender.com
+        sync: false
       - key: TIMEZONE
         value: America/Sao_Paulo
       - key: STRIPE_SECRET_KEY
@@ -134,14 +137,19 @@ services:
         value: production
       - key: PORT
         value: 10000
+      # NEXT_PUBLIC_SITE_URL y NEXT_PUBLIC_API_URL dependen del Render account.
+      # sync: false = se cargan a mano en el dashboard.
+      # Valores a usar:
+      #   NEXT_PUBLIC_SITE_URL → https://<frontend-url>.onrender.com
+      #   NEXT_PUBLIC_API_URL  → https://<backend-url>.onrender.com/api/v1
       - key: NEXT_PUBLIC_SITE_URL
-        value: https://lapa-casa-hostel-frontend.onrender.com
+        sync: false
       # lib/api.ts arma las rutas como `${NEXT_PUBLIC_API_URL}/availability/...`
       # -- el backend real las expone bajo /api/v1 (ver backend/src/app.ts),
       # asi que el prefijo tiene que venir incluido aca o cada llamada
       # devuelve "Route not found".
       - key: NEXT_PUBLIC_API_URL
-        value: https://lapa-casa-hostel-api.onrender.com/api/v1
+        sync: false
       # Claves publicas/publishable -- seguras para exponer en el cliente,
       # a diferencia de STRIPE_SECRET_KEY/MP_ACCESS_TOKEN (esas solo viven
       # en el backend, ver arriba). Cargadas a mano en el dashboard.

@@ -33,7 +33,8 @@ CREATE INDEX IF NOT EXISTS idx_gps_reservation ON group_payment_sessions(reserva
 CREATE INDEX IF NOT EXISTS idx_gps_token       ON group_payment_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_gps_expires     ON group_payment_sessions(expires_at) WHERE status = 'open';
 
--- Trigger para updated_at
+-- Trigger para updated_at (DROP IF EXISTS para que la migración sea idempotente)
+DROP TRIGGER IF EXISTS trg_gps_updated_at ON group_payment_sessions;
 CREATE TRIGGER trg_gps_updated_at
   BEFORE UPDATE ON group_payment_sessions
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -64,6 +65,7 @@ CREATE INDEX IF NOT EXISTS idx_gpm_guest    ON group_payment_members(guest_id);
 CREATE INDEX IF NOT EXISTS idx_gpm_payment  ON group_payment_members(payment_id);
 CREATE INDEX IF NOT EXISTS idx_gpm_status   ON group_payment_members(status);
 
+DROP TRIGGER IF EXISTS trg_gpm_updated_at ON group_payment_members;
 CREATE TRIGGER trg_gpm_updated_at
   BEFORE UPDATE ON group_payment_members
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
