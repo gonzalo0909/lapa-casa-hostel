@@ -2,11 +2,12 @@
 //
 // Componente FAQ visible en la página + JSON-LD FAQPage para AEO.
 // Las respuestas aparecen tanto en el HTML (para lectores y Google) como en
-// el schema JSON-LD (para motores de IA: ChatGPT, Perplexity, Gemini, etc.).
+// el schema JSON-LD (para motores de IA: ChatGPT, Perplexity, Gemini, Claude,
+// Grok, Copilot, etc.).
 //
 // Uso:
-//   <FAQSection locale="pt" />
-//   <FAQSection locale="en" pageName="hostel" />
+//   <FAQSection locale="pt" pageName="hostel" />
+//   <FAQSection locale="pt" pageName="apartamentos" />
 
 'use client';
 
@@ -20,103 +21,61 @@ interface FAQItem {
 interface FAQSectionProps {
   /** Idioma para mostrar el contenido */
   locale: string;
-  /** Nombre de página para contexto — si se omite usa el FAQ general */
+  /** hostel | apartamentos — determina qué preguntas se muestran */
   pageName?: 'hostel' | 'apartamentos' | 'general';
-  /** Título de la sección */
+  /** Título de la sección (opcional) */
   title?: string;
 }
 
-// ─── Contenido FAQ por idioma ─────────────────────────────────────────────
+// ─── FAQ HOSTEL ───────────────────────────────────────────────────────────────
 
-const FAQ_CONTENT: Record<string, FAQItem[]> = {
+const FAQ_HOSTEL: Record<string, FAQItem[]> = {
   pt: [
     {
-      question: 'Qual é o horário de check-in?',
-      answer:   'O check-in é a partir das 14h. Guardamos sua bagagem gratuitamente antes desse horário.',
+      question: 'Qual é o horário de check-in e check-out?',
+      answer:   'O check-in é a partir das 14h. O check-out é até as 12h. Não aceitamos chegadas antes do horário nem saídas após o horário.',
     },
     {
-      question: 'Qual é o horário de check-out?',
-      answer:   'O check-out é até as 11h. Podemos guardar sua bagagem após o check-out sem custo adicional.',
+      question: 'Quais métodos de pagamento vocês aceitam?',
+      answer:   'Aceitamos cartão de crédito e PIX. Não trabalhamos com parcelamento.',
+    },
+    {
+      question: 'Vocês oferecem descontos para grupos?',
+      answer:   'Sim! Grupos com 6 ou mais camas têm 10% de desconto. Grupos com 10 ou mais camas têm 15% de desconto.',
     },
     {
       question: 'Qual é a política de cancelamento?',
       answer:   'Cancelamento gratuito até 72 horas antes do check-in. Após esse prazo, cobra-se o valor da primeira noite.',
     },
     {
-      question: 'Vocês oferecem descontos para grupos?',
-      answer:   'Sim! Grupos com 6 ou mais camas têm 10% de desconto. Quartos completos têm 15% de desconto. Entre em contato para orçamentos personalizados.',
-    },
-    {
-      question: 'Quais métodos de pagamento vocês aceitam?',
-      answer:   'Aceitamos cartão de crédito/débito (Stripe), PIX e Mercado Pago. O pagamento pode ser parcelado.',
-    },
-    {
       question: 'Tem Wi-Fi grátis?',
-      answer:   'Sim, Wi-Fi gratuito e de alta velocidade em todas as áreas do hostel.',
+      answer:   'Sim, Wi-Fi gratuito e de alta velocidade em todo o hostel.',
     },
     {
       question: 'Café da manhã está incluído?',
-      answer:   'O café da manhã não está incluído, mas temos cozinha compartilhada disponível 24 horas.',
+      answer:   'O café da manhã não está incluído, mas temos cozinha compartilhada disponível.',
     },
     {
       question: 'Tem estacionamento?',
       answer:   'Não temos estacionamento próprio, mas há vagas na rua próximas ao hostel em Santa Teresa.',
     },
   ],
-  en: [
-    {
-      question: 'What time is check-in?',
-      answer:   'Check-in is from 2:00 PM. We store your luggage free of charge before that time.',
-    },
-    {
-      question: 'What time is check-out?',
-      answer:   'Check-out is by 11:00 AM. We can store your luggage after check-out at no extra cost.',
-    },
-    {
-      question: 'What is the cancellation policy?',
-      answer:   'Free cancellation up to 72 hours before check-in. After that, the first night is charged.',
-    },
-    {
-      question: 'Do you offer group discounts?',
-      answer:   'Yes! Groups of 6 or more beds get 10% off. Full room bookings get 15% off. Contact us for custom group quotes.',
-    },
-    {
-      question: 'What payment methods do you accept?',
-      answer:   'We accept credit/debit cards (Stripe), PIX, and Mercado Pago. Installment payment available.',
-    },
-    {
-      question: 'Is there free Wi-Fi?',
-      answer:   'Yes, free high-speed Wi-Fi throughout the hostel.',
-    },
-    {
-      question: 'Is breakfast included?',
-      answer:   'Breakfast is not included, but we have a shared kitchen available 24/7.',
-    },
-    {
-      question: 'Is there parking?',
-      answer:   'We do not have our own parking, but there is street parking near the hostel in Santa Teresa.',
-    },
-  ],
   es: [
     {
-      question: '¿Cuál es el horario de check-in?',
-      answer:   'El check-in es a partir de las 14:00. Guardamos tu equipaje gratis antes de ese horario.',
+      question: '¿Cuál es el horario de check-in y check-out?',
+      answer:   'El check-in es a partir de las 14:00. El check-out es hasta las 12:00. No aceptamos llegadas antes del horario ni salidas después.',
     },
     {
-      question: '¿Cuál es el horario de check-out?',
-      answer:   'El check-out es hasta las 11:00. Podemos guardar tu equipaje después del check-out sin costo adicional.',
+      question: '¿Qué métodos de pago aceptan?',
+      answer:   'Aceptamos tarjeta de crédito y PIX. No trabajamos con cuotas.',
+    },
+    {
+      question: '¿Ofrecen descuentos para grupos?',
+      answer:   '¡Sí! Grupos de 6 o más camas tienen 10% de descuento. Grupos de 10 o más camas tienen 15% de descuento.',
     },
     {
       question: '¿Cuál es la política de cancelación?',
       answer:   'Cancelación gratuita hasta 72 horas antes del check-in. Después se cobra el valor de la primera noche.',
-    },
-    {
-      question: '¿Ofrecen descuentos para grupos?',
-      answer:   '¡Sí! Grupos de 6 o más camas obtienen 10% de descuento. Habitaciones completas tienen 15% de descuento. Contáctenos para presupuestos personalizados.',
-    },
-    {
-      question: '¿Qué métodos de pago aceptan?',
-      answer:   'Aceptamos tarjeta de crédito/débito (Stripe), PIX y Mercado Pago. Pago en cuotas disponible.',
     },
     {
       question: '¿Hay Wi-Fi gratis?',
@@ -124,33 +83,59 @@ const FAQ_CONTENT: Record<string, FAQItem[]> = {
     },
     {
       question: '¿El desayuno está incluido?',
-      answer:   'El desayuno no está incluido, pero tenemos cocina compartida disponible las 24 horas.',
+      answer:   'El desayuno no está incluido, pero tenemos cocina compartida disponible.',
     },
     {
       question: '¿Hay estacionamiento?',
       answer:   'No tenemos estacionamiento propio, pero hay lugares en la calle cerca del hostel en Santa Teresa.',
     },
   ],
-  de: [
+  en: [
     {
-      question: 'Wann ist der Check-in?',
-      answer:   'Der Check-in ist ab 14:00 Uhr. Wir verwahren Ihr Gepäck kostenlos vor dieser Zeit.',
+      question: 'What are the check-in and check-out times?',
+      answer:   'Check-in is from 2:00 PM. Check-out is by 12:00 PM. We do not accept early arrivals or late departures outside these times.',
     },
     {
-      question: 'Wann ist der Check-out?',
-      answer:   'Der Check-out ist bis 11:00 Uhr. Wir können Ihr Gepäck nach dem Check-out kostenlos aufbewahren.',
+      question: 'What payment methods do you accept?',
+      answer:   'We accept credit card and PIX. Installment payments are not available.',
+    },
+    {
+      question: 'Do you offer group discounts?',
+      answer:   'Yes! Groups of 6 or more beds get 10% off. Groups of 10 or more beds get 15% off.',
+    },
+    {
+      question: 'What is the cancellation policy?',
+      answer:   'Free cancellation up to 72 hours before check-in. After that, the first night is charged.',
+    },
+    {
+      question: 'Is there free Wi-Fi?',
+      answer:   'Yes, free high-speed Wi-Fi throughout the hostel.',
+    },
+    {
+      question: 'Is breakfast included?',
+      answer:   'Breakfast is not included, but we have a shared kitchen available.',
+    },
+    {
+      question: 'Is there parking?',
+      answer:   'We do not have our own parking, but there is street parking near the hostel in Santa Teresa.',
+    },
+  ],
+  de: [
+    {
+      question: 'Wann sind Check-in und Check-out?',
+      answer:   'Check-in ab 14:00 Uhr. Check-out bis 12:00 Uhr. Frühankünfte oder Spätabreisen außerhalb dieser Zeiten werden nicht akzeptiert.',
+    },
+    {
+      question: 'Welche Zahlungsmethoden akzeptieren Sie?',
+      answer:   'Wir akzeptieren Kreditkarte und PIX. Ratenzahlung ist nicht verfügbar.',
+    },
+    {
+      question: 'Bieten Sie Gruppenrabatte an?',
+      answer:   'Ja! Gruppen ab 6 Betten erhalten 10% Rabatt. Gruppen ab 10 Betten erhalten 15% Rabatt.',
     },
     {
       question: 'Wie lautet die Stornierungsrichtlinie?',
       answer:   'Kostenlose Stornierung bis 72 Stunden vor dem Check-in. Danach wird die erste Nacht berechnet.',
-    },
-    {
-      question: 'Bieten Sie Gruppenrabatte an?',
-      answer:   'Ja! Gruppen ab 6 Betten erhalten 10% Rabatt. Komplette Zimmerbuchungen erhalten 15% Rabatt. Kontaktieren Sie uns für individuelle Angebote.',
-    },
-    {
-      question: 'Welche Zahlungsmethoden akzeptieren Sie?',
-      answer:   'Wir akzeptieren Kredit-/Debitkarten (Stripe), PIX und Mercado Pago. Ratenzahlung verfügbar.',
     },
     {
       question: 'Gibt es kostenloses WLAN?',
@@ -158,7 +143,7 @@ const FAQ_CONTENT: Record<string, FAQItem[]> = {
     },
     {
       question: 'Ist das Frühstück inbegriffen?',
-      answer:   'Das Frühstück ist nicht inbegriffen, aber wir haben eine Gemeinschaftsküche, die 24 Stunden verfügbar ist.',
+      answer:   'Das Frühstück ist nicht inbegriffen, aber es gibt eine Gemeinschaftsküche.',
     },
     {
       question: 'Gibt es Parkplätze?',
@@ -167,41 +152,252 @@ const FAQ_CONTENT: Record<string, FAQItem[]> = {
   ],
   fr: [
     {
-      question: "Quelle est l'heure d'arrivée ?",
-      answer:   "L'arrivée est à partir de 14h00. Nous gardons vos bagages gratuitement avant cette heure.",
+      question: "Quels sont les horaires d'arrivée et de départ ?",
+      answer:   "L'arrivée est à partir de 14h00. Le départ est avant 12h00. Nous n'acceptons pas les arrivées anticipées ni les départs tardifs.",
     },
     {
-      question: "Quelle est l'heure de départ ?",
-      answer:   "Le départ est avant 11h00. Nous pouvons garder vos bagages après le départ sans frais supplémentaires.",
+      question: 'Quels modes de paiement acceptez-vous ?',
+      answer:   'Nous acceptons la carte de crédit et le PIX. Le paiement en plusieurs fois n\'est pas disponible.',
+    },
+    {
+      question: 'Proposez-vous des remises de groupe ?',
+      answer:   'Oui ! Les groupes de 6 lits ou plus bénéficient de 10% de réduction. Les groupes de 10 lits ou plus ont 15% de réduction.',
     },
     {
       question: "Quelle est la politique d'annulation ?",
       answer:   "Annulation gratuite jusqu'à 72 heures avant l'arrivée. Après ce délai, la première nuit est facturée.",
     },
     {
-      question: 'Proposez-vous des remises de groupe ?',
-      answer:   "Oui ! Les groupes de 6 lits ou plus bénéficient de 10% de réduction. Les chambres complètes ont 15% de réduction.",
-    },
-    {
-      question: 'Quels modes de paiement acceptez-vous ?',
-      answer:   'Nous acceptons les cartes de crédit/débit (Stripe), PIX et Mercado Pago. Paiement en plusieurs fois disponible.',
-    },
-    {
       question: 'Y a-t-il le Wi-Fi gratuit ?',
-      answer:   "Oui, Wi-Fi gratuit et haut débit dans tout l'auberge.",
+      answer:   "Oui, Wi-Fi gratuit et haut débit dans toute l'auberge.",
     },
     {
       question: 'Le petit-déjeuner est-il inclus ?',
-      answer:   "Le petit-déjeuner n'est pas inclus, mais nous avons une cuisine commune disponible 24h/24.",
+      answer:   "Le petit-déjeuner n'est pas inclus, mais nous avons une cuisine commune disponible.",
     },
     {
       question: 'Y a-t-il un parking ?',
-      answer:   "Nous n'avons pas de parking propre, mais il y a des places de stationnement dans la rue près de l'auberge à Santa Teresa.",
+      answer:   "Nous n'avons pas de parking propre, mais il y a des places dans la rue près de l'auberge.",
+    },
+  ],
+  it: [
+    {
+      question: 'Quali sono gli orari di check-in e check-out?',
+      answer:   'Il check-in è dalle 14:00. Il check-out è entro le 12:00. Non accettiamo arrivi anticipati o partenze tardive.',
+    },
+    {
+      question: 'Quali metodi di pagamento accettate?',
+      answer:   'Accettiamo carta di credito e PIX. Il pagamento rateale non è disponibile.',
+    },
+    {
+      question: 'Offrite sconti per gruppi?',
+      answer:   'Sì! Gruppi di 6 o più letti hanno il 10% di sconto. Gruppi di 10 o più letti hanno il 15% di sconto.',
+    },
+    {
+      question: 'Qual è la politica di cancellazione?',
+      answer:   'Cancellazione gratuita fino a 72 ore prima del check-in. Dopo, viene addebitata la prima notte.',
+    },
+    {
+      question: 'C\'è il Wi-Fi gratuito?',
+      answer:   'Sì, Wi-Fi gratuito ad alta velocità in tutto l\'ostello.',
+    },
+    {
+      question: 'La colazione è inclusa?',
+      answer:   'La colazione non è inclusa, ma abbiamo una cucina condivisa disponibile.',
+    },
+    {
+      question: 'C\'è un parcheggio?',
+      answer:   'Non abbiamo un parcheggio proprio, ma ci sono posti in strada vicino all\'ostello a Santa Teresa.',
     },
   ],
 };
 
-// ─── JSON-LD builder ──────────────────────────────────────────────────────
+// ─── FAQ APARTAMENTOS ─────────────────────────────────────────────────────────
+
+const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
+  pt: [
+    {
+      question: 'Qual é o horário de check-in e check-out?',
+      answer:   'O check-in é a partir das 14h. O check-out é até as 12h. Não aceitamos chegadas antes do horário nem saídas após o horário.',
+    },
+    {
+      question: 'Quais métodos de pagamento vocês aceitam?',
+      answer:   'Aceitamos cartão de crédito e PIX. Não trabalhamos com parcelamento.',
+    },
+    {
+      question: 'Os apartamentos têm Wi-Fi?',
+      answer:   'Sim, cada apartamento tem seu próprio Wi-Fi de alta velocidade incluso.',
+    },
+    {
+      question: 'Tem cozinha nos apartamentos?',
+      answer:   'Sim, os apartamentos têm acesso à cozinha compartilhada disponível das 8h às 22h.',
+    },
+    {
+      question: 'Qual é a política de cancelamento?',
+      answer:   'Cancelamento gratuito até 72 horas antes do check-in. Após esse prazo, cobra-se o valor da primeira noite.',
+    },
+    {
+      question: 'Café da manhã está incluído?',
+      answer:   'O café da manhã não está incluído.',
+    },
+    {
+      question: 'Tem estacionamento?',
+      answer:   'Não temos estacionamento próprio, mas há vagas na rua em Santa Teresa.',
+    },
+  ],
+  es: [
+    {
+      question: '¿Cuál es el horario de check-in y check-out?',
+      answer:   'El check-in es a partir de las 14:00. El check-out es hasta las 12:00. No aceptamos llegadas antes del horario ni salidas después.',
+    },
+    {
+      question: '¿Qué métodos de pago aceptan?',
+      answer:   'Aceptamos tarjeta de crédito y PIX. No trabajamos con cuotas.',
+    },
+    {
+      question: '¿Los apartamentos tienen Wi-Fi?',
+      answer:   'Sí, cada apartamento tiene su propio Wi-Fi de alta velocidad incluido.',
+    },
+    {
+      question: '¿Hay cocina en los apartamentos?',
+      answer:   'Sí, los apartamentos tienen acceso a la cocina compartida disponible de 8:00 a 22:00.',
+    },
+    {
+      question: '¿Cuál es la política de cancelación?',
+      answer:   'Cancelación gratuita hasta 72 horas antes del check-in. Después se cobra el valor de la primera noche.',
+    },
+    {
+      question: '¿El desayuno está incluido?',
+      answer:   'El desayuno no está incluido.',
+    },
+    {
+      question: '¿Hay estacionamiento?',
+      answer:   'No tenemos estacionamiento propio, pero hay lugares en la calle en Santa Teresa.',
+    },
+  ],
+  en: [
+    {
+      question: 'What are the check-in and check-out times?',
+      answer:   'Check-in is from 2:00 PM. Check-out is by 12:00 PM. We do not accept early arrivals or late departures.',
+    },
+    {
+      question: 'What payment methods do you accept?',
+      answer:   'We accept credit card and PIX. Installment payments are not available.',
+    },
+    {
+      question: 'Do the apartments have Wi-Fi?',
+      answer:   'Yes, each apartment has its own high-speed Wi-Fi included.',
+    },
+    {
+      question: 'Is there a kitchen in the apartments?',
+      answer:   'Yes, apartments have access to the shared kitchen available from 8:00 AM to 10:00 PM.',
+    },
+    {
+      question: 'What is the cancellation policy?',
+      answer:   'Free cancellation up to 72 hours before check-in. After that, the first night is charged.',
+    },
+    {
+      question: 'Is breakfast included?',
+      answer:   'Breakfast is not included.',
+    },
+    {
+      question: 'Is there parking?',
+      answer:   'We do not have our own parking, but there is street parking in Santa Teresa.',
+    },
+  ],
+  de: [
+    {
+      question: 'Wann sind Check-in und Check-out?',
+      answer:   'Check-in ab 14:00 Uhr. Check-out bis 12:00 Uhr. Frühankünfte oder Spätabreisen werden nicht akzeptiert.',
+    },
+    {
+      question: 'Welche Zahlungsmethoden akzeptieren Sie?',
+      answer:   'Wir akzeptieren Kreditkarte und PIX. Ratenzahlung ist nicht verfügbar.',
+    },
+    {
+      question: 'Haben die Apartments WLAN?',
+      answer:   'Ja, jedes Apartment hat sein eigenes Hochgeschwindigkeits-WLAN inklusive.',
+    },
+    {
+      question: 'Gibt es eine Küche in den Apartments?',
+      answer:   'Ja, die Apartments haben Zugang zur Gemeinschaftsküche, die von 8:00 bis 22:00 Uhr geöffnet ist.',
+    },
+    {
+      question: 'Wie lautet die Stornierungsrichtlinie?',
+      answer:   'Kostenlose Stornierung bis 72 Stunden vor dem Check-in. Danach wird die erste Nacht berechnet.',
+    },
+    {
+      question: 'Ist das Frühstück inbegriffen?',
+      answer:   'Das Frühstück ist nicht inbegriffen.',
+    },
+    {
+      question: 'Gibt es Parkplätze?',
+      answer:   'Wir haben keinen eigenen Parkplatz, aber es gibt Straßenparkplätze in Santa Teresa.',
+    },
+  ],
+  fr: [
+    {
+      question: "Quels sont les horaires d'arrivée et de départ ?",
+      answer:   "L'arrivée est à partir de 14h00. Le départ est avant 12h00. Nous n'acceptons pas les arrivées anticipées ni les départs tardifs.",
+    },
+    {
+      question: 'Quels modes de paiement acceptez-vous ?',
+      answer:   "Nous acceptons la carte de crédit et le PIX. Le paiement en plusieurs fois n'est pas disponible.",
+    },
+    {
+      question: 'Les appartements ont-ils le Wi-Fi ?',
+      answer:   'Oui, chaque appartement a son propre Wi-Fi haut débit inclus.',
+    },
+    {
+      question: 'Y a-t-il une cuisine dans les appartements ?',
+      answer:   "Oui, les appartements ont accès à la cuisine commune disponible de 8h00 à 22h00.",
+    },
+    {
+      question: "Quelle est la politique d'annulation ?",
+      answer:   "Annulation gratuite jusqu'à 72 heures avant l'arrivée. Après ce délai, la première nuit est facturée.",
+    },
+    {
+      question: 'Le petit-déjeuner est-il inclus ?',
+      answer:   "Le petit-déjeuner n'est pas inclus.",
+    },
+    {
+      question: 'Y a-t-il un parking ?',
+      answer:   "Nous n'avons pas de parking propre, mais il y a des places dans la rue à Santa Teresa.",
+    },
+  ],
+  it: [
+    {
+      question: 'Quali sono gli orari di check-in e check-out?',
+      answer:   'Il check-in è dalle 14:00. Il check-out è entro le 12:00. Non accettiamo arrivi anticipati o partenze tardive.',
+    },
+    {
+      question: 'Quali metodi di pagamento accettate?',
+      answer:   'Accettiamo carta di credito e PIX. Il pagamento rateale non è disponibile.',
+    },
+    {
+      question: 'Gli appartamenti hanno il Wi-Fi?',
+      answer:   'Sì, ogni appartamento ha il proprio Wi-Fi ad alta velocità incluso.',
+    },
+    {
+      question: "C'è una cucina negli appartamenti?",
+      answer:   'Sì, gli appartamenti hanno accesso alla cucina condivisa disponibile dalle 8:00 alle 22:00.',
+    },
+    {
+      question: 'Qual è la politica di cancellazione?',
+      answer:   'Cancellazione gratuita fino a 72 ore prima del check-in. Dopo, viene addebitata la prima notte.',
+    },
+    {
+      question: 'La colazione è inclusa?',
+      answer:   'La colazione non è inclusa.',
+    },
+    {
+      question: "C'è un parcheggio?",
+      answer:   "Non abbiamo un parcheggio proprio, ma ci sono posti in strada a Santa Teresa.",
+    },
+  ],
+};
+
+// ─── JSON-LD builder ──────────────────────────────────────────────────────────
 
 function buildFAQSchema(items: FAQItem[]) {
   return {
@@ -218,27 +414,51 @@ function buildFAQSchema(items: FAQItem[]) {
   };
 }
 
-// ─── Component ────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
-const TITLES: Record<string, string> = {
-  pt: 'Perguntas Frequentes',
-  en: 'Frequently Asked Questions',
-  es: 'Preguntas Frecuentes',
-  de: 'Häufig gestellte Fragen',
-  fr: 'Questions fréquentes',
+const TITLES: Record<string, Record<string, string>> = {
+  hostel: {
+    pt: 'Perguntas Frequentes — Hostel',
+    en: 'FAQ — Hostel',
+    es: 'Preguntas Frecuentes — Hostel',
+    de: 'FAQ — Hostel',
+    fr: 'Questions fréquentes — Auberge',
+    it: 'Domande frequenti — Ostello',
+  },
+  apartamentos: {
+    pt: 'Perguntas Frequentes — Apartamentos',
+    en: 'FAQ — Apartments',
+    es: 'Preguntas Frecuentes — Apartamentos',
+    de: 'FAQ — Apartments',
+    fr: 'Questions fréquentes — Appartements',
+    it: 'Domande frequenti — Appartamenti',
+  },
+  general: {
+    pt: 'Perguntas Frequentes',
+    en: 'Frequently Asked Questions',
+    es: 'Preguntas Frecuentes',
+    de: 'Häufig gestellte Fragen',
+    fr: 'Questions fréquentes',
+    it: 'Domande frequenti',
+  },
 };
 
-export function FAQSection({ locale, title }: FAQSectionProps) {
-  const lang    = locale in FAQ_CONTENT ? locale : 'en';
-  const items   = FAQ_CONTENT[lang] ?? FAQ_CONTENT['en']!;
-  const heading = title ?? TITLES[lang] ?? 'FAQ';
-  const schema = buildFAQSchema(items);
+export function FAQSection({ locale, pageName = 'general', title }: FAQSectionProps) {
+  const lang = ['pt','es','en','de','fr','it'].includes(locale) ? locale : 'en';
+
+  const contentMap = pageName === 'apartamentos' ? FAQ_APARTMENTS
+                   : pageName === 'hostel'       ? FAQ_HOSTEL
+                   : FAQ_HOSTEL; // general usa hostel como base
+
+  const items   = contentMap[lang] ?? contentMap['en']!;
+  const heading = title ?? (TITLES[pageName]?.[lang] ?? 'FAQ');
+  const schema  = buildFAQSchema(items);
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section aria-labelledby="faq-heading" className="py-12 px-4 max-w-3xl mx-auto">
-      {/* JSON-LD: consumido por Google, ChatGPT, Perplexity, Gemini */}
+      {/* JSON-LD: consumido por Google, ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
