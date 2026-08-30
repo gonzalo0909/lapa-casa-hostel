@@ -579,7 +579,7 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
                 📅 {c.ctaBtn}
               </Link>
               <a
-                href="https://wa.me/5521982779553"
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530'}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors"

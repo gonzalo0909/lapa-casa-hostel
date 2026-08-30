@@ -616,7 +616,7 @@
     "paymentSuccessLine1": "Ihre Buchung ist bestätigt.",
     "paymentSuccessLine2": "Sie erhalten die Bestätigung in Kürze per E-Mail.",
     "paymentSuccessLine3": "Prüfen Sie Ihren Posteingang — auch den Spam-Ordner",
-    "whatsappMessage": "Hallo! Ich möchte gerne buchen:\n• Apartment: {name}\n• Check-in: {checkin}\n• Check-out: {checkout}\n• {nights, plural, one {# Nacht} other {# Nächte}}\n• Gesamt: R$ {total}",
+    "whatsappMessage": "Hallo! Ich möchte das Apartment per WhatsApp buchen:\n\n• Apartment: {name}\n• Check-in: {checkin}\n• Check-out: {checkout}\n• {nights, plural, one {# Nacht} other {# Nächte}} · {guests, plural, one {# Gast} other {# Gäste}}\n\nName: {guestName}\nKontakt: {phone}\n\nGesamt: R$ {total}\nAnzahlung (30%): R$ {deposit} — PIX: lapalandiarj@gmail.com\nRestbetrag beim Check-in: R$ {remaining}",
     "illustrativePhoto": "Beispielfoto",
     "cardCapacity": "bis zu {count} Gast/Gäste",
     "insufficientCapacity": "Unzureichende Kapazität",

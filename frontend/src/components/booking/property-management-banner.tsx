@@ -37,7 +37,7 @@ export const PropertyManagementBanner: React.FC<PropertyManagementBannerProps> =
             </p>
           </div>
           <a
-            href={`https://wa.me/5521977157530?text=${encodeURIComponent(T('whatsappMessage', locale))}`}
+            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530'}?text=${encodeURIComponent(T('whatsappMessage', locale))}`}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors"
