@@ -170,8 +170,6 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   void canReserve;
 
   // ── Acompañantes: helpers ──────────────────────────────────────────────────
-  /** Cuántos acompañantes puede declarar: guestCount - 1 (titular ya cuenta como 1) */
-  const maxAdditional = Math.max(0, guestCount - 1);
 
   /** Valida el documento de un acompañante (misma lógica que el titular) */
   function docOk(doc: string): boolean | null {
@@ -189,13 +187,12 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     onAdditionalGuestsChange(updated);
   }
 
-  function addGuest() {
-    if (additionalGuests.length >= maxAdditional) { return; }
-    onAdditionalGuestsChange([
-      ...additionalGuests,
-      { id: crypto.randomUUID(), fullName: '', document: '' },
-    ]);
-  }
+  // FIX (auditoría 2026-08-30): addGuest() quedó sin usar -- el propio
+  // código ya documenta más abajo ("Máximo 2 huéspedes por apartamento
+  // — botón de agregar acompañante eliminado") que fue una decisión de
+  // producto deliberada, no un bug. Se elimina la función junto con el
+  // caso de uso. Esto además rompía `next build` (noUnusedLocals),
+  // pre-existente a esta sesión y sin relación con el resto de fixes.
 
   function removeGuest(index: number) {
     onAdditionalGuestsChange(additionalGuests.filter((_, i) => i !== index));
