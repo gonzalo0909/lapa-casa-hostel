@@ -22,6 +22,7 @@ import { adminAuthRouter } from './admin/admin-auth.routes';
 import icalRouter from './ical/ical.routes';
 import otaWebhooksRouter from './webhooks/ota.routes';
 import { rateLimiter } from '../middleware/rate-limiter';
+import { authenticateToken, requireRole } from '../middleware/auth';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -115,8 +116,21 @@ router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000 }), adminAuthR
 
 /**
  * Admin Routes (Authentication + rol admin requeridos)
+ *
+ * FIX (auditoría de seguridad 2026-08-30): este montaje nunca aplicaba
+ * authenticateToken/requireRole pese a que el comentario de arriba y los
+ * comentarios de varios sub-routers (admin.routes.ts, guests.routes.ts,
+ * etc.) afirmaban que sí -- todo /api/v1/admin/* quedaba accesible sin
+ * ninguna credencial. Se agrega acá, en el punto de montaje, para cubrir
+ * todos los sub-routers de una sola vez.
  */
-router.use('/admin', rateLimiter({ max: 30, windowMs: 1000 }), adminRouter);
+router.use(
+  '/admin',
+  rateLimiter({ max: 30, windowMs: 1000 }),
+  authenticateToken,
+  requireRole(['admin']),
+  adminRouter
+);
 
 /**
  * Catch-all 404 Handler
