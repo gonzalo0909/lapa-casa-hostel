@@ -550,6 +550,7 @@
     "guestDataTitle": "Coordonnées du client",
     "fullNameLabel": "Nom complet",
     "fullNamePlaceholder": "Votre nom complet",
+    "companionNamePlaceholder": "Nom de l'accompagnant",
     "emailLabel": "E-mail",
     "emailPlaceholder": "vous@email.com",
     "emailValid": "E-mail valide",

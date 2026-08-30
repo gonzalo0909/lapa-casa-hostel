@@ -561,7 +561,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                   <div className={styles.guestDeclFields}>
                     <input
                       type="text"
-                      placeholder={t('fullNamePlaceholder')}
+                      placeholder={t('companionNamePlaceholder')}
                       value={g.fullName}
                       onChange={(e) => updateAdditionalGuest(idx, 'fullName', e.target.value)}
                       className={`${styles.guestDeclInput} ${!g.fullName.trim() ? styles.inputInvalid : ''}`}
@@ -601,11 +601,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               );
             })}
 
-            {additionalGuests.length < maxAdditional && (
-              <button type="button" className={styles.guestDeclAdd} onClick={addGuest}>
-                + {t('addGuest')}
-              </button>
-            )}
+            {/* Máximo 2 huéspedes por apartamento — botón de agregar acompañante eliminado */}
 
             <div className={styles.guestsDeclAlert}>
               <ShieldCheck size={14} />

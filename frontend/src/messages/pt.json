@@ -550,6 +550,7 @@
     "guestDataTitle": "Dados do hóspede",
     "fullNameLabel": "Nome completo",
     "fullNamePlaceholder": "Seu nome completo",
+    "companionNamePlaceholder": "Nome do acompanhante",
     "emailLabel": "E-mail",
     "emailPlaceholder": "seu@email.com",
     "emailValid": "E-mail válido",
