@@ -616,7 +616,7 @@
     "paymentSuccessLine1": "Votre réservation est confirmée.",
     "paymentSuccessLine2": "Vous recevrez la confirmation par e-mail sous peu.",
     "paymentSuccessLine3": "Vérifiez votre boîte de réception — y compris les spams",
-    "whatsappMessage": "Bonjour ! Je souhaite réserver :\n• Appartement : {name}\n• Arrivée : {checkin}\n• Départ : {checkout}\n• {nights, plural, one {# nuit} other {# nuits}}\n• Total : R$ {total}",
+    "whatsappMessage": "Bonjour ! Je souhaite réserver l'appartement via WhatsApp :\n\n• Appartement : {name}\n• Arrivée : {checkin}\n• Départ : {checkout}\n• {nights, plural, one {# nuit} other {# nuits}} · {guests, plural, one {# voyageur} other {# voyageurs}}\n\nNom : {guestName}\nContact : {phone}\n\nTotal : R$ {total}\nAcompte (30 %) : R$ {deposit} — PIX : lapalandiarj@gmail.com\nRestant au check-in : R$ {remaining}",
     "illustrativePhoto": "Photo illustrative",
     "cardCapacity": "jusqu'à {count} voyageur(s)",
     "insufficientCapacity": "Capacité insuffisante",

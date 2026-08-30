@@ -29,7 +29,7 @@ const OTA_LINKS = [
 export const LandingSection: React.FC<LandingSectionProps> = ({ locale: _locale }) => {
   const t = useTranslations('landing');
 
-  const whatsappUrl = `https://wa.me/5521982779553`;
+  const whatsappUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530'}`;
 
   const handleBookNow = () => {
     const el = document.getElementById('reservar');

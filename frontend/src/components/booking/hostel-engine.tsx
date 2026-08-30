@@ -575,7 +575,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     const msg = encodeURIComponent(
       `${t.waGreet}\n\nCheck-in: ${fmtDate(checkIn)}${arrivalLine}\nCheck-out: ${fmtDate(checkOut)}\n${price.nights} ${price.nights > 1 ? t.tNights2 : t.tNight} · ${roomsStr}\n\n${t.tTotal}: ${fmtMoney(price.total)}\n\nDepósito (30%):\n• PIX: ${fmtMoney(depPix)} → lapalandiarj@gmail.com\n${cardLine}\n\nRestante en check-in:\n• PIX: ${fmtMoney(remPix)}\n• Tarjeta (+10%): ${fmtMoney(remCard)}\n\n${t.waAwait}`
     );
-    return `https://wa.me/5521999999999?text=${msg}`;
+    const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530';
+    return `https://wa.me/${waNumber}?text=${msg}`;
   };
 
   const handleWaClick = async () => {

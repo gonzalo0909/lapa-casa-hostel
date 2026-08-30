@@ -148,13 +148,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   );
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+  const displayRemaining = displayTotal - displayDeposit;
   const whatsappMsg = encodeURIComponent(
     t('whatsappMessage', {
       name: selectedApartment.name,
       checkin: fmtDate(checkIn, locale),
       checkout: fmtDate(checkOut, locale),
       nights,
+      guests: guestCount,
+      guestName: guestForm.fullName.trim() || '—',
+      phone: guestForm.phone.trim() || '—',
       total: displayTotal.toLocaleString('pt-BR'),
+      deposit: displayDeposit.toLocaleString('pt-BR'),
+      remaining: displayRemaining.toLocaleString('pt-BR'),
     })
   );
 

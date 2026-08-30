@@ -725,7 +725,7 @@ export default async function GruposPage({ params }: { params: { locale: string 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const c = CONTENT[locale]!;
 
-  const WA_PHONE = '5521977157530';
+  const WA_PHONE = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530';
   const waMsg = encodeURIComponent(c.ctaWa);
   const waUrl = `https://wa.me/${WA_PHONE}?text=${waMsg}`;
 
