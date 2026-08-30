@@ -98,6 +98,17 @@ async function resendConfirmation(id) {
 }
 
 document.getElementById('filter-apply').addEventListener('click', () => { state.page = 1; loadBookings(); });
+
+document.getElementById('export-csv-btn').addEventListener('click', () => {
+  const f = currentFilters();
+  const params = new URLSearchParams();
+  if (f.status) params.set('status', f.status);
+  if (f.from)   params.set('from',   f.from);
+  if (f.to)     params.set('to',     f.to);
+  // El servidor responde con Content-Disposition: attachment,
+  // el browser descarga el archivo sin navegar fuera de la pagina.
+  window.location.href = '/api/v1/admin/bookings/export?' + params.toString();
+});
 document.getElementById('page-prev').addEventListener('click', () => { if (state.page > 1) { state.page--; loadBookings(); } });
 document.getElementById('page-next').addEventListener('click', () => { state.page++; loadBookings(); });
 
