@@ -39,10 +39,6 @@ function render() {
   if (sessionData.completed) { showState('confirmed');  return; }
 
   document.getElementById('banner').style.display = 'block';
-  document.getElementById('wa-btn').href =
-    'https://wa.me/?text=' + encodeURIComponent(
-      'Hola! Te comparto el link para pagar tu cama en Lapa Casa Hostel:\n' + location.href
-    );
 
   document.getElementById('status-card').style.display = 'block';
   document.getElementById('paid-beds').textContent  = sessionData.paidBeds;
