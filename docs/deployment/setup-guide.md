@@ -211,62 +211,28 @@ This creates:
 
 ## Application Deployment
 
-### Option A: Docker Compose (Recommended)
-
-#### Development
+### Local development
 ```bash
 docker-compose up -d
 ```
+(usa `backend/docker-compose.yml`: Postgres, Redis y herramientas opcionales
+de desarrollo -- MailHog, pgAdmin, Redis Commander, Prisma Studio bajo el
+profile `tools`).
 
-#### Production
-```bash
-# Build production image
-docker build -f infrastructure/Dockerfile.prod -t lapa-casa-hostel:latest .
+### Production
 
-# Deploy with docker-compose
-docker-compose -f infrastructure/docker-compose.prod.yml up -d
-```
+> **FIX (auditoría 2026-08-30):** este documento describía Docker Compose
+> production y Kubernetes como opciones de deploy, apoyadas en archivos
+> de `infrastructure/` (Dockerfile.prod, docker-compose.prod.yml,
+> kubernetes/*.yaml) que nunca estuvieron conectados al despliegue real
+> -- no existían las ramas que dispararían su CI, el Dockerfile copiaba
+> un script inexistente, y el manifiesto de Kubernetes referenciaba un
+> Secret sin la clave que su propio StatefulSet necesitaba. Se
+> eliminaron junto con el resto de `infrastructure/`. El deploy real de
+> producción es en Render -- ver **[docs/DEPLOY.md](../DEPLOY.md)** para
+> el procedimiento completo y actualizado.
 
-#### Verify Deployment
-```bash
-# Check running containers
-docker-compose ps
-
-# View logs
-docker-compose logs -f app
-
-# Health check
-curl http://localhost:4000/health
-```
-
-### Option B: Kubernetes
-
-#### 1. Create Namespace
-```bash
-kubectl apply -f infrastructure/kubernetes/deployment.yaml
-```
-
-#### 2. Create Secrets
-```bash
-kubectl create secret generic lapa-secrets \
-  --from-env-file=.env.production \
-  -n lapa-casa-hostel
-```
-
-#### 3. Deploy Application
-```bash
-kubectl apply -f infrastructure/kubernetes/deployment.yaml
-kubectl apply -f infrastructure/kubernetes/service.yaml
-```
-
-#### 4. Verify Deployment
-```bash
-kubectl get pods -n lapa-casa-hostel
-kubectl get services -n lapa-casa-hostel
-kubectl logs -f deployment/lapa-app -n lapa-casa-hostel
-```
-
-### Option C: Manual Deployment
+### Manual/local build
 
 #### Build
 ```bash
@@ -351,40 +317,21 @@ https://api.lapacasahostel.com/api/webhooks/mercadopago
 
 ## Monitoring Setup
 
-### 1. Access Grafana
-
-```bash
-# URL
-http://localhost:3001
-
-# Default credentials
-Username: admin
-Password: (from GRAFANA_ADMIN_PASSWORD env var)
-```
-
-### 2. Configure Data Source
-
-1. Go to Configuration → Data Sources
-2. Add Prometheus
-3. URL: `http://prometheus:9090`
-4. Save & Test
-
-### 3. Import Dashboard
-
-1. Go to Dashboards → Import
-2. Upload `infrastructure/monitoring/grafana-dashboard.json`
-3. Select Prometheus data source
-4. Import
-
-### 4. Key Metrics to Monitor
-
-- **Request Rate**: HTTP requests per second
-- **Error Rate**: 5xx errors percentage
-- **Response Time**: p95 latency
-- **Booking Success Rate**: Confirmed bookings / total bookings
-- **Payment Success Rate**: Successful payments / total payments
-- **Database Connections**: Connection pool usage
-- **Redis Memory**: Cache memory usage
+> **FIX (auditoría 2026-08-30):** esta sección describía un stack
+> Prometheus + Grafana que nunca llegó a funcionar -- los archivos de
+> configuración (`infrastructure/monitoring/*`) tenían YAML/JSON
+> inválido (texto de generación pegado al final), y el scrape config
+> apuntaba a un endpoint `/metrics` en formato de texto de Prometheus
+> que el backend nunca expuso (el real es `GET /api/metrics`, JSON,
+> protegido con auth admin). Se eliminó esa configuración junto con el
+> resto de `infrastructure/` en vez de dejarla ahí rota.
+>
+> Monitoreo real disponible hoy: `GET /api/metrics` (requiere login
+> admin) para requests/min, latencia y tasa de error en memoria del
+> proceso actual; y las alertas de servicios caídos en
+> `backend/src/monitoring/alerts.ts` (DB, Redis, colas), que se envían
+> por email. Un stack de métricas real (Prometheus/Grafana u otro APM)
+> queda pendiente de implementar desde cero cuando haga falta.
 
 ---
 

@@ -6,8 +6,10 @@
 // persistencia, se resetea en cada deploy/restart. Suficiente para un
 // GET /api/metrics que un dashboard interno o un chequeo manual pueda
 // leer; no reemplaza un APM real si el proyecto crece a mas instancias
-// (ahi el candidato natural es Prometheus, ver infrastructure/monitoring/
-// prometheus.yml, hoy sin wire-up real a este backend).
+// (un candidato real seria Prometheus, pero requeriria exponer /metrics
+// en su formato de texto -- no existe ese wire-up hoy; la config de
+// Prometheus/Grafana que hubo en infrastructure/monitoring/ se elimino
+// por estar rota y apuntar a un formato que este endpoint no expone).
 
 import { Request, Response, NextFunction } from 'express';
 
