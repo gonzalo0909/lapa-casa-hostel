@@ -2,6 +2,8 @@
 
 import ical, { VEvent } from 'node-ical';
 import { z } from 'zod';
+import { promises as dns } from 'dns';
+import { isIP } from 'net';
 
 /**
  * @module ICalParser
@@ -87,7 +89,7 @@ export class ICalParser {
 
     try {
       // Validate URL
-      this.validateUrl(url);
+      await this.validateUrl(url);
 
       // Fetch iCal data
       const icalData = await this.fetchICalData(url);
@@ -226,36 +228,95 @@ export class ICalParser {
   }
 
   /**
-   * @method validateUrl
-   * @description Validates iCal URL format
-   * @param {string} url - URL to validate
-   * @throws {Error} If URL is invalid
+   * @method isBlockedAddress
+   * @description Checks whether a resolved IP (v4 or v6) falls in a
+   * loopback/private/link-local/cloud-metadata range that a feed URL must
+   * never be allowed to reach (SSRF hardening -- FIX auditoría 2026-08-30).
+   * @param {string} ip - Literal IP address (already resolved via DNS)
    */
-  private validateUrl(url: string): void {
-    try {
-      const parsedUrl = new URL(url);
-
-      // Must be HTTP or HTTPS
-      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-        throw new Error('URL must use HTTP or HTTPS protocol');
-      }
-
-      // Basic security check - avoid localhost/internal IPs
-      const hostname = parsedUrl.hostname.toLowerCase();
+  private isBlockedAddress(ip: string): boolean {
+    const version = isIP(ip);
+    if (version === 4) {
       if (
-        hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)
+        ip === '127.0.0.1' ||
+        ip.startsWith('169.254.') || // link-local, incluye 169.254.169.254 (metadata AWS/GCP/Azure)
+        ip.startsWith('192.168.') ||
+        ip.startsWith('10.') ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) ||
+        ip === '0.0.0.0'
       ) {
+        return true;
+      }
+      return false;
+    }
+    if (version === 6) {
+      const normalized = ip.toLowerCase();
+      if (
+        normalized === '::1' || // loopback
+        normalized === '::' ||
+        normalized.startsWith('fe80:') || // link-local (cubre fe80::169.254.169.254 style)
+        /^f[cd][0-9a-f]{2}:/.test(normalized) // unique local fc00::/7
+      ) {
+        return true;
+      }
+      // IPv4-mapped IPv6 (::ffff:169.254.169.254) -- extraer y validar la parte v4
+      const mapped = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+      if (mapped) {
+        return this.isBlockedAddress(mapped[1]);
+      }
+      return false;
+    }
+    return true; // no es una IP reconocible -> bloquear por defecto
+  }
+
+  /**
+   * @method validateUrl
+   * @description Validates iCal URL format y resuelve el hostname por DNS
+   * para bloquear SSRF hacia direcciones internas/metadata de nube, en vez
+   * de confiar solo en el string del hostname (bypasseable con un dominio
+   * público que resuelva a una IP interna).
+   * @param {string} url - URL to validate
+   * @throws {Error} If URL is invalid or resolves to a blocked address
+   */
+  private async validateUrl(url: string): Promise<void> {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      throw new Error('Invalid URL format');
+    }
+
+    // Must be HTTP or HTTPS
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      throw new Error('URL must use HTTP or HTTPS protocol');
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+    if (hostname === 'localhost') {
+      throw new Error('Cannot fetch from internal/local addresses');
+    }
+
+    // Si el hostname ya es una IP literal, validarla directo.
+    if (isIP(hostname)) {
+      if (this.isBlockedAddress(hostname)) {
         throw new Error('Cannot fetch from internal/local addresses');
       }
-    } catch (error) {
-      if (error instanceof TypeError) {
-        throw new Error('Invalid URL format');
-      }
-      throw error;
+      return;
+    }
+
+    // Hostname es un dominio: resolver por DNS y validar la(s) IP(s) real(es)
+    // para no confiar ciegamente en el nombre (DNS rebinding / dominio
+    // público apuntando a una IP interna).
+    let addresses: string[];
+    try {
+      const results = await dns.lookup(hostname, { all: true, verbatim: true });
+      addresses = results.map((r) => r.address);
+    } catch {
+      throw new Error('No se pudo resolver el hostname del feed');
+    }
+
+    if (addresses.length === 0 || addresses.some((addr) => this.isBlockedAddress(addr))) {
+      throw new Error('Cannot fetch from internal/local addresses');
     }
   }
 
@@ -272,10 +333,18 @@ export class ICalParser {
     try {
       const response = await fetch(url, {
         signal: controller.signal,
+        // FIX (auditoría 2026-08-30): sin esto, un feed configurado por un
+        // admin podía redirigir (3xx) hacia una IP interna y `fetch` lo
+        // seguiría solo, evadiendo la validación de validateUrl().
+        redirect: 'manual',
         headers: {
           'User-Agent': 'Lapa-Casa-Hostel/1.0',
         },
       });
+
+      if (response.status >= 300 && response.status < 400) {
+        throw new Error('El feed respondió con una redirección, no se sigue por seguridad (SSRF)');
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
