@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { bookingAPI } from '@/lib/api';
+import { toDateOnly, splitFullName } from '@/lib/utils';
 import type { DateRange, ApartmentAvailability, GuestDetails } from '@/types/global';
 
 interface CreateApartmentBookingParams {
@@ -28,18 +29,6 @@ interface ApartmentState {
 
   /** Crea la reserva de apartamento contra el backend y devuelve el ID. */
   createBooking: (params: CreateApartmentBookingParams) => Promise<string>;
-}
-
-function toDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function splitFullName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(/\s+/);
-  return {
-    firstName: parts[0] || fullName,
-    lastName: parts.slice(1).join(' ') || parts[0] || fullName,
-  };
 }
 
 /** Revive strings ISO-8601 como Date al rehidratar desde sessionStorage. */
