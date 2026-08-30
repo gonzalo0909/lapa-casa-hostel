@@ -12,7 +12,11 @@ export const pool = new Pool({
   max: parseInt(process.env.DB_MAX_CONNECTIONS || '10', 10),
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '5000', 10),
   idleTimeoutMillis: 30000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  // FIX (auditoría 2026-08-30): rejectUnauthorized:false reducía la conexión
+  // TLS a cifrado oportunista sin verificar el certificado del servidor
+  // (vulnerable a MITM). El certificado de Supabase está firmado por una CA
+  // pública ya confiable para Node, así que verificarlo no requiere CA propia.
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false
 });
 
 pool.on('error', (err) => {
