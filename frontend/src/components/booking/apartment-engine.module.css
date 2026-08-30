@@ -373,6 +373,10 @@
 .btnWhatsapp { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 8px; padding: .75rem; font-size: .9rem; font-weight: 700; transition: opacity .15s; margin-top: .65rem; display: flex; align-items: center; justify-content: center; gap: .5rem; text-decoration: none; }
 .btnWhatsapp:hover { opacity: .88; }
 
+/* Variante compacta para las tarjetas de apartamento */
+.cardBtnWa { display: flex; align-items: center; justify-content: center; gap: .4rem; margin-top: .55rem; padding: .52rem .75rem; background: #F0FDF4; color: #16a34a; border: 1.5px solid #86EFAC; border-radius: 8px; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .15s, border-color .15s; width: 100%; }
+.cardBtnWa:hover { background: #DCFCE7; border-color: #4ADE80; color: #15803D; }
+
 /* ── Cancellation policy accordion ─────────────────────── */
 .cancelPolicy { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 12px; margin-top: 1.25rem; overflow: hidden; }
 .cancelPolicyHeader { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; cursor: pointer; user-select: none; background: none; border: none; width: 100%; }
