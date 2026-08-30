@@ -110,7 +110,7 @@ export const cancelBookingHandler = async (
       ApiResponse.success({
         booking: {
           id: booking.id,
-          confirmationNumber: `LCH-${booking.id.substring(0, 8).toUpperCase()}`,
+          confirmationNumber: booking.reservation_number,
           status: 'cancelled',
           cancelledAt: new Date().toISOString(),
         },

@@ -70,7 +70,7 @@ export const getBookingHandler = async (
     res.status(200).json(ApiResponse.success({
       booking: {
         id: booking.id,
-        confirmationNumber: `LCH-${booking.id.substring(0, 8).toUpperCase()}`,
+        confirmationNumber: booking.reservation_number,
         status: booking.status,
         createdAt: booking.created_at,
         updatedAt: booking.updated_at,

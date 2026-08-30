@@ -162,7 +162,7 @@ export const updateBookingHandler = async (
       ApiResponse.success({
         booking: {
           id: updatedBooking.id,
-          confirmationNumber: `LCH-${updatedBooking.id.substring(0, 8).toUpperCase()}`,
+          confirmationNumber: updatedBooking.reservation_number,
           status: updatedBooking.status,
           checkIn: updatedBooking.check_in_date,
           checkOut: updatedBooking.check_out_date,

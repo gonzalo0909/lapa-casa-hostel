@@ -73,7 +73,7 @@ router.post('/stripe-checkout', async (req, res, next) => {
 
     const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'https://lapacasario.com';
     const depositAmount = Number(booking.deposit_amount);
-    const displayCode = `LCH-${reservationId.substring(0, 8).toUpperCase()}`;
+    const displayCode = booking.reservation_number;
     const guestEmail = booking.guest?.email ?? '';
 
     const session = await stripeHandler.createCheckoutSession({

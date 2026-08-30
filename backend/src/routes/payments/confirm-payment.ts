@@ -72,7 +72,7 @@ export const confirmPaymentHandler = async (
       ApiResponse.success({
         payment: {
           id: confirmedPayment.id,
-          status: 'completed',
+          status: confirmedPayment.status,
           amount: Number(confirmedPayment.amount),
           currency: confirmedPayment.currency,
           type: confirmedPayment.payment_type,
@@ -80,7 +80,7 @@ export const confirmPaymentHandler = async (
         },
         booking: {
           id: booking.id,
-          confirmationNumber: `LCH-${booking.id.substring(0, 8).toUpperCase()}`,
+          confirmationNumber: booking.reservation_number,
           status: booking.status,
           totalPaid,
           remainingBalance: finalPrice - totalPaid,
