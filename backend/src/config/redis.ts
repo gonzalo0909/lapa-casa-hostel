@@ -1,111 +1,90 @@
+// lapa-casa-hostel/backend/src/config/redis.ts
+//
+// FIX (auditoría de seguridad 2026-08-30): este archivo era un stub 100%
+// en memoria (un Map por proceso) que nunca se conectaba a Redis real,
+// pese a que lo usan piezas de seguridad críticas: revocación de tokens
+// admin (middleware/auth.ts, admin-auth.routes.ts), rate-limiting
+// (middleware/rate-limiter.ts) y locks anti-overbooking
+// (lib/anti-overbooking/{room-allocator,availability-checker}.ts). En un
+// deploy con más de una instancia, cada una tenía su propio Map aislado:
+// el rate-limit de login se podía eludir repartiendo requests entre
+// instancias, un logout en una instancia no revocaba el token en las
+// demás, y los locks no eran realmente distribuidos.
+//
+// Ya existe un cliente Redis real y correcto en cache/redis-client.ts
+// (ioredis, con timeout duro por operación y fallback en memoria si
+// REDIS_URL falta o Redis está caído) -- pero solo lo usaba la lógica de
+// negocio (cache-strategies.ts). Este archivo ahora delega en ese mismo
+// cliente compartido, manteniendo los nombres/firmas de método que ya
+// usan los 5 callers de arriba para no tener que tocarlos.
+
+import redisClient from '../cache/redis-client';
 import { logger } from '../utils/logger';
 
-const cache = new Map<string, { value: string; expiresAt?: number }>();
+export const getRedisClient = async () => ({ isOpen: redisClient.isClientConnected() });
 
-const isExpired = (key: string): boolean => {
-  const entry = cache.get(key);
-  if (!entry) return true;
-  if (entry.expiresAt && Date.now() > entry.expiresAt) {
-    cache.delete(key);
-    return true;
-  }
-  return false;
+export const testConnection = async (): Promise<boolean> => redisClient.ping();
+
+export const disconnect = async (): Promise<void> => {
+  await redisClient.disconnect();
 };
-
-export const getRedisClient = async () => ({ isOpen: true });
-
-export const testConnection = async (): Promise<boolean> => {
-  logger.info('Redis stubbed — using in-memory cache');
-  return true;
-};
-
-export const disconnect = async (): Promise<void> => {};
 
 export class RedisCache {
   async set(key: string, value: any, ttl: number = 3600): Promise<void> {
-    cache.set(key, {
-      value: JSON.stringify(value),
-      expiresAt: Date.now() + ttl * 1000
-    });
+    await redisClient.set(key, value, ttl);
   }
 
   async get<T>(key: string): Promise<T | null> {
-    if (isExpired(key)) return null;
-    const entry = cache.get(key);
-    return entry ? (JSON.parse(entry.value) as T) : null;
+    return redisClient.get<T>(key);
   }
 
   async del(key: string): Promise<void> {
-    cache.delete(key);
+    await redisClient.del(key);
   }
 
   async delPattern(pattern: string): Promise<number> {
-    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-    let count = 0;
-    for (const k of cache.keys()) {
-      if (regex.test(k)) { cache.delete(k); count++; }
-    }
-    return count;
+    return redisClient.delPattern(pattern);
   }
 
   async exists(key: string): Promise<boolean> {
-    return !isExpired(key) && cache.has(key);
+    return redisClient.exists(key);
   }
 
   async expire(key: string, ttl: number): Promise<void> {
-    const entry = cache.get(key);
-    if (entry) cache.set(key, { ...entry, expiresAt: Date.now() + ttl * 1000 });
+    await redisClient.expire(key, ttl);
   }
 
   async ttl(key: string): Promise<number> {
-    const entry = cache.get(key);
-    if (!entry || !entry.expiresAt) return -1;
-    return Math.max(0, Math.floor((entry.expiresAt - Date.now()) / 1000));
+    return redisClient.ttl(key);
   }
 
   async incr(key: string, amount: number = 1): Promise<number> {
-    const entry = cache.get(key);
-    const current = entry ? parseInt(JSON.parse(entry.value), 10) || 0 : 0;
-    const next = current + amount;
-    cache.set(key, { value: JSON.stringify(next), expiresAt: entry?.expiresAt });
-    return next;
+    return redisClient.increment(key, amount);
   }
 
   async decr(key: string, amount: number = 1): Promise<number> {
-    return this.incr(key, -amount);
+    return redisClient.decrement(key, amount);
   }
 
   async hSet(key: string, field: string, value: any): Promise<void> {
-    const existing = cache.get(key);
-    const map = existing ? JSON.parse(existing.value) : {};
-    map[field] = value;
-    cache.set(key, { value: JSON.stringify(map), expiresAt: existing?.expiresAt });
+    await redisClient.hset(key, field, value);
   }
 
   async hGet<T>(key: string, field: string): Promise<T | null> {
-    if (isExpired(key)) return null;
-    const entry = cache.get(key);
-    if (!entry) return null;
-    const map = JSON.parse(entry.value);
-    return map[field] ?? null;
+    return redisClient.hget<T>(key, field);
   }
 
   async hGetAll<T>(key: string): Promise<Record<string, T>> {
-    if (isExpired(key)) return {};
-    const entry = cache.get(key);
-    return entry ? JSON.parse(entry.value) : {};
+    return (await redisClient.hgetall<T>(key)) ?? {};
   }
 
   async hDel(key: string, field: string): Promise<void> {
-    const entry = cache.get(key);
-    if (!entry) return;
-    const map = JSON.parse(entry.value);
-    delete map[field];
-    cache.set(key, { value: JSON.stringify(map), expiresAt: entry.expiresAt });
+    await redisClient.hdel(key, field);
   }
 
   async flushDb(): Promise<void> {
-    cache.clear();
+    await redisClient.flushdb();
+    logger.warn('redisCache.flushDb() invocado');
   }
 }
 
@@ -121,12 +100,18 @@ export const CacheKeys = {
   lockAvailability: (roomId: string, date: string) => `lock:availability:${roomId}:${date}`
 };
 
-export const healthCheck = async () => ({
-  status: 'healthy' as const,
-  latency: 0,
-  timestamp: new Date().toISOString()
-});
+export const healthCheck = async () => {
+  const start = Date.now();
+  const ok = await redisClient.ping();
+  return {
+    status: (ok ? 'healthy' : 'down') as 'healthy' | 'down',
+    latency: Date.now() - start,
+    timestamp: new Date().toISOString()
+  };
+};
 
-export const gracefulShutdown = async (): Promise<void> => {};
+export const gracefulShutdown = async (): Promise<void> => {
+  await redisClient.disconnect();
+};
 
 export default redisCache;
