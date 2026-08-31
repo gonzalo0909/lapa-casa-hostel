@@ -100,13 +100,23 @@ export const OrganizationSchema = {
 
 /**
  * LocalBusiness structured data
+ *
+ * Único bloque LodgingBusiness del sitio -- antes coexistía con un segundo
+ * bloque inline (@type LodgingBusiness también) en app/[locale]/page.tsx,
+ * duplicando la entidad para los motores de búsqueda. Se fusionan acá los
+ * campos que solo tenía el bloque inline (geo, amenityFeature, hasMap,
+ * containsPlace, description) y se elimina la duplicación.
  */
 export const LocalBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',
   '@id': 'https://lapacasario.com/#organization',
   name: 'Lapa Casa',
-  image: 'https://lapacasario.com/images/hostel-exterior.jpg',
+  description: 'Hostel boutique y apartamentos privados en Santa Teresa, Río de Janeiro. Reserva directa, mejor precio garantizado.',
+  // /images/hostel-exterior.jpg no existe en public/ (404) -- se usa
+  // /og-image.jpg, que sí existe y ya es la imagen OG real del sitio.
+  image: 'https://lapacasario.com/og-image.jpg',
+  url: 'https://lapacasario.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Rua Silvio Romero 22',
@@ -114,6 +124,11 @@ export const LocalBusinessSchema = {
     addressRegion: 'RJ',
     postalCode: '20241-120',
     addressCountry: 'BR'
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: -22.9167,
+    longitude: -43.1931
   },
   telephone: '+55-21-97715-7530',
   priceRange: 'R$ 60-100',
@@ -123,7 +138,25 @@ export const LocalBusinessSchema = {
     reviewCount: '247',
     bestRating: '5',
     worstRating: '1'
-  }
+  },
+  amenityFeature: [
+    { '@type': 'LocationFeatureSpecification', name: 'Free WiFi', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Kitchen', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Private rooms', value: true }
+  ],
+  hasMap: 'https://maps.google.com/?q=Santa+Teresa+Rio+de+Janeiro',
+  containsPlace: [
+    {
+      '@type': 'Room',
+      name: 'Hostel Dormitório',
+      description: 'Camas em dormitórios mistos e femininos com capacidade de 7 a 12 pessoas.'
+    },
+    {
+      '@type': 'Apartment',
+      name: 'Apartamentos privados',
+      description: 'Apartamentos privativos com cozinha em Santa Teresa, Rio de Janeiro.'
+    }
+  ]
 };
 
 /**
