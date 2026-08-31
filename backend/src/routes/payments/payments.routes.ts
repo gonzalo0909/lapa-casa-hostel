@@ -4,6 +4,8 @@
 
 import { Router } from 'express';
 import express from 'express';
+import { z } from 'zod';
+import { validate } from '../../middleware/validation';
 import { createPaymentIntentHandler } from './create-payment-intent';
 import { confirmPaymentHandler } from './confirm-payment';
 import { processDepositHandler } from './process-deposit';
@@ -12,38 +14,30 @@ import releaseDepositRouter from './release-deposit';
 import markReceivedAtDeskRouter from './mark-received-at-desk';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
-import { stripeHandler } from '../../lib/payments/stripe-handler';
 import { groupPaymentService } from '../../services/group-payment-service';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 
 const router = Router();
 
+const StripeWaLinkSchema = z.object({
+  amountBRL: z.number().positive(),
+  description: z.string().trim().min(1).max(500).optional(),
+  guestEmail: z.string().trim().email().optional(),
+  frontendUrl: z.string().trim().url().optional(),
+});
+
+const StripeCheckoutSchema = z.object({
+  reservationId: z.string().trim().min(1),
+  frontendUrl: z.string().trim().url().optional(),
+});
+
 // POST /payments/stripe-wa-link — genera una Checkout Session sin reserva previa (flujo WhatsApp)
-router.post('/stripe-wa-link', async (req, res, next) => {
+router.post('/stripe-wa-link', validate(StripeWaLinkSchema), async (req, res, next) => {
   try {
-    const { amountBRL, description, guestEmail, frontendUrl } = req.body as {
-      amountBRL: number;
-      description?: string;
-      guestEmail?: string;
-      frontendUrl?: string;
-    };
-    if (!amountBRL || amountBRL <= 0) {
-      res.status(400).json(ApiResponse.error('amountBRL es requerido y debe ser mayor a 0'));
-      return;
-    }
-    const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'https://lapacasario.com';
-    const session = await stripeHandler.createCheckoutSession({
-      amount: amountBRL,
-      description: description || 'Depósito reserva — Lapa Casa Hostel',
-      customerEmail: guestEmail || '',
-      reservationId: `wa-${Date.now()}`,
-      successUrl: `${baseUrl}/pt/hostel?paid=1`,
-      cancelUrl:  `${baseUrl}/pt/hostel`,
-      metadata: { source: 'whatsapp' },
-    });
-    logger.info('Stripe WA link generado', { amount: amountBRL, sessionId: session.sessionId });
-    res.status(200).json(ApiResponse.success({ url: session.url }, 'Link de pago generado'));
+    const data = req.body as z.infer<typeof StripeWaLinkSchema>;
+    const result = await paymentService.createWhatsappCheckoutLink(data);
+    res.status(200).json(ApiResponse.success(result, 'Link de pago generado'));
   } catch (error) {
     logger.error('Error al generar Stripe WA link', {
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -53,13 +47,9 @@ router.post('/stripe-wa-link', async (req, res, next) => {
 });
 
 // POST /payments/stripe-checkout — genera una Checkout Session de Stripe (pago con tarjeta)
-router.post('/stripe-checkout', async (req, res, next) => {
+router.post('/stripe-checkout', validate(StripeCheckoutSchema), async (req, res, next) => {
   try {
-    const { reservationId, frontendUrl } = req.body as { reservationId: string; frontendUrl?: string };
-    if (!reservationId) {
-      res.status(400).json(ApiResponse.error('reservationId es requerido'));
-      return;
-    }
+    const { reservationId, frontendUrl } = req.body as z.infer<typeof StripeCheckoutSchema>;
 
     const booking = await bookingService.getBooking(reservationId);
     if (!booking) {
@@ -71,27 +61,8 @@ router.post('/stripe-checkout', async (req, res, next) => {
       return;
     }
 
-    const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'https://lapacasario.com';
-    const depositAmount = Number(booking.deposit_amount);
-    const displayCode = booking.reservation_number;
-    const guestEmail = booking.guest?.email ?? '';
-
-    const session = await stripeHandler.createCheckoutSession({
-      amount: depositAmount,
-      description: `Depósito reserva ${displayCode} — Lapa Casa Hostel`,
-      customerEmail: guestEmail,
-      reservationId,
-      successUrl: `${baseUrl}/pt/hostel?paid=1&booking=${reservationId}`,
-      cancelUrl: `${baseUrl}/pt/hostel`,
-    });
-
-    logger.info('Stripe Checkout Session creada', { reservationId, sessionId: session.sessionId });
-    res.status(200).json(ApiResponse.success({
-      url: session.url,
-      sessionId: session.sessionId,
-      amount: depositAmount,
-      currency: 'BRL',
-    }, 'Checkout Session creada'));
+    const result = await paymentService.createBookingCheckoutSession(booking, frontendUrl);
+    res.status(200).json(ApiResponse.success(result, 'Checkout Session creada'));
   } catch (error) {
     logger.error('Error al crear Stripe Checkout Session', {
       error: error instanceof Error ? error.message : 'Unknown error',

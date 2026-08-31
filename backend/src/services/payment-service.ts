@@ -15,7 +15,7 @@ import { enqueueSheetsExport } from '../queues/sheets-export.queue';
 import { query } from '../config/database';
 import { logger } from '../utils/logger';
 import { AppError } from '../middleware/error-handler';
-import type { Payment, PaymentProvider } from '../types/database';
+import type { Payment, PaymentProvider, Reservation } from '../types/database';
 import type { BookingWithGuest } from './email-service';
 
 interface CreatePaymentIntentDTO {
@@ -367,6 +367,55 @@ export class PaymentService {
   }
 
   // L-04: isInternationalEmail eliminada — ver comentario en createPaymentIntent
+
+  // Sección 7 auditoría 17 secciones: antes armada inline en la ruta
+  // POST /payments/stripe-wa-link -- flujo WhatsApp, genera un link de pago
+  // sin reserva previa (el titular no llegó a completar el wizard).
+  async createWhatsappCheckoutLink(data: {
+    amountBRL: number;
+    description?: string;
+    guestEmail?: string;
+    frontendUrl?: string;
+  }): Promise<{ url: string }> {
+    const baseUrl = data.frontendUrl || process.env.FRONTEND_URL || 'https://lapacasario.com';
+    const session = await this.stripeHandler.createCheckoutSession({
+      amount: data.amountBRL,
+      description: data.description || 'Depósito reserva — Lapa Casa Hostel',
+      customerEmail: data.guestEmail || '',
+      reservationId: `wa-${Date.now()}`,
+      successUrl: `${baseUrl}/pt/hostel?paid=1`,
+      cancelUrl: `${baseUrl}/pt/hostel`,
+      metadata: { source: 'whatsapp' },
+    });
+    logger.info('Stripe WA link generado', { amount: data.amountBRL, sessionId: session.sessionId });
+    return { url: session.url };
+  }
+
+  // Sección 7 auditoría 17 secciones: antes armada inline en la ruta
+  // POST /payments/stripe-checkout -- Checkout Session de tarjeta para una
+  // reserva ya creada (el 404/cancelada se valida en la ruta antes de
+  // llamar acá, por eso recibe el booking ya resuelto).
+  async createBookingCheckoutSession(
+    booking: Reservation,
+    frontendUrl?: string
+  ): Promise<{ url: string; sessionId: string; amount: number; currency: string }> {
+    const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'https://lapacasario.com';
+    const depositAmount = Number(booking.deposit_amount);
+    const displayCode = booking.reservation_number;
+    const guestEmail = booking.guest?.email ?? '';
+
+    const session = await this.stripeHandler.createCheckoutSession({
+      amount: depositAmount,
+      description: `Depósito reserva ${displayCode} — Lapa Casa Hostel`,
+      customerEmail: guestEmail,
+      reservationId: booking.id,
+      successUrl: `${baseUrl}/pt/hostel?paid=1&booking=${booking.id}`,
+      cancelUrl: `${baseUrl}/pt/hostel`,
+    });
+
+    logger.info('Stripe Checkout Session creada', { reservationId: booking.id, sessionId: session.sessionId });
+    return { url: session.url, sessionId: session.sessionId, amount: depositAmount, currency: 'BRL' };
+  }
 }
 
 export const paymentService = new PaymentService();
