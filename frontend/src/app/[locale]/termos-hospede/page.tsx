@@ -92,7 +92,7 @@ const CONTENT: Record<Locale, Content> = {
         body: 'A reserva só é confirmada após o pagamento do depósito exibido na tela de pagamento. O valor restante é pago no check-in.',
         items: [
           'Formas de pagamento do depósito: PIX ou cartão de crédito/débito',
-          'O valor restante pode ser pago em PIX ou cartão no check-in; pagamentos com cartão podem incluir uma taxa de processamento, exibida antes da confirmação',
+          'O valor restante é pago no check-in, diretamente à equipe do hostel (PIX ou cartão, conforme disponibilidade no momento)',
         ],
       },
       {
@@ -138,7 +138,7 @@ const CONTENT: Record<Locale, Content> = {
         body: 'La reserva se confirma únicamente tras el pago del depósito indicado en la pantalla de pago. El saldo restante se abona en el check-in.',
         items: [
           'Formas de pago del depósito: PIX o tarjeta de crédito/débito',
-          'El saldo puede pagarse en PIX o tarjeta al check-in; los pagos con tarjeta pueden incluir un cargo por procesamiento, mostrado antes de confirmar',
+          'El saldo se abona en el check-in, directamente al personal del hostel (PIX o tarjeta, según disponibilidad en el momento)',
         ],
       },
       {
@@ -184,7 +184,7 @@ const CONTENT: Record<Locale, Content> = {
         body: 'The booking is confirmed only after payment of the deposit shown on the payment screen. The remaining balance is paid at check-in.',
         items: [
           'Deposit payment methods: PIX or credit/debit card',
-          'The remaining balance can be paid by PIX or card at check-in; card payments may include a processing fee, shown before confirmation',
+          'The remaining balance is paid at check-in, directly to hostel staff (PIX or card, subject to availability at the time)',
         ],
       },
       {
@@ -230,7 +230,7 @@ const CONTENT: Record<Locale, Content> = {
         body: 'Die Buchung wird erst nach Zahlung der auf dem Zahlungsbildschirm angezeigten Anzahlung bestätigt. Der Restbetrag wird beim Check-in bezahlt.',
         items: [
           'Zahlungsarten für die Anzahlung: PIX oder Kredit-/Debitkarte',
-          'Der Restbetrag kann beim Check-in per PIX oder Karte bezahlt werden; bei Kartenzahlung kann eine vor Bestätigung angezeigte Bearbeitungsgebühr anfallen',
+          'Der Restbetrag wird beim Check-in direkt beim Hostelpersonal bezahlt (PIX oder Karte, je nach Verfügbarkeit vor Ort)',
         ],
       },
       {
@@ -276,7 +276,7 @@ const CONTENT: Record<Locale, Content> = {
         body: "La réservation n'est confirmée qu'après le paiement de l'acompte indiqué sur l'écran de paiement. Le solde restant est réglé à l'arrivée.",
         items: [
           "Moyens de paiement de l'acompte : PIX ou carte de crédit/débit",
-          "Le solde peut être réglé par PIX ou carte à l'arrivée ; les paiements par carte peuvent inclure des frais de traitement, affichés avant confirmation",
+          "Le solde est réglé à l'arrivée, directement auprès du personnel du hostel (PIX ou carte, selon disponibilité sur place)",
         ],
       },
       {
@@ -322,7 +322,7 @@ const CONTENT: Record<Locale, Content> = {
         body: 'La prenotazione viene confermata solo dopo il pagamento della caparra indicata nella schermata di pagamento. Il saldo restante viene versato al check-in.',
         items: [
           'Metodi di pagamento della caparra: PIX o carta di credito/debito',
-          'Il saldo può essere pagato in PIX o con carta al check-in; i pagamenti con carta possono includere una commissione di elaborazione, mostrata prima della conferma',
+          "Il saldo viene versato al check-in, direttamente al personale dell'hostel (PIX o carta, in base alla disponibilità sul momento)",
         ],
       },
       {
