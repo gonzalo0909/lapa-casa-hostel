@@ -462,10 +462,10 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         {/* Header */}
         <div className="he-header">
           <div className="he-brand-loc">Santa Teresa · Rio de Janeiro</div>
-          <div className="he-brand">
+          <h1 className="he-brand">
             Lapa Casa
             <span>Hostel</span>
-          </div>
+          </h1>
           <div className="he-lang-sw">
             {(['pt','es','en','fr','de','it'] as Lang[]).map(l => (
               <button key={l} className={`he-lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
