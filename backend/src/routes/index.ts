@@ -147,18 +147,15 @@ router.use('*', (req: Request, res: Response) => {
   });
 });
 
-/**
- * Global Error Handler for Routes
- */
-router.use((error: Error, req: Request, res: Response, next: Function) => {
-  logger.error('Route Error:', error);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'An unexpected error occurred' 
-      : error.message,
-    timestamp: new Date().toISOString()
-  });
-});
+// Sección 8 auditoría 17 secciones: se elimina el error handler local que
+// estaba acá. Contrario a lo que decía un diagnóstico previo ("nunca se
+// alcanza en la práctica"), este handler SÍ se alcanzaba -- verificado con
+// un test aislado de Express replicando este mismo anidado de routers --
+// y ese era el problema real: siempre devolvía 500 sin leer
+// error.statusCode, así que cualquier AppError con código propio
+// (404 "Reserva no encontrada", 400 "El pago ya fue confirmado", 503
+// "Pago con tarjeta no disponible", etc. -- 16+ lugares en services/)
+// le llegaba al cliente como un 500 genérico. Se deja que el error
+// burbujee al errorHandler de app.ts, que sí respeta el statusCode real.
 
 export default router;
