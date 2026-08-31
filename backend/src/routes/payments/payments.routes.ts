@@ -113,8 +113,11 @@ router.post('/group-session', async (req, res, next) => {
       titular, specialRequests, appBaseUrl: baseUrl,
     });
 
+    // Sección 10 auditoría 17 secciones: result.token es la credencial
+    // bearer del titular (URL /group-payment/:token, sin login) -- se
+    // trunca en el log por la misma razón que memberToken más abajo.
     logger.info('Sesión de pago grupal creada', {
-      sessionId: result.sessionId, token: result.token, totalBeds,
+      sessionId: result.sessionId, tokenPrefix: result.token.slice(0, 8), totalBeds,
     });
     res.status(201).json(ApiResponse.success(result, 'Sesión de pago grupal creada'));
   } catch (error) {
@@ -174,7 +177,15 @@ router.post('/group-member/:memberToken/pay', async (req, res, next) => {
     }
 
     const result = await groupPaymentService.initiateMemberPayment({ memberToken, guest, paymentMethod });
-    logger.info('Pago de invitado grupal iniciado', { memberToken, memberId: result.memberId, paymentMethod });
+    // Sección 10 auditoría 17 secciones: memberToken es una credencial
+    // bearer -- quien lo tiene puede pagar/ver ese slot sin ningún otro
+    // login. Antes se logueaba completo; se trunca a un prefijo, suficiente
+    // para trazabilidad sin que el log sea, en sí mismo, un vector de robo.
+    logger.info('Pago de invitado grupal iniciado', {
+      memberTokenPrefix: memberToken.slice(0, 8),
+      memberId: result.memberId,
+      paymentMethod,
+    });
     res.status(200).json(ApiResponse.success(result, 'Pago iniciado'));
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
