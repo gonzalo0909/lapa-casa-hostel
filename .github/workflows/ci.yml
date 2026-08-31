@@ -48,9 +48,7 @@ jobs:
 
       - run: npm run type-check
 
-      # TODO(sección 13 auditoría 17 secciones): backend no tiene config real
-      # de ESLint todavía (el script "lint" existe pero sin reglas detrás).
-      # Agregar el step acá cuando se cree esa config.
+      - run: npm run lint
 
       - run: npm run build
 
