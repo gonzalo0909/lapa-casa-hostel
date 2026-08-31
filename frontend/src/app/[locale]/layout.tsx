@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { Inter, Poppins } from 'next/font/google';
+import { Inter, Poppins, Cormorant_Garamond } from 'next/font/google';
 import Script from 'next/script';
 import { locales, type Locale } from '@/i18n';
 import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
@@ -22,6 +22,19 @@ const poppins = Poppins({
   variable: '--font-poppins',
   display:  'swap',
   preload:  false, // solo pre-cargamos Inter; Poppins se carga en diferido
+});
+// Fuente serif de marca (títulos "he-brand"/nombres de apartamento/h3) --
+// hostel-engine.styles.ts y apartment-engine.module.css ya referenciaban
+// var(--font-cormorant) en ~12 lugares, pero nunca se declaraba en ningún
+// next/font: la variable no existía nunca, lo que invalida la propiedad
+// font-family entera en esas reglas (no cae a Georgia/serif como parecía).
+const cormorant = Cormorant_Garamond({
+  subsets:  ['latin'],
+  weight:   ['300', '400', '500', '600', '700'],
+  style:    ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display:  'swap',
+  preload:  false,
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
@@ -99,7 +112,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${poppins.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${poppins.variable} ${cormorant.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {/* AnalyticsProvider usa useSearchParams() (next/navigation) para
