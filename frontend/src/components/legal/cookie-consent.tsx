@@ -9,7 +9,7 @@
 // que AnalyticsProvider decida si cargar los scripts de tracking.
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -78,6 +78,7 @@ export function useCookieConsent(): CookieConsentContextValue {
 
 function CookieConsentBanner({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) {
   const t = useTranslations('cookieConsent');
+  const locale = useLocale();
 
   return (
     <div
@@ -89,7 +90,7 @@ function CookieConsentBanner({ onAccept, onReject }: { onAccept: () => void; onR
       <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <p className="text-sm text-foreground">
           {t('message')}{' '}
-          <Link href="/privacy" className="underline underline-offset-2 hover:text-primary">
+          <Link href={`/${locale}/privacy`} className="underline underline-offset-2 hover:text-primary">
             {t('learnMore')}
           </Link>
         </p>
