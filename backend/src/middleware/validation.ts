@@ -28,9 +28,6 @@ export const validate = (schema: ZodSchema) => (
   }
 };
 
-export const validationMiddleware = (_schemaName: string) =>
-  (_req: Request, _res: Response, next: NextFunction): void => next();
-
 /**
  * Sanitizacion de inputs contra XSS/inyeccion de markup (Ventana 6,
  * entregable 6). Las queries a Postgres ya van parametrizadas ($1, $2...
@@ -91,5 +88,21 @@ export const bookingSchemas = {
     }),
     specialRequests: z.string().optional(),
     language: z.enum(['pt', 'en', 'es']).optional(),
+  }),
+  update: z.object({
+    checkIn: z.string().min(1).optional(),
+    checkOut: z.string().min(1).optional(),
+    rooms: z.array(z.object({
+      roomId: z.string().min(1),
+      bedsCount: z.number().int().positive(),
+    })).optional(),
+    guest: z.object({
+      firstName: z.string().min(1).optional(),
+      lastName: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      phone: z.string().optional(),
+      country: z.string().optional(),
+    }).optional(),
+    specialRequests: z.string().optional(),
   }),
 };
