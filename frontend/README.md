@@ -342,8 +342,8 @@ This is a private project for Lapa Casa Hostel. For internal team members:
 
 ## 📞 Support
 
-**Tech Team:** tech@lapacasario.com  
-**Reservations:** reservas@lapacasario.com  
+**Tech Team:** lapalandiarj@gmail.com  
+**Reservations:** lapalandiarj@gmail.com  
 **WhatsApp:** +55 21 99999-9999
 
 ## 📄 License

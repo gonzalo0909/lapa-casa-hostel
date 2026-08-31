@@ -425,7 +425,7 @@ git push origin feature/your-feature
 ## 📞 Support
 
 **Technical Issues:** [GitHub Issues](https://github.com/lapa-casa-hostel/channel-manager-backend/issues)  
-**Business Contact:** contact@lapacasario.com  
+**Business Contact:** lapalandiarj@gmail.com  
 **Phone:** +55 21 XXXX-XXXX
 
 ---

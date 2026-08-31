@@ -97,7 +97,7 @@ MP_WEBHOOK_SECRET="your-mp-webhook-secret"
 
 # Email (Resend)
 RESEND_API_KEY="re_..."
-EMAIL_FROM="dev@lapacasario.com"
+EMAIL_FROM="lapalandiarj@gmail.com"
 
 # Google Sheets
 GOOGLE_SHEETS_ID="your-sheet-id"
@@ -137,7 +137,7 @@ MP_WEBHOOK_SECRET="GENERATE-STRONG-SECRET"
 
 # Email
 RESEND_API_KEY="re_..."
-EMAIL_FROM="reservas@lapacasario.com"
+EMAIL_FROM="lapalandiarj@gmail.com"
 
 # WhatsApp
 WHATSAPP_API_KEY="your-whatsapp-api-key"
@@ -490,7 +490,7 @@ node --prof backend/dist/server.js
 - **Documentation**: `/docs` folder
 - **API Docs**: `https://api.lapacasario.com/docs`
 - **GitHub Issues**: https://github.com/lapa-casa-hostel/lapa-casa-hostel/issues
-- **Email Support**: tech@lapacasario.com
+- **Email Support**: lapalandiarj@gmail.com
 
 ---
 

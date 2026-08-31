@@ -591,7 +591,7 @@ const prisma = new PrismaClient({
 - Check existing documentation in `/docs`
 - Search GitHub issues
 - Ask in team Slack channel
-- Email: tech@lapacasario.com
+- Email: lapalandiarj@gmail.com
 
 **Happy coding! 🚀**
 

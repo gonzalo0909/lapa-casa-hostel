@@ -47,7 +47,7 @@ export const OrganizationSchema = {
   logo: 'https://lapacasario.com/android-chrome-512x512.png',
   image: 'https://lapacasario.com/og-image.jpg',
   telephone: '+55-21-97715-7530',
-  email: 'info@lapacasario.com',
+  email: 'lapalandiarj@gmail.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Rua Silvio Romero 22',
@@ -199,7 +199,7 @@ export const ApartmentServiceSchema = {
   url: 'https://lapacasario.com/apartamentos',
   image: 'https://lapacasario.com/og-image.jpg',
   telephone: '+55-21-97715-7530',
-  email: 'reservas@lapacasario.com',
+  email: 'lapalandiarj@gmail.com',
   // Área de servicio amplia — sin dirección específica de ningún apartamento
   areaServed: {
     '@type': 'City',
