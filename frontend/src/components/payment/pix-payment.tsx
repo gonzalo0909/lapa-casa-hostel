@@ -8,6 +8,7 @@ import { paymentAPI, handleAPIError } from '@/lib/api';
 import { Button } from '../ui/button';
 import { LoadingSpinner } from '../ui/loading-spinner';
 import { Alert } from '../ui/alert';
+import { type PaymentLocale, createPaymentT } from './payment-i18n';
 
 /**
  * PixPayment Component
@@ -25,7 +26,7 @@ interface PixPaymentProps {
   qrCode: string;
   qrCodeBase64?: string;
   amount: number;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
+  locale?: PaymentLocale;
   onSuccess: (paymentData: { paymentId: string; amount: number }) => void;
   onError: (error: Error) => void;
 }
@@ -194,8 +195,7 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
   );
 }
 
-function T(key: string, locale: string): string {
-  const t: Record<string, Record<string, string>> = {
+const T = createPaymentT({
     pt: {
       howTo: 'Como pagar com PIX',
       step1: '1. Abra o app do seu banco',
@@ -298,6 +298,4 @@ function T(key: string, locale: string): string {
       alreadyPaidHint: 'Clicca qui se la conferma tarda ad arrivare.',
       verifying: 'Verifica in corso...'
     }
-  };
-  return t[locale]?.[key] || key;
-}
+});

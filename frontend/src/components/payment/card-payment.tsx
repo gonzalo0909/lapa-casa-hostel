@@ -8,6 +8,7 @@ import { paymentAPI, handleAPIError } from '@/lib/api';
 import { Button } from '../ui/button';
 import { LoadingSpinner } from '../ui/loading-spinner';
 import { Alert } from '../ui/alert';
+import { type PaymentLocale, createPaymentT } from './payment-i18n';
 
 /**
  * CardPayment Component
@@ -24,7 +25,7 @@ interface CardPaymentProps {
   clientSecret: string;
   amount: number;
   currency: string;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
+  locale?: PaymentLocale;
   onSuccess: (paymentData: { paymentId: string; amount: number; currency: string }) => void;
   onError: (error: Error) => void;
 }
@@ -205,8 +206,7 @@ export function CardPayment({ paymentId, clientSecret, amount, currency, locale 
   );
 }
 
-function T(key: string, locale: string): string {
-  const t: Record<string, Record<string, string>> = {
+const T = createPaymentT({
     pt: {
       cardholderName: 'Nome do Titular',
       cardholderPlaceholder: 'Nome como está no cartão',
@@ -279,6 +279,4 @@ function T(key: string, locale: string): string {
       errorName: 'Inserisci il nome del titolare della carta',
       errorCardElement: 'Campo carta non trovato'
     }
-  };
-  return t[locale]?.[key] || key;
-}
+});
