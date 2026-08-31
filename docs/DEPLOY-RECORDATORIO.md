@@ -1,4 +1,11 @@
-# Deploy Recordatorio — lapacasario.com
+> **ARCHIVADO — no vigente.** Este documento describe un stack alternativo
+> (frontend en Vercel, backend en Render Starter, dominio `lapacasario.com`)
+> que nunca se implementó. El deploy real y vigente es 100% Render, dominio
+> `lapacasahostel.com`, documentado en **[docs/DEPLOY.md](./DEPLOY.md)** y
+> reflejado en `render.yaml`. Se conserva este archivo solo como referencia
+> histórica de una alternativa que se evaluó y se descartó.
+
+# Deploy Recordatorio — lapacasario.com (ARCHIVADO)
 
 ## Stack
 - **Frontend**: Vercel (free) — Next.js
