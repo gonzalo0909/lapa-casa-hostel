@@ -28,8 +28,11 @@ export const OrganizationSchema = {
   name: 'Lapa Casa',
   description: 'Premium hostel in Santa Teresa, Rio de Janeiro specializing in group bookings',
   url: 'https://lapacasario.com',
-  logo: 'https://lapacasario.com/images/logo.png',
-  image: 'https://lapacasario.com/images/hostel-exterior.jpg',
+  // /images/logo.png y /images/hostel-exterior.jpg no existen en public/
+  // (404) -- no hay carpeta public/images/ en todo el proyecto. Se usan
+  // los assets reales que sí existen.
+  logo: 'https://lapacasario.com/android-chrome-512x512.png',
+  image: 'https://lapacasario.com/og-image.jpg',
   telephone: '+55-21-97715-7530',
   email: 'info@lapacasario.com',
   address: {
@@ -160,44 +163,6 @@ export const LocalBusinessSchema = {
 };
 
 /**
- * Generate Product schema for room offerings
- */
-export function generateRoomProductSchema(room: {
-  id: string;
-  name: string;
-  capacity: number;
-  basePrice: number;
-  type: string;
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: `${room.name} - Lapa Casa`,
-    description: `${room.capacity}-bed ${room.type} dormitory in Santa Teresa, Rio de Janeiro`,
-    image: `https://lapacasario.com/images/rooms/${room.id}.jpg`,
-    brand: {
-      '@type': 'Brand',
-      name: 'Lapa Casa'
-    },
-    offers: {
-      '@type': 'Offer',
-      price: room.basePrice.toFixed(2),
-      priceCurrency: 'BRL',
-      availability: 'https://schema.org/InStock',
-      url: `https://lapacasario.com/rooms/${room.id}`,
-      priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.7',
-      reviewCount: '89',
-      bestRating: '5',
-      worstRating: '1'
-    }
-  };
-}
-
-/**
  * Generate FAQPage schema
  */
 export function generateFAQSchema(faqs: Array<{ question: string; answer: string }>) {
@@ -212,92 +177,6 @@ export function generateFAQSchema(faqs: Array<{ question: string; answer: string
         text: faq.answer
       }
     }))
-  };
-}
-
-/**
- * Generate BreadcrumbList schema
- */
-export function generateBreadcrumbSchema(breadcrumbs: Array<{ name: string; url: string }>) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: breadcrumbs.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: `https://lapacasario.com${item.url}`
-    }))
-  };
-}
-
-/**
- * Generate Review schema
- */
-export function generateReviewSchema(review: {
-  author: string;
-  rating: number;
-  reviewBody: string;
-  datePublished: string;
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Review',
-    itemReviewed: {
-      '@type': 'Hostel',
-      name: 'Lapa Casa'
-    },
-    author: {
-      '@type': 'Person',
-      name: review.author
-    },
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: review.rating.toString(),
-      bestRating: '5',
-      worstRating: '1'
-    },
-    reviewBody: review.reviewBody,
-    datePublished: review.datePublished
-  };
-}
-
-/**
- * Generate Event schema for group bookings
- */
-export function generateEventSchema(event: {
-  name: string;
-  startDate: string;
-  endDate: string;
-  location?: string;
-  description?: string;
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Event',
-    name: event.name,
-    description: event.description || 'Group event at Lapa Casa',
-    startDate: event.startDate,
-    endDate: event.endDate,
-    location: {
-      '@type': 'Place',
-      name: event.location || 'Lapa Casa',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Rua Silvio Romero 22',
-        addressLocality: 'Santa Teresa',
-        addressRegion: 'RJ',
-        postalCode: '20241-120',
-        addressCountry: 'BR'
-      }
-    },
-    offers: {
-      '@type': 'Offer',
-      price: '60.00',
-      priceCurrency: 'BRL',
-      availability: 'https://schema.org/InStock',
-      url: 'https://lapacasario.com/booking'
-    }
   };
 }
 
@@ -388,84 +267,12 @@ export function StructuredData({ data }: StructuredDataProps) {
   );
 }
 
-/**
- * MultipleStructuredData Component
- * 
- * Renders multiple JSON-LD structured data objects.
- * 
- * @example
- * ```tsx
- * <MultipleStructuredData 
- *   schemas={[OrganizationSchema, LocalBusinessSchema]} 
- * />
- * ```
- */
-export function MultipleStructuredData({ schemas }: { schemas: Array<Record<string, any>> }) {
-  return (
-    <>
-      {schemas.map((schema, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(schema)
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
-/**
- * Hook to generate structured data dynamically
- * 
- * @example
- * ```tsx
- * const { getOrganizationSchema, getRoomSchema } = useStructuredData();
- * 
- * return (
- *   <StructuredData data={getOrganizationSchema()} />
- * );
- * ```
- */
-export function useStructuredData() {
-  const getOrganizationSchema = () => OrganizationSchema;
-  
-  const getLocalBusinessSchema = () => LocalBusinessSchema;
-  
-  const getWebSiteSchema = () => WebSiteSchema;
-  
-  const getRoomSchema = (room: Parameters<typeof generateRoomProductSchema>[0]) => {
-    return generateRoomProductSchema(room);
-  };
-  
-  const getFAQSchema = (faqs: Parameters<typeof generateFAQSchema>[0]) => {
-    return generateFAQSchema(faqs);
-  };
-  
-  const getBreadcrumbSchema = (breadcrumbs: Parameters<typeof generateBreadcrumbSchema>[0]) => {
-    return generateBreadcrumbSchema(breadcrumbs);
-  };
-  
-  const getReviewSchema = (review: Parameters<typeof generateReviewSchema>[0]) => {
-    return generateReviewSchema(review);
-  };
-  
-  const getEventSchema = (event: Parameters<typeof generateEventSchema>[0]) => {
-    return generateEventSchema(event);
-  };
-
-  return {
-    getOrganizationSchema,
-    getLocalBusinessSchema,
-    getWebSiteSchema,
-    getRoomSchema,
-    getFAQSchema,
-    getBreadcrumbSchema,
-    getReviewSchema,
-    getEventSchema
-  };
-}
+// FIX (auditoría de 17 secciones, sección 5): se eliminaron
+// MultipleStructuredData, useStructuredData, generateRoomProductSchema,
+// generateBreadcrumbSchema, generateReviewSchema y generateEventSchema --
+// 0 usos reales en todo el frontend (confirmado por grep), cada página
+// arma su propio JSON-LD importando los schemas individuales directamente
+// (ej. <StructuredData data={LocalBusinessSchema} />).
 
 // FIX (auditoría 2026-08-30): se eliminó PAGE_SCHEMAS -- agrupación de
 // ejemplo sin ningún import en el resto del frontend (cada página arma
