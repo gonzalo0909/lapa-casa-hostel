@@ -11,6 +11,18 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const createNextIntlPlugin = require('next-intl/plugin');
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
+// El frontend llama a la API por su URL absoluta (ver lib/api.ts,
+// NEXT_PUBLIC_API_URL) -- es otro origen (Render/dominio propio), no el
+// mismo origen del frontend. connect-src 'self' solo no alcanza para esas
+// llamadas; se agrega el origen real acá, resuelto en build time.
+const API_ORIGIN = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').origin;
+  } catch {
+    return '';
+  }
+})();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // App Router configuration
@@ -76,21 +88,29 @@ const nextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
-        ],
-      },
-      // CSP for payment security
-      {
-        source: '/booking/:path*',
-        headers: [
+          // Content-Security-Policy -- antes solo se aplicaba a
+          // "/booking/:path*", una ruta que no existe en este App Router
+          // (las páginas reales son /[locale]/hostel, /[locale]/apartamentos
+          // y /[locale]/payment/[id]): la política nunca llegó a aplicarse
+          // en producción. Se mueve acá (todas las rutas) porque
+          // AnalyticsProvider -- que carga GA4 y un script inline de
+          // Facebook Pixel -- vive en el layout raíz y corre en cada página,
+          // no solo en las de pago.
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com",
+              // unsafe-inline: el snippet de Facebook Pixel se inyecta
+              // inline (dangerouslySetInnerHTML en analytics-provider.tsx).
+              // unsafe-eval: requerido históricamente por los SDKs de
+              // Stripe/Mercado Pago -- no se pudo confirmar en este entorno
+              // si sigue siendo necesario sin probar un pago real en
+              // navegador (queda pendiente, ver auditoría de 17 secciones).
+              `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com https://www.googletagmanager.com https://connect.facebook.net`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://api.stripe.com https://api.mercadopago.com",
+              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://api.mercadopago.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net`,
               "frame-src https://js.stripe.com https://www.mercadopago.com",
             ].join('; '),
           },
