@@ -11,17 +11,18 @@ Supabase nuevo**.
 
 ## 1. Servicios
 
-`render.yaml` (raíz del repo) define tres servicios Render:
+`render.yaml` (raíz del repo) define cuatro servicios Render:
 
 | Servicio | Tipo | Sirve |
 |---|---|---|
 | `lapa-casa-hostel-api` | `web` (Node) | Backend — API + panel admin en `/admin` |
 | `lapa-casa-hostel-landing` | `web` (static) | Landing estática de `public/landing/` en el dominio raíz |
 | `lapa-casa-hostel-frontend` | `web` (Node, Next.js) | Motor de reservas real (Hostel + Apartamentos vía `PropertyTabs`), conectado a la API con `NEXT_PUBLIC_API_URL` |
+| `lapa-casa-hostel-worker` | `worker` (Node) | Procesa las colas BullMQ (`npm run worker`): cobro de saldo a 7 días, emails programados, liberación de holds vencidos, sync iCal con OTAs |
 
 El frontend de reservas en Next.js (`frontend/`) ya tiene `app/` (App Router,
 rutas `/[locale]/...`), compila y está en `render.yaml` como servicio propio
-(`autoDeploy: true`, igual que los otros dos).
+(`autoDeploy: true`, igual que los otros tres).
 
 ## 2. Primer deploy — backend
 
