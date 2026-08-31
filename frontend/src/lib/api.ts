@@ -227,7 +227,7 @@ export const bookingAPI = {
     }>;
     specialRequests?: string;
     arrivalTime?: string;
-    language?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
+    language?: 'pt' | 'es' | 'en' | 'fr' | 'de';
     source?: string;
     guestGender?: 'mixed' | 'female';
     /** Código de oferta/cupón de descuento (apartamentos). */
