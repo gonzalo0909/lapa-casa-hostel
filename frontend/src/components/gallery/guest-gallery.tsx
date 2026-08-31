@@ -4,6 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import { photosAPI, handleAPIError } from '@/lib/api';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Alert } from '@/components/ui/alert';
@@ -64,12 +65,16 @@ export const GuestGallery: React.FC<GuestGalleryProps> = ({ locale = 'pt' }) => 
               key={photo.id}
               className="rounded-lg overflow-hidden border border-border bg-card"
             >
-              <img
-                src={photo.image_url}
-                alt={photo.caption || photo.guest_name || ''}
-                className="w-full h-40 object-cover"
-                loading="lazy"
-              />
+              <div className="relative w-full h-40">
+                <Image
+                  src={photo.image_url}
+                  alt={photo.caption || photo.guest_name || ''}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                  className="object-cover"
+                  loading="lazy"
+                />
+              </div>
               {(photo.guest_name || photo.caption) && (
                 <figcaption className="p-3 text-xs">
                   {photo.guest_name && (

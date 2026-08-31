@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
   Building2, Landmark, Home, Palette, Mountain, Music, Leaf, Building,
@@ -105,11 +106,12 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
       >
         {hasPhotos ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={currentPhoto!.url}
               alt={currentPhoto!.altText ?? apartment.name}
               className={styles.aptPhotoImg}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 350px"
               draggable={false}
             />
             {photos.length > 1 && (
