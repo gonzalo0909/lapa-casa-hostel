@@ -1,11 +1,16 @@
-> **ARCHIVADO — no vigente.** Este documento describe un stack alternativo
-> (frontend en Vercel, backend en Render Starter, dominio `lapacasario.com`)
-> que nunca se implementó. El deploy real y vigente es 100% Render, dominio
-> `lapacasahostel.com`, documentado en **[docs/DEPLOY.md](./DEPLOY.md)** y
-> reflejado en `render.yaml`. Se conserva este archivo solo como referencia
-> histórica de una alternativa que se evaluó y se descartó.
+> **Corrección (auditoría de 17 secciones, sección 11):** el dominio final
+> del proyecto es `lapacasario.com` (aún no comprado) — coincide con lo que
+> describe este documento, no es una alternativa descartada como decía una
+> versión anterior de esta nota. Lo que sí es distinto de lo vigente hoy es
+> el **stack**: hoy (`render.yaml`, `docs/DEPLOY.md`) todo corre junto en
+> Render. El plan real a corto plazo es dividirlo en frontend (Vercel) +
+> backend en un servidor en Brasil (no necesariamente Render Starter como
+> dice este documento más abajo) — todavía sin implementar. Hasta que esa
+> migración se haga, `docs/DEPLOY.md` sigue siendo la guía del deploy
+> *actual*; este documento describe la dirección hacia la que se va, no
+> el estado presente.
 
-# Deploy Recordatorio — lapacasario.com (ARCHIVADO)
+# Deploy Recordatorio — lapacasario.com
 
 ## Stack
 - **Frontend**: Vercel (free) — Next.js

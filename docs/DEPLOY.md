@@ -64,8 +64,8 @@ sobre `public/landing/`). Antes de publicar, completar los `TODO` de
 
 Render no asigna dominios custom desde `render.yaml`. Por servicio, en el dashboard:
 
-- `lapa-casa-hostel-landing` → Settings → Custom Domains → `lapacasahostel.com` (+ `www`)
-- `lapa-casa-hostel-api` → Settings → Custom Domains → `api.lapacasahostel.com`
+- `lapa-casa-hostel-landing` → Settings → Custom Domains → `lapacasario.com` (+ `www`)
+- `lapa-casa-hostel-api` → Settings → Custom Domains → `api.lapacasario.com`
 
 Seguir las instrucciones de Render para los registros DNS (`CNAME`/`A`) en el
 proveedor real del dominio. Hasta que el DNS propague, usar las URLs

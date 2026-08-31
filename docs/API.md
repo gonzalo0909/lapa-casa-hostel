@@ -1,6 +1,6 @@
 # API — Lapa Casa Hostel Channel Manager
 
-Base URL: `https://api.lapacasahostel.com/api/v1` (producción) /
+Base URL: `https://api.lapacasario.com/api/v1` (producción) /
 `http://localhost:3001/api/v1` (desarrollo).
 
 Colección Postman completa con todos los endpoints: `docs/postman/`.

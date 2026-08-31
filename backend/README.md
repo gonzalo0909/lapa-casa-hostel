@@ -9,7 +9,7 @@ Channel Manager backend system for Lapa Casa Hostel, Rio de Janeiro.
 **Location:** Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro  
 **Capacity:** 45 beds across 4 rooms  
 **Specialty:** Group bookings (7+ people), corporate events  
-**Website:** [lapacasahostel.com](https://lapacasahostel.com)
+**Website:** [lapacasario.com](https://lapacasario.com)
 
 ---
 
@@ -213,7 +213,7 @@ npm run docker:logs
 ### Base URL
 ```
 Development: http://localhost:5000/api/v1
-Production: https://api.lapacasahostel.com/api/v1
+Production: https://api.lapacasario.com/api/v1
 ```
 
 ### Endpoints
@@ -424,7 +424,7 @@ git push origin feature/your-feature
 ## 📞 Support
 
 **Technical Issues:** [GitHub Issues](https://github.com/lapa-casa-hostel/channel-manager-backend/issues)  
-**Business Contact:** contact@lapacasahostel.com  
+**Business Contact:** contact@lapacasario.com  
 **Phone:** +55 21 XXXX-XXXX
 
 ---
