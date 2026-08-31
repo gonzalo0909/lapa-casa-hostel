@@ -15,7 +15,7 @@ import React from 'react';
  * @component
  */
 interface PropertyManagementBannerProps {
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
   className?: string;
 }
 
@@ -81,6 +81,12 @@ function T(key: string, locale: string): string {
       subtitle: 'Wir kümmern uns um alles: Verwaltung der Ferienvermietung, Gäste und Reinigung. Sie kassieren einfach.',
       cta: 'Mehr erfahren',
       whatsappMessage: 'Hallo! Ich habe eine Wohnung in Rio de Janeiro und möchte mehr über Ihre Verwaltung von Ferienwohnungen erfahren.'
+    },
+    it: {
+      title: 'Il tuo appartamento genera reddito a Rio de Janeiro, senza che tu debba muovere un dito.',
+      subtitle: 'Pensiamo a tutto: gestione dell\'affitto breve, ospiti e pulizie. Tu incassi soltanto.',
+      cta: 'Voglio saperne di più',
+      whatsappMessage: 'Ciao! Ho un appartamento a Rio de Janeiro e vorrei saperne di più sulla gestione dell\'affitto breve.'
     }
   };
   return t[locale]?.[key] || key;

@@ -46,6 +46,11 @@ const META: Record<string, { title: string; description: string }> = {
     description:
       'Tout sur Santa Teresa : que faire, comment y aller, où manger, attractions et conseils de sécurité. Le quartier le plus charmant de Rio de Janeiro.',
   },
+  it: {
+    title: 'Santa Teresa, Rio de Janeiro — Guida Completa del Quartiere',
+    description:
+      'Tutto su Santa Teresa: cosa fare, come arrivare, dove mangiare, attrazioni e consigli di sicurezza. Il quartiere più affascinante di Rio de Janeiro, casa del Lapa Casa Hostel.',
+  },
 };
 
 export async function generateMetadata({
@@ -441,6 +446,81 @@ const CONTENT: Record<string, Content> = {
     ctaBody:  'Lapa Casa Hostel est à 5 minutes des Arcos da Lapa. Spécialistes groupes, meilleur prix garanti.',
     ctaBtn:   'Réserver maintenant',
     ctaWa:    'WhatsApp',
+  },
+
+  it: {
+    headline: 'Santa Teresa, Rio de Janeiro',
+    intro:
+      'Santa Teresa è il quartiere più bohémien e affascinante di Rio de Janeiro. Casali coloniali, strade in acciottolato, uno storico tram e una vista privilegiata sulla Baia di Guanabara rendono questo quartiere una delle mete preferite dai viaggiatori di tutto il mondo.',
+    sections: [
+      {
+        title: 'Cosa fare a Santa Teresa',
+        body:  'Santa Teresa offre un mix unico di cultura, arte e gastronomia. Le attrazioni principali:',
+        items: [
+          'Museu Chácara do Céu — collezione di arte moderna con vista panoramica',
+          'Escadaria Selarón — mosaico famoso in tutto il mondo, a 10 min a piedi',
+          'Arcos da Lapa — acquedotto storico del XVIII secolo, a 5 min',
+          'Tram di Santa Teresa — storico tram che attraversa il quartiere',
+          'Feira do Lavradio — mercato dell\'antiquariato ogni ultimo sabato del mese',
+          'Atelier e gallerie d\'arte — quartiere con una forte tradizione artistica',
+          'Bar do Mineiro e Aprazível — gastronomia carioca autentica',
+        ],
+      },
+      {
+        title: 'Come arrivare a Santa Teresa',
+        body:  'Santa Teresa è ben raggiungibile da qualsiasi punto di Rio:',
+        items: [
+          'Uber / taxi — l\'opzione più pratica. Indica "Santa Teresa, vicino agli Arcos da Lapa"',
+          'Tram storico — partenza da Largo da Carioca, Centro. Unica linea che attraversa il quartiere',
+          'Autobus — linee 006, 007 e 014 dal centro. Viaggio di 15–20 min',
+          'A piedi — possibile da Lapa (15 min in salita lungo Rua Joaquim Murtinho)',
+        ],
+      },
+      {
+        title: 'Sicurezza a Santa Teresa',
+        body:
+          'Santa Teresa è considerato uno dei quartieri più sicuri per i turisti a Rio. La comunità di residenti è attiva e le strade intorno all\'hostel sono ben illuminate. Come in qualsiasi grande città, consigliamo di:',
+        items: [
+          'Evitare di esporre oggetti di valore in zone molto affollate',
+          'Preferire Uber/taxi dopo le 23:00 per andare in altri quartieri',
+          'Chiedere indicazioni al personale dell\'hostel sui percorsi migliori',
+          'Camminare in gruppo — specialmente di notte verso Lapa',
+        ],
+      },
+      {
+        title: 'Gastronomia: dove mangiare a Santa Teresa',
+        body:  'Il quartiere ha una scena gastronomica diversificata e autentica:',
+        items: [
+          'Aprazível — ristorante con vista sulla baia, cucina brasiliana d\'autore',
+          'Bar do Mineiro — feijoada e boteco tradizionale carioca',
+          'Sobrenatural — frutti di mare, atmosfera rilassata',
+          'Mike\'s Haus — hamburger artigianali in stile tedesco',
+          'Espirito Santa — cucina amazzonica con vista panoramica',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Santa Teresa è sicura per i turisti?',
+        a: 'Sì. Santa Teresa è uno dei quartieri più sicuri di Rio per i turisti. La comunità locale è attiva e il quartiere ha una vigilanza regolare. Consigliamo le precauzioni standard valide per qualsiasi grande città.',
+      },
+      {
+        q: 'Quanto tempo serve per esplorare Santa Teresa?',
+        a: 'Una giornata intera è l\'ideale per esplorare con calma il quartiere — musei, tram, pranzo e passeggiate tra le stradine. Per visitare solo i punti principali, mezza giornata è sufficiente.',
+      },
+      {
+        q: 'Santa Teresa è vicina a Lapa?',
+        a: 'Sì, a 5 minuti a piedi dagli Arcos da Lapa, il principale polo della vita notturna di Rio de Janeiro.',
+      },
+      {
+        q: 'Qual è il miglior alloggio per gruppi a Santa Teresa?',
+        a: 'Il Lapa Casa Hostel, in Rua Silvio Romero 22, è specializzato in gruppi. 45 letti in 5 camere miste con sconto dal 10 al 15% per gruppi di 6+ persone.',
+      },
+    ],
+    ctaTitle: 'Soggiorna nel cuore di Santa Teresa',
+    ctaBody:  'Il Lapa Casa Hostel si trova a 5 minuti dagli Arcos da Lapa. Specialisti in gruppi con i migliori prezzi garantiti.',
+    ctaBtn:   'Prenota ora',
+    ctaWa:    'Scrivici su WhatsApp',
   },
 };
 

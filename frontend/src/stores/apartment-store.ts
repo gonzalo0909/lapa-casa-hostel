@@ -12,7 +12,7 @@ interface CreateApartmentBookingParams {
   dateRange: DateRange;
   apartment: ApartmentAvailability;
   guestDetails: GuestDetails;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 }
 
 interface ApartmentState {

@@ -24,7 +24,7 @@ interface CardPaymentProps {
   clientSecret: string;
   amount: number;
   currency: string;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
   onSuccess: (paymentData: { paymentId: string; amount: number; currency: string }) => void;
   onError: (error: Error) => void;
 }
@@ -266,6 +266,18 @@ function T(key: string, locale: string): string {
       secure: 'PCI-DSS sichere Zahlung',
       errorName: 'Bitte geben Sie den Namen des Karteninhabers ein',
       errorCardElement: 'Kartenfeld nicht gefunden'
+    },
+    it: {
+      cardholderName: 'Nome del Titolare',
+      cardholderPlaceholder: 'Nome come riportato sulla carta',
+      cardNumber: 'Numero della Carta',
+      expiry: 'Scadenza',
+      cvc: 'CVV',
+      processing: 'Elaborazione...',
+      pay: 'Paga',
+      secure: 'Pagamento sicuro PCI-DSS',
+      errorName: 'Inserisci il nome del titolare della carta',
+      errorCardElement: 'Campo carta non trovato'
     }
   };
   return t[locale]?.[key] || key;

@@ -11,7 +11,7 @@ interface CreateBookingParams {
   guestDetails: GuestDetails;
   totalPrice: number;
   gender: BookingGender;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 }
 
 interface BookingState {
