@@ -21,6 +21,7 @@
 //            tiene además una verificación explícita de rol admin.
 
 import { Router, type Request, type Response, type NextFunction } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { stripeConnectHandler } from '../../lib/payments/stripe-connect';
 import { auditLogService } from '../../services/audit-log-service';
@@ -28,8 +29,13 @@ import { ApiResponse } from '../../utils/responses';
 import { logger } from '../../utils/logger';
 import { AppError } from '../../middleware/error-handler';
 import { authenticateToken, requireRole } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const ReleaseDepositSchema = z.object({
+  reservationId: z.string().trim().min(1),
+});
 
 /**
  * POST /payments/release-deposit
@@ -50,14 +56,10 @@ router.post(
   '/',
   authenticateToken,
   requireRole(['admin']),
+  validate(ReleaseDepositSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { reservationId } = req.body as { reservationId: string };
-
-      if (!reservationId) {
-        res.status(400).json(ApiResponse.error('Campo requerido: reservationId'));
-        return;
-      }
+      const { reservationId } = req.body as z.infer<typeof ReleaseDepositSchema>;
 
       // 1. Obtener la reserva con los datos del apartamento y del propietario
       const { rows: reservationRows } = await query(

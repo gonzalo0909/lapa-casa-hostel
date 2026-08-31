@@ -4,11 +4,18 @@
 // Montado bajo /admin/guests (admin.routes.ts).
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const BlockGuestSchema = z.object({
+  reason: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 /**
  * GET /admin/guests
@@ -71,10 +78,10 @@ router.get('/', async (req, res, next) => {
  * PATCH /admin/guests/:id/block
  * Body: { reason, notes }
  */
-router.patch('/:id/block', async (req, res, next) => {
+router.patch('/:id/block', validate(BlockGuestSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { reason, notes } = req.body as { reason?: string; notes?: string };
+    const { reason, notes } = req.body as z.infer<typeof BlockGuestSchema>;
 
     const { rows } = await query(
       `UPDATE guests
