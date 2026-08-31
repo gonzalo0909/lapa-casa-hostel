@@ -153,9 +153,10 @@ MERCADO_PAGO_PUBLIC_KEY=APP_USR-...
 # Email
 RESEND_API_KEY=re_...
 
-# Google Sheets
-GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-GOOGLE_SHEETS_CLIENT_EMAIL=service-account@project.iam.gserviceaccount.com
+# Google Sheets (nombres reales leídos por sheets-client.ts -- no
+# GOOGLE_SHEETS_CLIENT_EMAIL/_PRIVATE_KEY, esos no tienen efecto)
+GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+GOOGLE_SERVICE_ACCOUNT_EMAIL=service-account@project.iam.gserviceaccount.com
 GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
 ```
 
