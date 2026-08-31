@@ -16,6 +16,8 @@
 // disponibilidad (contacto del huesped, notas, ajuste manual de precio).
 
 import { Router } from 'express';
+import { z } from 'zod';
+import { validate } from '../../middleware/validation';
 import { bookingService } from '../../services/booking-service';
 import { notificationService } from '../../services/notification-service';
 import { statsService } from '../../services/stats-service';
@@ -448,18 +450,17 @@ router.post('/bookings/:id/confirm', async (req, res, next) => {
  * PUT /admin/group-discounts más abajo) porque depende del total de
  * camas de toda la reserva, no de un cuarto individual.
  */
-router.put('/rooms/:id/settings', async (req, res, next) => {
+const RoomSettingsSchema = z.object({
+  basePrice: z.number().positive().optional(),
+  isFlexible: z.boolean().optional(),
+}).refine((v) => v.basePrice !== undefined || v.isFlexible !== undefined, {
+  message: 'Nada para actualizar: basePrice y/o isFlexible',
+});
+
+router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { basePrice, isFlexible } = req.body as {
-      basePrice?: number;
-      isFlexible?: boolean;
-    };
-
-    if (basePrice === undefined && isFlexible === undefined) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar: basePrice y/o isFlexible'));
-      return;
-    }
+    const { basePrice, isFlexible } = req.body as z.infer<typeof RoomSettingsSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];
@@ -514,19 +515,26 @@ router.get('/pricing', async (req, res, next) => {
 /**
  * PUT /admin/pricing — rate_plans (multiplicador/mín. noches por temporada) + fechas de Carnaval
  */
-router.put('/pricing', async (req, res, next) => {
+const PricingUpdateSchema = z.object({
+  seasonType: z.enum(['alta', 'media', 'baja', 'carnaval']).optional(),
+  multiplier: z.number().positive().optional(),
+  minNights: z.number().int().positive().optional(),
+  // ventana4: system_config.carnival_dates es un ARRAY de rangos
+  // {year, start_date, end_date} (ver 0001_seed.sql y
+  // get_season_type() en 0004_pricing_functions.sql, que itera el
+  // array buscando en qué rango cae la fecha) -- no un mapa por año.
+  carnival: z.object({
+    year: z.number().int(),
+    startDate: z.string().trim().min(1),
+    endDate: z.string().trim().min(1),
+  }).optional(),
+  cardSurchargePercent: z.number().min(0).max(100).optional(),
+});
+
+router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => {
   try {
-    const { seasonType, multiplier, minNights, carnival, cardSurchargePercent } = req.body as {
-      seasonType?: 'alta' | 'media' | 'baja' | 'carnaval';
-      multiplier?: number;
-      minNights?: number;
-      // ventana4: system_config.carnival_dates es un ARRAY de rangos
-      // {year, start_date, end_date} (ver 0001_seed.sql y
-      // get_season_type() en 0004_pricing_functions.sql, que itera el
-      // array buscando en qué rango cae la fecha) -- no un mapa por año.
-      carnival?: { year: number; startDate: string; endDate: string };
-      cardSurchargePercent?: number;
-    };
+    const { seasonType, multiplier, minNights, carnival, cardSurchargePercent } =
+      req.body as z.infer<typeof PricingUpdateSchema>;
 
     const updated: Record<string, any> = {};
 
@@ -566,10 +574,6 @@ router.put('/pricing', async (req, res, next) => {
     }
 
     if (cardSurchargePercent !== undefined) {
-      if (cardSurchargePercent < 0 || cardSurchargePercent > 100) {
-        res.status(400).json(ApiResponse.error('cardSurchargePercent debe estar entre 0 y 100'));
-        return;
-      }
       const { rows } = await query(
         `UPDATE system_config SET value = $1::jsonb, updated_at = now() WHERE key = 'card_surcharge_percent' RETURNING *`,
         [JSON.stringify(cardSurchargePercent)]
@@ -596,15 +600,17 @@ router.put('/pricing', async (req, res, next) => {
  * el descuento se evalua sobre el total de camas de TODA la reserva, no
  * por cuarto -- por eso es un ajuste global, no algo de room_types.
  */
-router.put('/group-discount-tiers/:id', async (req, res, next) => {
+const GroupDiscountTierSchema = z.object({
+  minBeds: z.number().int().positive().optional(),
+  percentage: z.number().min(0).max(100).optional(),
+}).refine((v) => v.minBeds !== undefined || v.percentage !== undefined, {
+  message: 'Nada para actualizar: minBeds y/o percentage',
+});
+
+router.put('/group-discount-tiers/:id', validate(GroupDiscountTierSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { minBeds, percentage } = req.body as { minBeds?: number; percentage?: number };
-
-    if (minBeds === undefined && percentage === undefined) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar: minBeds y/o percentage'));
-      return;
-    }
+    const { minBeds, percentage } = req.body as z.infer<typeof GroupDiscountTierSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];
@@ -651,29 +657,32 @@ router.get('/offers', async (_req, res, next) => {
   }
 });
 
+const CreateOfferSchema = z.object({
+  code: z.string().trim().min(1),
+  label: z.string().trim().min(1),
+  discountPercent: z.number().gt(0).max(100),
+  apartmentIds: z.array(z.string()).nullable().optional(),
+  validFrom: z.string().nullable().optional(),
+  validTo: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
+const UpdateOfferSchema = z.object({
+  label: z.string().trim().min(1).optional(),
+  discountPercent: z.number().gt(0).max(100).optional(),
+  apartmentIds: z.array(z.string()).nullable().optional(),
+  validFrom: z.string().nullable().optional(),
+  validTo: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
 /**
  * POST /admin/offers — crea una oferta
  */
-router.post('/offers', async (req, res, next) => {
+router.post('/offers', validate(CreateOfferSchema), async (req, res, next) => {
   try {
-    const { code, label, discountPercent, apartmentIds, validFrom, validTo, isActive } = req.body as {
-      code: string;
-      label: string;
-      discountPercent: number;
-      apartmentIds?: string[] | null;
-      validFrom?: string | null;
-      validTo?: string | null;
-      isActive?: boolean;
-    };
-
-    if (!code || !label || discountPercent === undefined) {
-      res.status(400).json(ApiResponse.error('Campos requeridos: code, label, discountPercent'));
-      return;
-    }
-    if (discountPercent <= 0 || discountPercent > 100) {
-      res.status(400).json(ApiResponse.error('discountPercent debe estar entre 1 y 100'));
-      return;
-    }
+    const { code, label, discountPercent, apartmentIds, validFrom, validTo, isActive } =
+      req.body as z.infer<typeof CreateOfferSchema>;
 
     const { rows } = await query(
       `INSERT INTO apartment_offers (code, label, discount_percent, apartment_ids, valid_from, valid_to, is_active)
@@ -708,22 +717,11 @@ router.post('/offers', async (req, res, next) => {
 /**
  * PUT /admin/offers/:id — edita una oferta existente
  */
-router.put('/offers/:id', async (req, res, next) => {
+router.put('/offers/:id', validate(UpdateOfferSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { label, discountPercent, apartmentIds, validFrom, validTo, isActive } = req.body as {
-      label?: string;
-      discountPercent?: number;
-      apartmentIds?: string[] | null;
-      validFrom?: string | null;
-      validTo?: string | null;
-      isActive?: boolean;
-    };
-
-    if (discountPercent !== undefined && (discountPercent <= 0 || discountPercent > 100)) {
-      res.status(400).json(ApiResponse.error('discountPercent debe estar entre 1 y 100'));
-      return;
-    }
+    const { label, discountPercent, apartmentIds, validFrom, validTo, isActive } =
+      req.body as z.infer<typeof UpdateOfferSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];

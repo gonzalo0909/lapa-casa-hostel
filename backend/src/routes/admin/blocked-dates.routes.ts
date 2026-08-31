@@ -6,13 +6,24 @@
 // requireRole(['admin']) a todo ese prefijo).
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { createDateBlocker } from '../../lib/ical/date-blocker';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
 const dateBlocker = createDateBlocker();
+
+const BlockDatesSchema = z.object({
+  roomTypeId: z.string().trim().min(1),
+  startDate: z.string().trim().min(1),
+  endDate: z.string().trim().min(1),
+  blockType: z.enum(['maintenance', 'owner', 'seasonal', 'other']).optional(),
+  reason: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 /** GET /admin/blocked-dates — todos los bloqueos, con nombre de habitación */
 router.get('/', async (_req, res, next) => {
@@ -43,21 +54,10 @@ router.get('/', async (_req, res, next) => {
 });
 
 /** POST /admin/blocked-dates — bloquea un rango de fechas para una habitación */
-router.post('/', async (req, res, next) => {
+router.post('/', validate(BlockDatesSchema), async (req, res, next) => {
   try {
-    const { roomTypeId, startDate, endDate, blockType, reason, notes } = req.body as {
-      roomTypeId?: string;
-      startDate?: string;
-      endDate?: string;
-      blockType?: 'maintenance' | 'owner' | 'seasonal' | 'other';
-      reason?: string;
-      notes?: string;
-    };
-
-    if (!roomTypeId || !startDate || !endDate) {
-      res.status(400).json(ApiResponse.error('roomTypeId, startDate y endDate son obligatorios'));
-      return;
-    }
+    const { roomTypeId, startDate, endDate, blockType, reason, notes } =
+      req.body as z.infer<typeof BlockDatesSchema>;
 
     const blockId = await dateBlocker.blockDates({
       roomId: roomTypeId,

@@ -24,13 +24,33 @@
 //            para todo /admin — estos endpoints los heredan automáticamente.
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { stripeConnectHandler } from '../../lib/payments/stripe-connect';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
 import { logger } from '../../utils/logger';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const CreateOwnerSchema = z.object({
+  fullName: z.string().trim().min(1),
+  email: z.string().trim().email(),
+  phone: z.string().trim().optional(),
+  commissionRate: z.number().min(0).max(1).optional(),
+  payoutFeeRate: z.number().min(0).max(1).optional(),
+  notes: z.string().optional(),
+});
+
+const UpdateOwnerSchema = z.object({
+  fullName: z.string().trim().min(1).optional(),
+  phone: z.string().trim().optional(),
+  commissionRate: z.number().min(0).max(1).optional(),
+  payoutFeeRate: z.number().min(0).max(1).optional(),
+  isActive: z.boolean().optional(),
+  notes: z.string().optional(),
+});
 
 // ─── GET /apartment-owners ───────────────────────────────────────────────────
 
@@ -100,31 +120,10 @@ router.get('/:id', async (req, res, next) => {
 
 // ─── POST /apartment-owners — crea admin + cuenta Stripe Express ─────────────
 
-router.post('/', async (req, res, next) => {
+router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
   try {
-    const { fullName, email, phone, commissionRate, payoutFeeRate, notes } = req.body as {
-      fullName: string;
-      email: string;
-      phone?: string;
-      commissionRate?: number;
-      payoutFeeRate?: number;
-      notes?: string;
-    };
-
-    if (!fullName || !email) {
-      res.status(400).json(ApiResponse.error('Campos requeridos: fullName, email'));
-      return;
-    }
-
-    // Validar tasas si se proporcionan
-    if (commissionRate !== undefined && (commissionRate < 0 || commissionRate > 1)) {
-      res.status(400).json(ApiResponse.error('commissionRate debe estar entre 0 y 1 (ej: 0.05 = 5%)'));
-      return;
-    }
-    if (payoutFeeRate !== undefined && (payoutFeeRate < 0 || payoutFeeRate > 1)) {
-      res.status(400).json(ApiResponse.error('payoutFeeRate debe estar entre 0 y 1 (ej: 0.0099 = 0.99%)'));
-      return;
-    }
+    const { fullName, email, phone, commissionRate, payoutFeeRate, notes } =
+      req.body as z.infer<typeof CreateOwnerSchema>;
 
     // 1. Crear cuenta Express en Stripe
     let stripeAccountId: string | null = null;
@@ -200,26 +199,11 @@ router.post('/', async (req, res, next) => {
 
 // ─── PUT /apartment-owners/:id — actualiza datos ─────────────────────────────
 
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validate(UpdateOwnerSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { fullName, phone, commissionRate, payoutFeeRate, isActive, notes } = req.body as {
-      fullName?: string;
-      phone?: string;
-      commissionRate?: number;
-      payoutFeeRate?: number;
-      isActive?: boolean;
-      notes?: string;
-    };
-
-    if (commissionRate !== undefined && (commissionRate < 0 || commissionRate > 1)) {
-      res.status(400).json(ApiResponse.error('commissionRate debe estar entre 0 y 1'));
-      return;
-    }
-    if (payoutFeeRate !== undefined && (payoutFeeRate < 0 || payoutFeeRate > 1)) {
-      res.status(400).json(ApiResponse.error('payoutFeeRate debe estar entre 0 y 1'));
-      return;
-    }
+    const { fullName, phone, commissionRate, payoutFeeRate, isActive, notes } =
+      req.body as z.infer<typeof UpdateOwnerSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];

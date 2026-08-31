@@ -2,6 +2,7 @@
 // ventana3
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { checkAvailabilityHandler } from './check-availability';
 import { roomAvailabilityHandler } from './room-availability';
 import { checkApartmentAvailabilityHandler } from './apartment-availability';
@@ -10,8 +11,18 @@ import { ApiResponse } from '../../utils/responses';
 import { availabilityService } from '../../services/availability-service';
 import { pricingService } from '../../services/pricing-service';
 import { query } from '../../config/database';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const QuoteSchema = z.object({
+  checkIn: z.string().trim().min(1),
+  checkOut: z.string().trim().min(1),
+  rooms: z.array(z.object({
+    roomId: z.string().trim().min(1),
+    bedsCount: z.number().int().positive(),
+  })).min(1),
+});
 
 router.get('/check', checkAvailabilityHandler);
 
@@ -51,18 +62,9 @@ router.get('/room/:roomId', roomAvailabilityHandler);
  * viejos -- ese numero podia no coincidir con lo que create-booking.ts
  * termina cobrando de verdad.
  */
-router.post('/quote', async (req, res, next) => {
+router.post('/quote', validate(QuoteSchema), async (req, res, next) => {
   try {
-    const { checkIn, checkOut, rooms } = req.body as {
-      checkIn?: string;
-      checkOut?: string;
-      rooms?: Array<{ roomId: string; bedsCount: number }>;
-    };
-
-    if (!checkIn || !checkOut || !rooms || rooms.length === 0) {
-      res.status(400).json(ApiResponse.error('checkIn, checkOut y rooms (con al menos 1 cuarto) son requeridos'));
-      return;
-    }
+    const { checkIn, checkOut, rooms } = req.body as z.infer<typeof QuoteSchema>;
 
     const totalBeds = rooms.reduce((sum, r) => sum + r.bedsCount, 0);
     const pricing = await pricingService.calculateTotalPrice({ checkInDate: checkIn, checkOutDate: checkOut, rooms, totalBeds });

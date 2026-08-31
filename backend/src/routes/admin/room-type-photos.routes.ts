@@ -5,12 +5,63 @@
 
 import { Router } from 'express';
 import multer from 'multer';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/cloudinary/cloudinary-client';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const UploadPhotoSchema = z.object({
+  altText: z.string().optional(),
+});
+
+const PatchPhotoSchema = z.object({
+  isPrimary: z.boolean().optional(),
+  altText: z.string().optional(),
+  displayOrder: z.number().int().optional(),
+}).refine((v) => v.isPrimary !== undefined || v.altText !== undefined || v.displayOrder !== undefined, {
+  message: 'Nada para actualizar',
+});
+
+const UpdateApartmentSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  description: z.string().optional(),
+  neighborhood: z.string().optional(),
+  capacity: z.number().optional(),
+  bedrooms: z.number().nullable().optional(),
+  bathrooms: z.number().nullable().optional(),
+  amenities: z.any().optional(),
+  base_price: z.number().optional(),
+  is_flexible: z.boolean().optional(),
+  external_rating: z.number().nullable().optional(),
+  external_review_count: z.number().nullable().optional(),
+  external_rating_label: z.string().nullable().optional(),
+}).refine((v) => Object.values(v).some((x) => x !== undefined), {
+  message: 'Nada para actualizar',
+});
+
+const CreateReviewSchema = z.object({
+  author_name: z.string().trim().min(1),
+  platform: z.string().optional(),
+  rating: z.number(),
+  comment: z.string().trim().min(1),
+  review_date: z.string().optional(),
+  is_published: z.boolean().optional(),
+});
+
+const UpdateReviewSchema = z.object({
+  author_name: z.string().trim().min(1).optional(),
+  platform: z.string().optional(),
+  rating: z.number().optional(),
+  comment: z.string().trim().min(1).optional(),
+  review_date: z.string().optional(),
+  is_published: z.boolean().optional(),
+}).refine((v) => Object.values(v).some((x) => x !== undefined), {
+  message: 'Nada para actualizar',
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -62,7 +113,7 @@ router.get('/:id/photos', async (req, res, next) => {
 });
 
 /** POST /admin/room-types/:id/photos — sube una foto nueva */
-router.post('/:id/photos', upload.single('photo'), async (req, res, next) => {
+router.post('/:id/photos', upload.single('photo'), validate(UploadPhotoSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!req.file) {
@@ -80,7 +131,7 @@ router.post('/:id/photos', upload.single('photo'), async (req, res, next) => {
       return;
     }
 
-    const { altText } = req.body as { altText?: string };
+    const { altText } = req.body as z.infer<typeof UploadPhotoSchema>;
 
     // Si no hay fotos aún, esta será la primaria
     const { rows: existing } = await query(
@@ -112,19 +163,10 @@ router.post('/:id/photos', upload.single('photo'), async (req, res, next) => {
 });
 
 /** PATCH /admin/room-types/photos/:photoId — marcar primaria, editar alt_text o display_order */
-router.patch('/photos/:photoId', async (req, res, next) => {
+router.patch('/photos/:photoId', validate(PatchPhotoSchema), async (req, res, next) => {
   try {
     const { photoId } = req.params;
-    const { isPrimary, altText, displayOrder } = req.body as {
-      isPrimary?: boolean;
-      altText?: string;
-      displayOrder?: number;
-    };
-
-    if (isPrimary === undefined && altText === undefined && displayOrder === undefined) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar'));
-      return;
-    }
+    const { isPrimary, altText, displayOrder } = req.body as z.infer<typeof PatchPhotoSchema>;
 
     // Si se marca como primaria, quitar la primaria anterior del mismo apartamento
     if (isPrimary === true) {
@@ -233,14 +275,14 @@ router.get('/:id', async (req, res, next) => {
 });
 
 /** PUT /admin/room-types/:id — editar datos del apartamento */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
       name, description, neighborhood, capacity, bedrooms, bathrooms,
       amenities, base_price, is_flexible,
       external_rating, external_review_count, external_rating_label,
-    } = req.body as Record<string, any>;
+    } = req.body as z.infer<typeof UpdateApartmentSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];
@@ -299,13 +341,10 @@ router.get('/:id/reviews', async (req, res, next) => {
 });
 
 /** POST /admin/room-types/:id/reviews */
-router.post('/:id/reviews', async (req, res, next) => {
+router.post('/:id/reviews', validate(CreateReviewSchema), async (req, res, next) => {
   try {
-    const { author_name, platform, rating, comment, review_date, is_published } = req.body as Record<string, any>;
-    if (!author_name || !comment || rating == null) {
-      res.status(400).json(ApiResponse.error('author_name, comment y rating son requeridos'));
-      return;
-    }
+    const { author_name, platform, rating, comment, review_date, is_published } =
+      req.body as z.infer<typeof CreateReviewSchema>;
     const { rows } = await query(
       `INSERT INTO apartment_reviews
          (room_type_id, author_name, platform, rating, comment, review_date, is_published)
@@ -327,10 +366,11 @@ router.post('/:id/reviews', async (req, res, next) => {
 });
 
 /** PUT /admin/room-types/reviews/:reviewId */
-router.put('/reviews/:reviewId', async (req, res, next) => {
+router.put('/reviews/:reviewId', validate(UpdateReviewSchema), async (req, res, next) => {
   try {
     const { reviewId } = req.params;
-    const { author_name, platform, rating, comment, review_date, is_published } = req.body as Record<string, any>;
+    const { author_name, platform, rating, comment, review_date, is_published } =
+      req.body as z.infer<typeof UpdateReviewSchema>;
     const sets: string[] = [];
     const params: any[] = [];
     const p = () => `$${params.length}`;

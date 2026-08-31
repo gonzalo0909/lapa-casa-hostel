@@ -16,16 +16,24 @@
 // Seguridad: authenticateToken + requireRole(['admin']) requeridos.
 
 import { Router, type Request, type Response, type NextFunction } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
 import { logger } from '../../utils/logger';
 import { AppError } from '../../middleware/error-handler';
 import { authenticateToken, requireRole } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
 
-type PhysicalPaymentMethod = 'infinitypay' | 'cash';
+const MarkReceivedSchema = z.object({
+  reservationId: z.string().trim().min(1),
+  method: z.enum(['infinitypay', 'cash']),
+  amount: z.number().positive(),
+  paymentType: z.enum(['deposit', 'remaining']).default('remaining'),
+  notes: z.string().optional(),
+});
 
 /**
  * POST /payments/mark-received-at-desk
@@ -41,40 +49,16 @@ router.post(
   '/',
   authenticateToken,
   requireRole(['admin']),
+  validate(MarkReceivedSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
         reservationId,
         method,
         amount,
-        paymentType = 'remaining',
+        paymentType,
         notes,
-      } = req.body as {
-        reservationId: string;
-        method: PhysicalPaymentMethod;
-        amount: number;
-        paymentType?: 'deposit' | 'remaining';
-        notes?: string;
-      };
-
-      // ─── Validaciones ───────────────────────────────────────────────────────
-
-      if (!reservationId) {
-        res.status(400).json(ApiResponse.error('Campo requerido: reservationId'));
-        return;
-      }
-      if (!method || !['infinitypay', 'cash'].includes(method)) {
-        res.status(400).json(ApiResponse.error("Campo requerido: method ('infinitypay' | 'cash')"));
-        return;
-      }
-      if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-        res.status(400).json(ApiResponse.error('Campo requerido: amount (número positivo en BRL)'));
-        return;
-      }
-      if (!['deposit', 'remaining'].includes(paymentType)) {
-        res.status(400).json(ApiResponse.error("paymentType debe ser 'deposit' o 'remaining'"));
-        return;
-      }
+      } = req.body as z.infer<typeof MarkReceivedSchema>;
 
       const amountNum = parseFloat(Number(amount).toFixed(2));
 

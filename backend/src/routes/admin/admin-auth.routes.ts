@@ -7,11 +7,17 @@
 // /admin/* sigue protegido.
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { verifyPassword, generateToken } from '../../utils/encryption';
 import { authenticateToken } from '../../middleware/auth';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
+
+const LoginSchema = z.object({
+  password: z.string().min(1),
+});
 
 // M-03: prefijo para tokens revocados en Redis (TTL = expiración del token)
 const REVOKED_PREFIX = 'revoked_token:';
@@ -31,14 +37,9 @@ function durationToMs(duration: string, fallbackMs: number): number {
 
 const router = Router();
 
-router.post('/', async (req, res, next) => {
+router.post('/', validate(LoginSchema), async (req, res, next) => {
   try {
-    const { password } = req.body as { password?: string };
-
-    if (!password || typeof password !== 'string') {
-      res.status(400).json(ApiResponse.error('password es requerido'));
-      return;
-    }
+    const { password } = req.body as z.infer<typeof LoginSchema>;
 
     const passwordHash = process.env.ADMIN_PASSWORD_HASH;
     if (!passwordHash) {

@@ -8,12 +8,30 @@
 
 import { Router } from 'express';
 import multer from 'multer';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { uploadGuestPhoto, deleteGuestPhoto } from '../../lib/cloudinary/cloudinary-client';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const UploadGuestPhotoSchema = z.object({
+  guestName: z.string().optional(),
+  guestCountry: z.string().optional(),
+  caption: z.string().optional(),
+});
+
+const PatchGuestPhotoSchema = z.object({
+  isPublished: z.boolean().optional(),
+  guestName: z.string().optional(),
+  guestCountry: z.string().optional(),
+  caption: z.string().optional(),
+  displayOrder: z.number().int().optional(),
+}).refine((v) => Object.values(v).some((x) => x !== undefined), {
+  message: 'Nada para actualizar',
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -52,18 +70,14 @@ router.get('/', async (_req, res, next) => {
 });
 
 /** POST /admin/photos — sube una foto nueva (multipart/form-data, campo "photo") */
-router.post('/', upload.single('photo'), async (req, res, next) => {
+router.post('/', upload.single('photo'), validate(UploadGuestPhotoSchema), async (req, res, next) => {
   try {
     if (!req.file) {
       res.status(400).json(ApiResponse.error('Falta el archivo de imagen (campo "photo")'));
       return;
     }
 
-    const { guestName, guestCountry, caption } = req.body as {
-      guestName?: string;
-      guestCountry?: string;
-      caption?: string;
-    };
+    const { guestName, guestCountry, caption } = req.body as z.infer<typeof UploadGuestPhotoSchema>;
 
     const uploaded = await uploadGuestPhoto(req.file.buffer);
 
@@ -87,16 +101,11 @@ router.post('/', upload.single('photo'), async (req, res, next) => {
 });
 
 /** PATCH /admin/photos/:id — publicar/despublicar, editar datos o reordenar */
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', validate(PatchGuestPhotoSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { isPublished, guestName, guestCountry, caption, displayOrder } = req.body as {
-      isPublished?: boolean;
-      guestName?: string;
-      guestCountry?: string;
-      caption?: string;
-      displayOrder?: number;
-    };
+    const { isPublished, guestName, guestCountry, caption, displayOrder } =
+      req.body as z.infer<typeof PatchGuestPhotoSchema>;
 
     const sets: string[] = [];
     const params: any[] = [];
@@ -105,11 +114,6 @@ router.patch('/:id', async (req, res, next) => {
     if (guestCountry !== undefined) { params.push(guestCountry || null); sets.push(`guest_country = $${params.length}`); }
     if (caption !== undefined) { params.push(caption || null); sets.push(`caption = $${params.length}`); }
     if (displayOrder !== undefined) { params.push(displayOrder); sets.push(`display_order = $${params.length}`); }
-
-    if (sets.length === 0) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar'));
-      return;
-    }
 
     params.push(id);
     const { rows } = await query<GuestPhotoRow>(

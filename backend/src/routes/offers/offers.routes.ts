@@ -9,28 +9,27 @@
 //   400: { valid: false, message }
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { query } from '../../config/database';
 import { ApiResponse } from '../../utils/responses';
+import { validate } from '../../middleware/validation';
 
 const router = Router();
+
+const ValidateOfferSchema = z.object({
+  code: z.string().trim().min(1),
+  apartmentId: z.string().trim().optional(),
+  checkIn: z.string().trim().optional(),
+});
 
 /**
  * POST /offers/validate
  * Valida un código de oferta y devuelve el porcentaje de descuento si aplica.
  * Público — llamado desde el motor de reservas de apartamentos.
  */
-router.post('/validate', async (req, res, next) => {
+router.post('/validate', validate(ValidateOfferSchema), async (req, res, next) => {
   try {
-    const { code, apartmentId, checkIn } = req.body as {
-      code?: string;
-      apartmentId?: string;
-      checkIn?: string;
-    };
-
-    if (!code || typeof code !== 'string') {
-      res.status(400).json(ApiResponse.error('Código de descuento requerido'));
-      return;
-    }
+    const { code, apartmentId, checkIn } = req.body as z.infer<typeof ValidateOfferSchema>;
 
     const today = checkIn ?? new Date().toISOString().slice(0, 10);
 
