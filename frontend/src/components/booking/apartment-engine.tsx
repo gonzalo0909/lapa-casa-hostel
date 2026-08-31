@@ -15,12 +15,13 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff, CheckCircle2, Mail } from 'lucide-react';
 import styles from './apartment-engine.module.css';
 import { Modal, ModalBody } from '../ui/modal';
 import { PaymentCountdown } from '../payment/payment-countdown';
-import { PaymentProcessor } from '../payment/payment-processor';
+import { LoadingSpinner } from '../ui/loading-spinner';
 import { availabilityAPI, bookingAPI, offersAPI, handleAPIError } from '@/lib/api';
 import { ApartmentDateStep } from './apartment-date-step';
 import { ApartmentSelectorStep } from './apartment-selector-step';
@@ -37,6 +38,13 @@ import type {
   AppliedCoupon,
 } from './apartment-engine.types';
 import { EMPTY_FORM } from './apartment-engine.types';
+
+// Carga @stripe/stripe-js + @stripe/react-stripe-js (SDK pesado) recién al
+// llegar al paso 4 (pago) en vez de en el bundle inicial del wizard.
+const PaymentProcessor = dynamic(
+  () => import('../payment/payment-processor').then(m => m.PaymentProcessor),
+  { loading: () => <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><LoadingSpinner size="md" /></div> }
+);
 
 export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' }) => {
   const t = useTranslations('apartments');

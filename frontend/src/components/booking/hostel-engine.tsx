@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
@@ -18,10 +19,14 @@ import { HostelCalendar }      from './hostel-calendar';
 import { HostelRoomSelector }  from './hostel-room-selector';
 import { HostelGuestForm }     from './hostel-guest-form';
 import { HostelInfoBanner }    from './hostel-info-banner';
-import { HostelStep4Summary }  from './hostel-step4-summary';
-import { HostelSuccessPanel }  from './hostel-success-panel';
-import { HostelExpiredPanel }  from './hostel-expired-panel';
-import { HostelGroupPanel }    from './hostel-group-panel';
+
+// Solo se ven después de que el usuario avanza el wizard (step 4, o tras
+// confirmar/expirar/generar un link grupal) -- nunca en el primer render,
+// así que se cargan en su propio chunk en vez de ir en el bundle inicial.
+const HostelStep4Summary = dynamic(() => import('./hostel-step4-summary').then(m => m.HostelStep4Summary));
+const HostelSuccessPanel = dynamic(() => import('./hostel-success-panel').then(m => m.HostelSuccessPanel));
+const HostelExpiredPanel = dynamic(() => import('./hostel-expired-panel').then(m => m.HostelExpiredPanel));
+const HostelGroupPanel   = dynamic(() => import('./hostel-group-panel').then(m => m.HostelGroupPanel));
 
 // ─── Props ────────────────────────────────────────────────
 interface HostelEngineProps { locale?: string; }
