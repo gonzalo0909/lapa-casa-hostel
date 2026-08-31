@@ -33,7 +33,7 @@ interface HostelEngineProps { locale?: string; }
 
 // ─── Component ────────────────────────────────────────────
 export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
-  const initLang: Lang = (['pt','es','en','fr','de'] as Lang[]).includes(locale as Lang) ? locale as Lang : 'pt';
+  const initLang: Lang = (['pt','es','en','fr','de','it'] as Lang[]).includes(locale as Lang) ? locale as Lang : 'pt';
   const [lang, setLang]       = useState<Lang>(initLang);
   const t = T[lang];
   const currency = useCurrency();
