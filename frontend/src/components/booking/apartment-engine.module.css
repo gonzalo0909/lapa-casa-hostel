@@ -387,8 +387,6 @@
 .cancelRows { display: flex; flex-direction: column; gap: .55rem; }
 .cancelRow { display: flex; align-items: flex-start; gap: .75rem; font-size: .82rem; color: var(--fg); }
 .cancelBadge { display: inline-flex; align-items: center; gap: .25rem; padding: .2rem .6rem; border-radius: 999px; font-size: .7rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.cancelBadgeGreen { background: var(--success-bg); color: var(--success-fg); }
-.cancelBadgeAmber { background: var(--warn-bg); color: var(--warn-fg); }
 .cancelBadgeRed { background: #FEE2E2; color: #991B1B; }
 @media (prefers-color-scheme: dark) { :global(:root:not([data-theme='light'])) .cancelBadgeRed { background: #3B1111; color: #FCA5A5; } }
 :global([data-theme='dark']) .cancelBadgeRed { background: #3B1111; color: #FCA5A5; }

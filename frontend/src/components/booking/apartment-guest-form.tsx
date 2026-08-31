@@ -769,16 +769,6 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             <div className={styles.cancelPolicyBody}>
               <div className={styles.cancelRows}>
                 <div className={styles.cancelRow}>
-                  <span className={`${styles.cancelBadge} ${styles.cancelBadgeGreen}`}>
-                    <Check size={12} /> {t('cancelFullBadge')}
-                  </span>
-                  <span>{t.rich('cancelFull', { b: (chunks) => <strong>{chunks}</strong> })}</span>
-                </div>
-                <div className={styles.cancelRow}>
-                  <span className={`${styles.cancelBadge} ${styles.cancelBadgeAmber}`}>{t('cancelPartialBadge')}</span>
-                  <span>{t.rich('cancelPartial', { b: (chunks) => <strong>{chunks}</strong> })}</span>
-                </div>
-                <div className={styles.cancelRow}>
                   <span className={`${styles.cancelBadge} ${styles.cancelBadgeRed}`}>
                     <X size={12} /> {t('cancelNoneBadge')}
                   </span>
