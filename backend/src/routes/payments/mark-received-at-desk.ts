@@ -15,7 +15,7 @@
 //
 // Seguridad: authenticateToken + requireRole(['admin']) requeridos.
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { query } from '../../config/database';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';

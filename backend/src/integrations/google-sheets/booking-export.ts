@@ -75,7 +75,7 @@ export async function deleteBookingFromSheet(reservationId: string): Promise<voi
   }
 
   const rowIndex = await sheetsClient.findRowByBookingId(reservationId);
-  if (rowIndex) await sheetsClient.deleteRow(rowIndex);
+  if (rowIndex) {await sheetsClient.deleteRow(rowIndex);}
 }
 
 /** Exporta todas las reservas activas (confirmed/pending_payment/completed) -- usado por el sync manual desde el panel admin. */

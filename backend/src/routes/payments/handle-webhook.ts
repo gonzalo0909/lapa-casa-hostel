@@ -9,7 +9,7 @@
 // /payments/webhook/mercadopago (misma archivo, ver payments.routes.ts).
 // Se elimina esa rama: este handler procesa exclusivamente Stripe.
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { paymentService } from '../../services/payment-service';
 import { stripeHandler } from '../../lib/payments/stripe-handler';
 import { logger } from '../../utils/logger';

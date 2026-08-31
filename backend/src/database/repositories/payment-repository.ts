@@ -13,8 +13,8 @@ import type { Payment, PaymentProvider, PaymentStatus } from '../../types/databa
 type LegacyPaymentMethod = 'card' | 'credit_card' | 'debit_card' | 'pix' | string;
 
 function resolveProvider(paymentMethod?: LegacyPaymentMethod): 'stripe' | 'mercadopago' {
-  if (!paymentMethod) return 'stripe';
-  if (paymentMethod === 'pix') return 'mercadopago';
+  if (!paymentMethod) {return 'stripe';}
+  if (paymentMethod === 'pix') {return 'mercadopago';}
   return 'stripe';
 }
 
@@ -54,7 +54,7 @@ export class PaymentRepository {
       );
       guestId = rows[0]?.guest_id ?? null;
     }
-    if (!guestId) throw new Error('Guest ID not found for reservation');
+    if (!guestId) {throw new Error('Guest ID not found for reservation');}
 
     const { rows } = await query<Payment>(
       `INSERT INTO payments (
@@ -105,7 +105,7 @@ export class PaymentRepository {
       `UPDATE payments SET status = 'succeeded', paid_at = now(), updated_at = now() WHERE id = $1 RETURNING *`,
       [id]
     );
-    if (!rows[0]) throw new Error('Payment not found');
+    if (!rows[0]) {throw new Error('Payment not found');}
     return rows[0];
   }
 
@@ -116,7 +116,7 @@ export class PaymentRepository {
        WHERE id = $2 RETURNING *`,
       [failureReason ?? null, id]
     );
-    if (!rows[0]) throw new Error('Payment not found');
+    if (!rows[0]) {throw new Error('Payment not found');}
     return rows[0];
   }
 
@@ -127,7 +127,7 @@ export class PaymentRepository {
        WHERE id = $2 RETURNING *`,
       [refundAmount, id]
     );
-    if (!rows[0]) throw new Error('Payment not found');
+    if (!rows[0]) {throw new Error('Payment not found');}
     return rows[0];
   }
 

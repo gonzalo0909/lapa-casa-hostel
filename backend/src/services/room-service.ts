@@ -151,14 +151,14 @@ export class RoomService {
   async getRoom(roomId: string): Promise<(RoomSummary & {
     beds: Array<{ id: string; bedCode: string; isActive: boolean }>;
   }) | null> {
-    if (!UUID_RE.test(roomId)) return null;
+    if (!UUID_RE.test(roomId)) {return null;}
 
     const { rows } = await query<RoomTypeRow>(
       `SELECT ${ROOM_TYPE_COLUMNS}
        FROM room_types WHERE id = $1::uuid`,
       [roomId]
     );
-    if (rows.length === 0) return null;
+    if (rows.length === 0) {return null;}
 
     const { rows: bedRows } = await query<{ id: string; bed_code: string; is_active: boolean }>(
       `SELECT id, bed_code, is_active FROM beds WHERE room_type_id = $1::uuid ORDER BY bed_code`,
@@ -187,7 +187,7 @@ export class RoomService {
     const { rows } = await query<{ id: string }>(
       `SELECT id FROM room_types WHERE is_flexible = true LIMIT 1`
     );
-    if (rows.length === 0) return [];
+    if (rows.length === 0) {return [];}
     const flexibleRoomId = rows[0].id;
 
     const today = new Date();
@@ -222,7 +222,7 @@ export class RoomService {
        RETURNING ${ROOM_TYPE_COLUMNS}`,
       params
     );
-    if (rows.length === 0) return null;
+    if (rows.length === 0) {return null;}
     return mergeContent(rows[0]);
   }
 }

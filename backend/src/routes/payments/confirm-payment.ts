@@ -2,7 +2,7 @@
 // ventana3
 // ventana4: el email de pago recibido se centralizó en PaymentService.handlePaymentSucceeded() (ver payment-service.ts) -- ya no se dispara desde acá, para no duplicar con el webhook real
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
 import { logger } from '../../utils/logger';
@@ -42,7 +42,7 @@ export const confirmPaymentHandler = async (
     const confirmedPayment = await paymentService.confirmPaymentById(paymentId);
 
     const booking = await bookingService.getBooking(payment.reservation_id);
-    if (!booking) throw new Error('Reserva no encontrada para el pago confirmado');
+    if (!booking) {throw new Error('Reserva no encontrada para el pago confirmado');}
 
     const allPayments = await paymentService.getPaymentsByReservation(payment.reservation_id);
     // El recargo por tarjeta (ver process-deposit.ts) no es progreso real

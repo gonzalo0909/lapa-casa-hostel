@@ -14,7 +14,7 @@
 // Resend/Stripe/MercadoPago en el resto del repo, para no romper el
 // server si Sheets todavia no esta configurado.
 
-import { google, sheets_v4 } from 'googleapis';
+import { google, type sheets_v4 } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import { logger } from '../../utils/logger';
 
@@ -106,17 +106,17 @@ export class SheetsClient {
   }
 
   private requireClient(): sheets_v4.Sheets {
-    if (!this.sheets) throw new Error('Google Sheets no configurado');
+    if (!this.sheets) {throw new Error('Google Sheets no configurado');}
     return this.sheets;
   }
 
   async initializeSheet(): Promise<void> {
-    if (!this.sheets) return;
+    if (!this.sheets) {return;}
     const existing = await this.sheets.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       range: `${this.sheetName}!A1:N1`
     });
-    if (existing.data.values && existing.data.values.length > 0) return;
+    if (existing.data.values && existing.data.values.length > 0) {return;}
 
     await this.sheets.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
@@ -168,9 +168,9 @@ export class SheetsClient {
       range: `${this.sheetName}!A:A`
     });
     const rows = response.data.values;
-    if (!rows) return null;
+    if (!rows) {return null;}
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i][0] === bookingId) return i + 1;
+      if (rows[i][0] === bookingId) {return i + 1;}
     }
     return null;
   }
@@ -197,7 +197,7 @@ export class SheetsClient {
       range: `${this.sheetName}!A2:N`
     });
     const rows = response.data.values;
-    if (!rows) return [];
+    if (!rows) {return [];}
     return rows.map(valuesToRow);
   }
 

@@ -135,8 +135,8 @@ async function getReservationChannelCode(reservationId: string): Promise<Channel
 /** Resolucion manual desde el panel admin (routes/admin/conflicts.ts). */
 async function resolveConflict(conflictId: string, action: ConflictResolutionAction, reason: string): Promise<BookingConflictRow> {
   const conflict = await getConflictById(conflictId);
-  if (!conflict) throw new Error('Conflicto no encontrado');
-  if (conflict.status !== 'open') throw new Error(`El conflicto ya fue resuelto (${conflict.status})`);
+  if (!conflict) {throw new Error('Conflicto no encontrado');}
+  if (conflict.status !== 'open') {throw new Error(`El conflicto ya fue resuelto (${conflict.status})`);}
 
   const bExists = Boolean(conflict.reservation_id_b);
   let notes = reason;
@@ -164,7 +164,7 @@ async function resolveConflict(conflictId: string, action: ConflictResolutionAct
   } else if (action === 'keep_ota') {
     if (conflict.channel_a === 'direct') {
       await cancelReservation(conflict.reservation_id_a, `conflict_resolved:${action}`);
-      if (!bExists) notes += ' (el intento OTA nunca se persistió — requiere recrearse manualmente si aún hay disponibilidad)';
+      if (!bExists) {notes += ' (el intento OTA nunca se persistió — requiere recrearse manualmente si aún hay disponibilidad)';}
     } else if (bExists && conflict.channel_b === 'direct') {
       await cancelReservation(conflict.reservation_id_b!, `conflict_resolved:${action}`);
     } else {
@@ -181,13 +181,13 @@ async function resolveConflict(conflictId: string, action: ConflictResolutionAct
 
 /** Resolucion automatica por prioridad de canal (CHANNEL_PRIORITY, config/channels.ts). Usada por el worker programado. */
 async function autoResolveByPriority(conflict: BookingConflictRow): Promise<BookingConflictRow> {
-  if (conflict.status !== 'open') return conflict;
+  if (conflict.status !== 'open') {return conflict;}
 
   const aWins = priorityOf(conflict.channel_a) >= priorityOf(conflict.channel_b);
   let notes: string;
 
   if (aWins) {
-    if (conflict.reservation_id_b) await cancelReservation(conflict.reservation_id_b, 'conflict_auto_resolved:keep_a');
+    if (conflict.reservation_id_b) {await cancelReservation(conflict.reservation_id_b, 'conflict_auto_resolved:keep_a');}
     notes = `Resuelto automáticamente por prioridad de canal: se mantiene "${conflict.channel_a}"`;
   } else {
     await cancelReservation(conflict.reservation_id_a, 'conflict_auto_resolved:keep_b');
@@ -229,7 +229,7 @@ async function detectConflicts(): Promise<{ newlyDetected: number; autoResolved:
        WHERE (reservation_id_a = $1 AND reservation_id_b = $2) OR (reservation_id_a = $2 AND reservation_id_b = $1)`,
       [overlap.id_a, overlap.id_b]
     );
-    if (existing.length > 0) continue;
+    if (existing.length > 0) {continue;}
 
     const [channelA, channelB] = await Promise.all([
       getReservationChannelCode(overlap.id_a),

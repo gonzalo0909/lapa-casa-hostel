@@ -141,7 +141,7 @@ function scheduleDynamicPricingBot(): void {
     const now = new Date();
     // Próximas 02:00 UTC
     const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 2, 0, 0, 0));
-    if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+    if (next <= now) {next.setUTCDate(next.getUTCDate() + 1);}
     const msUntilNext = next.getTime() - now.getTime();
     logger.info(`DynamicPricingBot: próxima ejecución en ${Math.round(msUntilNext / 60000)} min (${next.toISOString()})`);
     setTimeout(() => {

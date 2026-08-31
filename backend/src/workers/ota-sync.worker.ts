@@ -10,7 +10,7 @@
 // dejado abierto durante el import no espere a que un admin lo revise
 // manualmente si la prioridad ya lo resuelve.
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
 import { syncICalFeeds } from '../services/ical-service';
 import { conflictService } from '../services/conflict-service';

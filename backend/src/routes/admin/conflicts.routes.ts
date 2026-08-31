@@ -9,7 +9,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { conflictService, ConflictStatus } from '../../services/conflict-service';
+import { conflictService, type ConflictStatus } from '../../services/conflict-service';
 import { ApiResponse } from '../../utils/responses';
 
 const router = Router();

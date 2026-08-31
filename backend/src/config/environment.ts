@@ -10,7 +10,7 @@ const isProd = process.env.NODE_ENV === 'production';
 function requireSecret(name: string, fallback?: string): string {
   const val = process.env[name] || fallback;
   if (!val) {
-    if (isProd) throw new Error(`[ENV] ${name} es obligatorio en producción`);
+    if (isProd) {throw new Error(`[ENV] ${name} es obligatorio en producción`);}
     console.warn(`[ENV] ${name} no configurado — usando valor de desarrollo`);
     return '';
   }

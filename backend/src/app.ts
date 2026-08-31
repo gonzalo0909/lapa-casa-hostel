@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/app.ts
 
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { type Application, type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';

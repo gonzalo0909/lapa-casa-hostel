@@ -3,7 +3,7 @@
 // 0021: agrega release-deposit y mark-received-at-desk (Stripe Connect + InfinityPay)
 
 import { Router } from 'express';
-import express from 'express';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { z } from 'zod';
 import { validate } from '../../middleware/validation';
 import { createPaymentIntentHandler } from './create-payment-intent';
@@ -213,7 +213,7 @@ router.post(
 // POST /payments/webhook/mercadopago
 router.post(
   '/webhook/mercadopago',
-  async (req, res, next) => {
+  async (req, res) => {
     try {
       const secret = process.env.MP_WEBHOOK_SECRET;
       if (!secret) {
@@ -243,12 +243,11 @@ router.post(
 
       const dataId = (req.body as any)?.data?.id ?? '';
       const signedPayload = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-      const expectedHmac = require('crypto')
-        .createHmac('sha256', secret)
+      const expectedHmac = createHmac('sha256', secret)
         .update(signedPayload)
         .digest('hex');
 
-      const sigOk = require('crypto').timingSafeEqual(
+      const sigOk = timingSafeEqual(
         Buffer.from(receivedHmac),
         Buffer.from(expectedHmac),
       );

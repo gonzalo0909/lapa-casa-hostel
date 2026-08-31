@@ -46,7 +46,7 @@ export class GuestRepository {
     const entries = Object.entries(data).filter(([, v]) => v !== undefined);
     if (entries.length === 0) {
       const { rows } = await query<Guest>(`SELECT * FROM guests WHERE id = $1`, [id]);
-      if (!rows[0]) throw new Error('Guest not found');
+      if (!rows[0]) {throw new Error('Guest not found');}
       return rows[0];
     }
     const sets = entries.map(([key], i) => `${key} = $${i + 1}`);
@@ -56,7 +56,7 @@ export class GuestRepository {
       `UPDATE guests SET ${sets.join(', ')}, updated_at = now() WHERE id = $${values.length} RETURNING *`,
       values
     );
-    if (!rows[0]) throw new Error('Guest not found');
+    if (!rows[0]) {throw new Error('Guest not found');}
     return rows[0];
   }
 }

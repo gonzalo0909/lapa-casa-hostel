@@ -36,7 +36,7 @@ export class AvailabilityService {
   ): Promise<BedAvailabilityRow[]> {
     const cacheKey = `availability:${checkIn}:${checkOut}:${gender}`;
     const cached = await redisClient.get<BedAvailabilityRow[]>(cacheKey).catch(() => null);
-    if (cached) return cached;
+    if (cached) {return cached;}
 
     const { rows } = await query(
       `SELECT * FROM check_availability($1::date, $2::date, $3::bed_gender)`,

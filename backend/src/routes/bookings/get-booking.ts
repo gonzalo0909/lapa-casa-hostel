@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/routes/bookings/get-booking.ts
 // ventana3
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { bookingService } from '../../services/booking-service';
 import { paymentService } from '../../services/payment-service';
 import { query } from '../../config/database';
@@ -55,7 +55,7 @@ export const getBookingHandler = async (
     // Política de cancelación desde SQL
     let refundAmount = 0;
     let refundPercentage = 0;
-    let canCancel = booking.status !== 'cancelled' && booking.status !== 'completed' && checkInDate >= now;
+    const canCancel = booking.status !== 'cancelled' && booking.status !== 'completed' && checkInDate >= now;
     if (canCancel && paidAmount > 0) {
       const refundResult = await query<{ refund_amount: string }>(
         `SELECT calculate_cancellation_refund($1, $2::date, NOW()) AS refund_amount`,

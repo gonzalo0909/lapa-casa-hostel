@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/config/database.ts
 
-import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from 'pg';
 import { logger } from '../utils/logger';
 
 if (!process.env.DATABASE_URL) {

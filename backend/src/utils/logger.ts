@@ -14,7 +14,7 @@ const MIN_LEVEL: LogLevel =
   (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
 
 function log(level: LogLevel, message: string, meta?: any): void {
-  if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[MIN_LEVEL]) return;
+  if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[MIN_LEVEL]) {return;}
 
   const entry: Record<string, any> = {
     timestamp: new Date().toISOString(),

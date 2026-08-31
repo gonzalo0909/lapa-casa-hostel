@@ -40,8 +40,13 @@ export class NotificationService {
   private readonly WHATSAPP_ENABLED = process.env.WHATSAPP_ENABLED === 'true';
 
   private getWhatsAppClient() {
-    if (!this.WHATSAPP_ENABLED) return null;
+    if (!this.WHATSAPP_ENABLED) {return null;}
     try {
+      // require() intencional, no import estático: carga el cliente de
+      // WhatsApp de forma perezosa y con fallback si el módulo no está
+      // disponible/configurado -- un import de nivel superior se evaluaría
+      // siempre al arrancar el proceso, sin la protección del try/catch.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { WhatsAppClient } = require('../integrations/whatsapp/whatsapp-client');
       return new WhatsAppClient();
     } catch {
@@ -61,7 +66,7 @@ export class NotificationService {
 
       const message = this.buildBookingMessage(data);
       const client = this.getWhatsAppClient();
-      if (!client) return { success: false, reason: 'WhatsApp not configured' };
+      if (!client) {return { success: false, reason: 'WhatsApp not configured' };}
 
       const messageId = await client.sendTextMessage(this.formatPhoneNumber(data.phone), message);
 
@@ -83,7 +88,7 @@ export class NotificationService {
 
       const message = this.buildPaymentReminderMessage(data);
       const client = this.getWhatsAppClient();
-      if (!client) return { success: false, reason: 'WhatsApp not configured' };
+      if (!client) {return { success: false, reason: 'WhatsApp not configured' };}
 
       const messageId = await client.sendTextMessage(this.formatPhoneNumber(data.phone), message);
 
@@ -105,7 +110,7 @@ export class NotificationService {
 
       const message = this.buildCheckInMessage(data);
       const client = this.getWhatsAppClient();
-      if (!client) return { success: false, reason: 'WhatsApp not configured' };
+      if (!client) {return { success: false, reason: 'WhatsApp not configured' };}
 
       const messageId = await client.sendTextMessage(this.formatPhoneNumber(data.phone), message);
 
@@ -138,7 +143,7 @@ export class NotificationService {
       };
 
       const client = this.getWhatsAppClient();
-      if (!client) return { success: false, reason: 'WhatsApp not configured' };
+      if (!client) {return { success: false, reason: 'WhatsApp not configured' };}
 
       const messageId = await client.sendTextMessage(this.formatPhoneNumber(phone), messages[language]);
 
@@ -186,7 +191,7 @@ export class NotificationService {
     }
 
     const client = this.getWhatsAppClient();
-    if (!client) throw new Error('WhatsApp not configured');
+    if (!client) {throw new Error('WhatsApp not configured');}
 
     const messageId = await client.sendTextMessage(this.formatPhoneNumber(phone), message);
     logger.info('Mensaje personalizado enviado', { phone, messageId });
@@ -264,7 +269,7 @@ export class NotificationService {
 
   private formatPhoneNumber(phone: string): string {
     let cleaned = phone.replace(/\D/g, '');
-    if (!cleaned.startsWith('55')) cleaned = '55' + cleaned;
+    if (!cleaned.startsWith('55')) {cleaned = '55' + cleaned;}
     return '+' + cleaned;
   }
 

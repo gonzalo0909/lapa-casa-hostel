@@ -46,13 +46,13 @@ interface ResponseMeta {
 export const ApiResponse = {
   success: <T>(data: T, message?: string): ApiResponse<T> => {
     const response: ApiResponse<T> = { success: true, data, timestamp: new Date().toISOString() };
-    if (message) response.message = message;
+    if (message) {response.message = message;}
     return response;
   },
   error: (message: string, details?: any, code?: string): ApiResponse => {
     const response: ApiResponse = { success: false, error: message, timestamp: new Date().toISOString() };
-    if (details !== undefined) response.data = details;
-    if (code) response.code = code;
+    if (details !== undefined) {response.data = details;}
+    if (code) {response.code = code;}
     return response;
   }
 };

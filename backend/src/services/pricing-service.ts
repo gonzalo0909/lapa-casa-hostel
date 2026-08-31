@@ -129,7 +129,7 @@ export class PricingService {
     };
   }
 
-  async getRateForDates(roomTypeId: string, checkInDate: string, checkOutDate: string): Promise<number> {
+  async getRateForDates(roomTypeId: string, checkInDate: string, _checkOutDate: string): Promise<number> {
     const { rows } = await query<{ base_price: string }>(
       `SELECT base_price FROM room_types WHERE id = $1`,
       [roomTypeId]

@@ -17,7 +17,7 @@
 import { query } from '../config/database';
 import { emailService } from '../services/email-service';
 import { logger } from '../utils/logger';
-import { getSystemHealth, ServiceStatus } from './health';
+import { getSystemHealth, type ServiceStatus } from './health';
 
 interface CarnivalDateEntry {
   year: number;

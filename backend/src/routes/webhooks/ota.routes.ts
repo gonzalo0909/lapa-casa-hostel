@@ -28,7 +28,7 @@
 //   3. Firma HMAC-SHA256 (X-Signature, hex) sobre el body crudo
 //      (req.rawBody, ver app.ts) con el secret del canal
 
-import { Router, Request, Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { z, ZodError } from 'zod';
 import { env } from '../../config/environment';
 import { rateLimiter } from '../../middleware/rate-limiter';

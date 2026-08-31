@@ -97,7 +97,7 @@ export class StripeHandler {
 
   // Verifica que el PaymentIntent exista y esté completado en Stripe
   async verifyPayment(paymentIntentId: string): Promise<boolean> {
-    if (!this.stripe) return true; // modo test: acepta todo
+    if (!this.stripe) {return true;} // modo test: acepta todo
     try {
       const intent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
       return intent.status === 'succeeded';

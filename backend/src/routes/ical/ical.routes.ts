@@ -10,7 +10,7 @@
 // en el schema real -- los feeds configurados viven en `system_config`
 // (ver services/ical-service.ts).
 
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import { z } from 'zod';
 import { authenticateToken, requireRole } from '../../middleware/auth';
 import { rateLimiter } from '../../middleware/rate-limiter';
@@ -31,7 +31,7 @@ const UpdateFeedSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-function sendCalendar(res: import('express').Response, filename: string, calendar: string): void {
+function sendCalendar(res: Response, filename: string, calendar: string): void {
   res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Cache-Control', 'public, max-age=3600');

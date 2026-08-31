@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/middleware/error-handler.ts
 // ventana3
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { logger } from '@/utils/logger';
 import { ApiResponse } from '@/utils/responses';
 

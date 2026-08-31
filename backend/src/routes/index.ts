@@ -10,7 +10,7 @@
  * @requires express
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { bookingsRouter } from './bookings/bookings.routes';
 import { photosRouter } from './photos/photos.routes';
 import { availabilityRouter } from './availability/availability.routes';

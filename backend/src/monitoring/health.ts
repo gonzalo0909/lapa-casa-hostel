@@ -107,10 +107,10 @@ function checkEmail(): ServiceHealth {
 
 function overallStatus(services: SystemHealth['services']): SystemHealth['status'] {
   const critical = [services.database];
-  if (critical.some((s) => s.status === 'down')) return 'unhealthy';
+  if (critical.some((s) => s.status === 'down')) {return 'unhealthy';}
 
   const all = Object.values(services);
-  if (all.some((s) => s.status === 'down' || s.status === 'not_configured')) return 'degraded';
+  if (all.some((s) => s.status === 'down' || s.status === 'not_configured')) {return 'degraded';}
   return 'healthy';
 }
 

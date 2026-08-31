@@ -12,7 +12,7 @@
 
 import { query } from '../config/database';
 import bookingRepo from '../database/repositories/booking-repository';
-import { emailService, BookingWithGuest } from './email-service';
+import { emailService, type BookingWithGuest } from './email-service';
 import { emailNotificationsQueue } from '../queues/email-notifications.queue';
 import { logger } from '../utils/logger';
 

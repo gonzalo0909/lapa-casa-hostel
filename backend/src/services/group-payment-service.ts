@@ -16,8 +16,8 @@
 //   alta/carnaval → cada cama paga el precio real de su habitación
 
 import crypto from 'crypto';
-import { PoolClient } from 'pg';
-import { pool, withTransaction, query } from '../config/database';
+import type { PoolClient } from 'pg';
+import { withTransaction, query } from '../config/database';
 import { GuestRepository } from '../database/repositories/guest-repository';
 import { acquireLock } from '../database/lock-middleware';
 import { enqueueSheetsExport } from '../queues/sheets-export.queue';
@@ -142,8 +142,8 @@ async function getSeasonType(checkIn: string): Promise<string> {
 }
 
 function resolvePricingStrategy(seasonType: string): 'min' | 'weighted_avg' | 'per_room' {
-  if (seasonType === 'baja') return 'min';
-  if (seasonType === 'media') return 'weighted_avg';
+  if (seasonType === 'baja') {return 'min';}
+  if (seasonType === 'media') {return 'weighted_avg';}
   return 'per_room';
 }
 
@@ -173,7 +173,7 @@ async function allocateGroupBeds(
   let remaining = totalBeds;
 
   for (const room of rooms) {
-    if (remaining <= 0) break;
+    if (remaining <= 0) {break;}
 
     if (room.is_flexible && gender !== 'female') {
       const { rows: statusRows } = await client.query<{ effective_gender: string }>(
@@ -182,7 +182,7 @@ async function allocateGroupBeds(
         [room.id, checkIn]
       );
       const effectiveGender = statusRows[0]?.effective_gender ?? 'female';
-      if (effectiveGender === 'female') continue;
+      if (effectiveGender === 'female') {continue;}
     }
 
     const { rows: beds } = await client.query<{ bed_id: string }>(
@@ -196,7 +196,7 @@ async function allocateGroupBeds(
       [checkIn, checkOut, gender, room.id, remaining]
     );
 
-    if (beds.length === 0) continue;
+    if (beds.length === 0) {continue;}
 
     const bedIds = beds.map((b) => b.bed_id);
     const basePricePerBed = parseFloat(room.base_price);
@@ -273,7 +273,7 @@ export class GroupPaymentService {
       // input.totalBeds es el tamaño total del grupo (incluyendo al titular).
       // El titular reserva su propia cama directamente en el motor del hostel,
       // por lo que la sesión grupal solo cubre a los N-1 invitados restantes.
-      let rawAllocations = await allocateGroupBeds(
+      const rawAllocations = await allocateGroupBeds(
         client, input.checkIn, input.checkOut, input.totalBeds - 1, input.guestGender
       );
 
@@ -304,7 +304,7 @@ export class GroupPaymentService {
       });
 
       const { rows: chRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
-      if (chRows.length === 0) throw new Error('Canal direct no encontrado');
+      if (chRows.length === 0) {throw new Error('Canal direct no encontrado');}
       const channelId = chRows[0].id;
 
       const reservationNumber = generateReservationNumber();
@@ -451,12 +451,12 @@ export class GroupPaymentService {
       [token]
     );
 
-    if (rows.length === 0) return {
+    if (rows.length === 0) {return {
       found: false, expired: false, completed: false,
       totalBeds: 0, paidBeds: 0, amountPerBed: 0,
       seasonType: '', pricingStrategy: '', expiresAt: '',
       members: []
-    };
+    };}
 
     const session = rows[0];
 
@@ -517,7 +517,7 @@ export class GroupPaymentService {
       [memberToken]
     );
 
-    if (memberRows.length === 0) return empty;
+    if (memberRows.length === 0) {return empty;}
     const member = memberRows[0];
 
     const { rows: sessionRows } = await query<{
@@ -529,7 +529,7 @@ export class GroupPaymentService {
       [member.session_id]
     );
 
-    if (sessionRows.length === 0) return empty;
+    if (sessionRows.length === 0) {return empty;}
     const session = sessionRows[0];
 
     const { rows: resRows } = await query<{ base_price: string; season_multiplier: string; nights_count: number }>(
@@ -585,11 +585,11 @@ export class GroupPaymentService {
       [input.memberToken]
     );
 
-    if (memberRows.length === 0) throw new Error('Link de pago no encontrado');
+    if (memberRows.length === 0) {throw new Error('Link de pago no encontrado');}
     const member = memberRows[0];
 
-    if (member.status === 'paid') throw new Error('Esta cama ya fue pagada');
-    if (member.status === 'pending') throw new Error('Ya hay un pago en proceso para este slot');
+    if (member.status === 'paid') {throw new Error('Esta cama ya fue pagada');}
+    if (member.status === 'pending') {throw new Error('Ya hay un pago en proceso para este slot');}
 
     // Verificar sesión
     const { rows: sessionRows } = await query<{
@@ -600,11 +600,11 @@ export class GroupPaymentService {
       [member.session_id]
     );
 
-    if (sessionRows.length === 0) throw new Error('Sesión de pago no encontrada');
+    if (sessionRows.length === 0) {throw new Error('Sesión de pago no encontrada');}
     const session = sessionRows[0];
 
-    if (session.status !== 'open') throw new Error('Esta sesión ya está cerrada o expirada');
-    if (new Date(session.expires_at) < new Date()) throw new Error('El tiempo para completar el pago grupal expiró');
+    if (session.status !== 'open') {throw new Error('Esta sesión ya está cerrada o expirada');}
+    if (new Date(session.expires_at) < new Date()) {throw new Error('El tiempo para completar el pago grupal expiró');}
 
     // Precio base de la reserva
     const { rows: resRows } = await query<{
@@ -720,9 +720,9 @@ export class GroupPaymentService {
       [params.memberId]
     );
 
-    if (memberRows.length === 0) throw new Error('Miembro no encontrado');
+    if (memberRows.length === 0) {throw new Error('Miembro no encontrado');}
     const member = memberRows[0];
-    if (member.status === 'paid') return { reservationConfirmed: false };
+    if (member.status === 'paid') {return { reservationConfirmed: false };}
 
     await query(
       `UPDATE group_payment_members

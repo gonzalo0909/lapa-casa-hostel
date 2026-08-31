@@ -47,7 +47,7 @@ export class BookingRepository {
     const entries = Object.entries(data).filter(([, v]) => v !== undefined);
     if (entries.length === 0) {
       const r = await this.findById(id);
-      if (!r) throw new Error('Reservation not found');
+      if (!r) {throw new Error('Reservation not found');}
       return r;
     }
     const values: any[] = [];
@@ -64,7 +64,7 @@ export class BookingRepository {
       `UPDATE reservations SET ${sets.join(', ')}, updated_at = now() WHERE id = $${values.length} RETURNING *`,
       values
     );
-    if (!rows[0]) throw new Error('Reservation not found');
+    if (!rows[0]) {throw new Error('Reservation not found');}
     return rows[0];
   }
 
@@ -73,7 +73,7 @@ export class BookingRepository {
       `UPDATE reservations SET status = $1::booking_status, updated_at = now() WHERE id = $2 RETURNING *`,
       [status, id]
     );
-    if (!rows[0]) throw new Error('Reservation not found');
+    if (!rows[0]) {throw new Error('Reservation not found');}
     return rows[0];
   }
 
@@ -88,7 +88,7 @@ export class BookingRepository {
        WHERE id = $2 RETURNING *`,
       [reason ?? null, id]
     );
-    if (!rows[0]) throw new Error('Reservation not found');
+    if (!rows[0]) {throw new Error('Reservation not found');}
     return rows[0];
   }
 

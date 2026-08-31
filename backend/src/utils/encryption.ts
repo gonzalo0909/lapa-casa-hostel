@@ -32,7 +32,7 @@ export const generateToken = (
   expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration
 ): string => {
   const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET not configured');
+  if (!secret) {throw new Error('JWT_SECRET not configured');}
   return (jwt.sign as any)(payload, secret, {
     expiresIn,
     issuer: 'lapa-casa-hostel',

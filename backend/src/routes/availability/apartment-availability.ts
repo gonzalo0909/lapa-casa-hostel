@@ -4,7 +4,7 @@
 // (1 cama en la tabla beds = la unidad entera). El precio es por noche
 // sin multiplicadores por persona.
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
 import { AvailabilityService } from '../../services/availability-service';
 import { pricingService } from '../../services/pricing-service';
