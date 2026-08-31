@@ -344,13 +344,14 @@ export class GroupPaymentService {
       );
       const reservation = resRows[0];
 
-      for (const bedId of allBedIds) {
-        await client.query(
-          `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
-           VALUES ($1, $2, $3::date, $4::date)`,
-          [reservation.id, bedId, input.checkIn, input.checkOut]
-        );
-      }
+      // Sección 9 auditoría 17 secciones: batch con unnest() en vez de un
+      // INSERT por cama en un loop -- N round-trips a la base por 1.
+      await client.query(
+        `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
+         SELECT $1, bed_id, $3::date, $4::date
+         FROM unnest($2::uuid[]) AS bed_id`,
+        [reservation.id, allBedIds, input.checkIn, input.checkOut]
+      );
 
       // Sesión grupal (token del titular para ver el estado general)
       const sessionToken = generateToken();
@@ -370,18 +371,23 @@ export class GroupPaymentService {
       const sessionId = sessionRows[0].id;
 
       // Pre-crear N slots de miembro con tokens individuales
-      // Cada slot tiene asignada una cama específica desde el inicio
+      // Cada slot tiene asignada una cama específica desde el inicio.
+      // Sección 9 auditoría 17 secciones: se arman los N tokens/links en
+      // memoria primero y se insertan todos en un solo batch con
+      // unnest() de 3 arrays en paralelo -- antes era un INSERT por
+      // slot en el loop (N round-trips a la base por 1).
       const memberLinks: MemberLink[] = [];
+      const memberTokens: string[] = [];
+      const slotIndices: number[] = [];
+      const slotBedIds: Array<string | null> = [];
+
       for (let i = 0; i < totalBeds; i++) {
         const memberToken = generateToken();
         const bedId = allBedIds[i] ?? null;
 
-        await client.query(
-          `INSERT INTO group_payment_members
-             (session_id, member_token, slot_index, bed_id, status)
-           VALUES ($1, $2, $3, $4::uuid, 'invited')`,
-          [sessionId, memberToken, i + 1, bedId]
-        );
+        memberTokens.push(memberToken);
+        slotIndices.push(i + 1);
+        slotBedIds.push(bedId);
 
         const memberUrl = `${input.appBaseUrl}/group-payment-member/${memberToken}`;
         memberLinks.push({
@@ -392,6 +398,13 @@ export class GroupPaymentService {
           )}`,
         });
       }
+
+      await client.query(
+        `INSERT INTO group_payment_members (session_id, member_token, slot_index, bed_id, status)
+         SELECT $1, member_token, slot_index, bed_id, 'invited'
+         FROM unnest($2::text[], $3::int[], $4::uuid[]) AS t(member_token, slot_index, bed_id)`,
+        [sessionId, memberTokens, slotIndices, slotBedIds]
+      );
 
       return {
         sessionId,
