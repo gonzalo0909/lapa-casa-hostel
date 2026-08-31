@@ -64,9 +64,9 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: reservas@lapacasahostel.com
+        value: reservas@lapacasario.com
       - key: EMAIL_FROM
-        value: reservas@lapacasahostel.com
+        value: reservas@lapacasario.com
       - key: EMAIL_FROM_NAME
         value: Lapa Casa Hostel
       - key: ADMIN_EMAIL
@@ -202,9 +202,9 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: reservas@lapacasahostel.com
+        value: reservas@lapacasario.com
       - key: EMAIL_FROM
-        value: reservas@lapacasahostel.com
+        value: reservas@lapacasario.com
       - key: EMAIL_FROM_NAME
         value: Lapa Casa Hostel
       - key: ADMIN_EMAIL
@@ -223,7 +223,7 @@ services:
 # (proyecto rpowardrcwnhbkzjsiok), no una base gestionada por Render.
 # DATABASE_URL se carga a mano en el dashboard (ver envVars del backend).
 #
-# Dominios custom (lapacasahostel.com -> landing, api.lapacasahostel.com
+# Dominios custom (lapacasario.com -> landing, api.lapacasario.com
 # -> backend) se atan a mano en el dashboard de Render por servicio
 # (Settings -> Custom Domains) -- Render no soporta asignarlos desde este
 # archivo. Ver docs/DEPLOY.md.

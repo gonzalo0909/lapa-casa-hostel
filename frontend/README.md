@@ -203,8 +203,8 @@ NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
 
 ### Required (Production)
 ```bash
-NEXT_PUBLIC_SITE_URL=https://lapacasahostel.com
-NEXT_PUBLIC_API_URL=https://api.lapacasahostel.com
+NEXT_PUBLIC_SITE_URL=https://lapacasario.com
+NEXT_PUBLIC_API_URL=https://api.lapacasario.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
 NEXT_PUBLIC_GTM_ID=GTM-...
@@ -340,8 +340,8 @@ This is a private project for Lapa Casa Hostel. For internal team members:
 
 ## 📞 Support
 
-**Tech Team:** tech@lapacasahostel.com  
-**Reservations:** reservas@lapacasahostel.com  
+**Tech Team:** tech@lapacasario.com  
+**Reservations:** reservas@lapacasario.com  
 **WhatsApp:** +55 21 99999-9999
 
 ## 📄 License

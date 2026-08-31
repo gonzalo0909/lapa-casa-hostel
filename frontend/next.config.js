@@ -38,7 +38,7 @@ const nextConfig = {
   // Image optimization
   images: {
     domains: [
-      'lapacasahostel.com',
+      'lapacasario.com',
       'res.cloudinary.com',
       'images.unsplash.com',
     ],
@@ -167,7 +167,7 @@ const nextConfig = {
 
   // Environment variables validation
   env: {
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasahostel.com',
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com',
     // Tiene que coincidir con el fallback de lib/api.ts (puerto real del
     // backend local + prefijo /api/v1) -- un valor distinto acá lo pisa
     // en build time y lib/api.ts nunca llega a usar el suyo.

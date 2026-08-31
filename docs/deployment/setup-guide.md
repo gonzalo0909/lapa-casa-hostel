@@ -29,7 +29,7 @@
 - **Mercado Pago Account**: For Brazilian payments (PIX)
 - **Google Cloud Account**: For Sheets integration
 - **Resend Account**: For transactional emails
-- **Domain**: lapacasahostel.com configured
+- **Domain**: lapacasario.com configured
 
 ### System Requirements
 - **RAM**: Minimum 8GB (16GB recommended)
@@ -97,7 +97,7 @@ MP_WEBHOOK_SECRET="your-mp-webhook-secret"
 
 # Email (Resend)
 RESEND_API_KEY="re_..."
-EMAIL_FROM="dev@lapacasahostel.com"
+EMAIL_FROM="dev@lapacasario.com"
 
 # Google Sheets
 GOOGLE_SHEETS_ID="your-sheet-id"
@@ -137,7 +137,7 @@ MP_WEBHOOK_SECRET="GENERATE-STRONG-SECRET"
 
 # Email
 RESEND_API_KEY="re_..."
-EMAIL_FROM="reservas@lapacasahostel.com"
+EMAIL_FROM="reservas@lapacasario.com"
 
 # WhatsApp
 WHATSAPP_API_KEY="your-whatsapp-api-key"
@@ -148,8 +148,8 @@ GOOGLE_SHEETS_ID="production-sheet-id"
 GOOGLE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
 
 # URLs
-NEXT_PUBLIC_API_URL="https://api.lapacasahostel.com"
-NEXT_PUBLIC_SITE_URL="https://lapacasahostel.com"
+NEXT_PUBLIC_API_URL="https://api.lapacasario.com"
+NEXT_PUBLIC_SITE_URL="https://lapacasario.com"
 
 # Monitoring
 SENTRY_DSN="https://...@sentry.io/..."
@@ -273,7 +273,7 @@ npm start
 #### 3. Configure Webhooks
 ```bash
 # Webhook URL
-https://api.lapacasahostel.com/api/webhooks/stripe
+https://api.lapacasario.com/api/webhooks/stripe
 
 # Events to subscribe:
 - payment_intent.succeeded
@@ -302,7 +302,7 @@ CVC: Any 3 digits
 #### 3. Configure Webhooks
 ```bash
 # Webhook URL
-https://api.lapacasahostel.com/api/webhooks/mercadopago
+https://api.lapacasario.com/api/webhooks/mercadopago
 
 # Events:
 - payment
@@ -488,9 +488,9 @@ node --prof backend/dist/server.js
 ### Getting Help
 
 - **Documentation**: `/docs` folder
-- **API Docs**: `https://api.lapacasahostel.com/docs`
+- **API Docs**: `https://api.lapacasario.com/docs`
 - **GitHub Issues**: https://github.com/lapa-casa-hostel/lapa-casa-hostel/issues
-- **Email Support**: tech@lapacasahostel.com
+- **Email Support**: tech@lapacasario.com
 
 ---
 

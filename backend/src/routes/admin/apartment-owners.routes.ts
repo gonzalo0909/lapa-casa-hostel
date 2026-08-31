@@ -135,7 +135,7 @@ router.post('/', async (req, res, next) => {
       stripeAccountId = await stripeConnectHandler.createExpressAccount(email);
 
       // Generar el primer link de onboarding
-      const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasahostel.com';
+      const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasario.com';
       const linkResult = await stripeConnectHandler.createOnboardingLink({
         stripeAccountId,
         refreshUrl: `${baseUrl}/admin/owners/${stripeAccountId}/onboarding/refresh`,
@@ -324,7 +324,7 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
       );
     }
 
-    const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasahostel.com';
+    const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasario.com';
     const linkResult = await stripeConnectHandler.createOnboardingLink({
       stripeAccountId,
       refreshUrl: `${baseUrl}/admin/owners/${stripeAccountId}/onboarding/refresh`,

@@ -26,15 +26,15 @@ info:
   version: 1.0.0
   contact:
     name: Lapa Casa Hostel Tech Team
-    email: tech@lapacasahostel.com
-    url: https://lapacasahostel.com
+    email: tech@lapacasario.com
+    url: https://lapacasario.com
   license:
     name: Proprietary
     
 servers:
-  - url: https://api.lapacasahostel.com
+  - url: https://api.lapacasario.com
     description: Production server
-  - url: https://api-staging.lapacasahostel.com
+  - url: https://api-staging.lapacasario.com
     description: Staging server
   - url: http://localhost:4000
     description: Local development
