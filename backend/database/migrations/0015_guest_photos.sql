@@ -7,7 +7,7 @@
 -- imagenes en si viven en Cloudinary (image_url/public_id); esta tabla
 -- solo guarda los metadatos y el orden de publicacion.
 
-CREATE TABLE guest_photos (
+CREATE TABLE IF NOT EXISTS guest_photos (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   image_url         TEXT NOT NULL,
   cloudinary_public_id VARCHAR(255) NOT NULL,
@@ -20,4 +20,4 @@ CREATE TABLE guest_photos (
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_guest_photos_published ON guest_photos(is_published, display_order);
+CREATE INDEX IF NOT EXISTS idx_guest_photos_published ON guest_photos(is_published, display_order);

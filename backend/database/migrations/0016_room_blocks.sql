@@ -14,7 +14,7 @@
 -- is_occupied se deja SIN tocar (sigue significando "tiene una reserva
 -- real"), solo is_available pasa a considerar los bloqueos.
 
-CREATE TABLE room_blocks (
+CREATE TABLE IF NOT EXISTS room_blocks (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   room_type_id  UUID NOT NULL REFERENCES room_types(id) ON DELETE CASCADE,
   start_date    DATE NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE room_blocks (
   CHECK (end_date > start_date)
 );
 
-CREATE INDEX idx_room_blocks_room_dates ON room_blocks(room_type_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_room_blocks_room_dates ON room_blocks(room_type_id, start_date, end_date);
 
 CREATE OR REPLACE FUNCTION check_availability(
   p_check_in DATE,

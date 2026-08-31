@@ -28,10 +28,10 @@ ALTER TABLE guests
   ADD COLUMN blocked_by_admin   UUID;             -- qué admin inició el reporte (referencia libre, no FK)
 
 -- Índice para que el check en el checkout sea rápido
-CREATE INDEX idx_guests_blocked ON guests(blocked) WHERE blocked = true;
+CREATE INDEX IF NOT EXISTS idx_guests_blocked ON guests(blocked) WHERE blocked = true;
 
 -- Índice en documento para detectar evasión (nuevo email, mismo CPF)
-CREATE INDEX idx_guests_document ON guests(document_type, document_number)
+CREATE INDEX IF NOT EXISTS idx_guests_document ON guests(document_type, document_number)
   WHERE document_number IS NOT NULL;
 
 COMMENT ON COLUMN guests.blocked IS
@@ -45,7 +45,7 @@ COMMENT ON COLUMN guests.block_notes IS
 -- 2. booking_guests: todos los hóspedes declarados por reserva
 -- ============================================================
 
-CREATE TABLE booking_guests (
+CREATE TABLE IF NOT EXISTS booking_guests (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reservation_id    UUID NOT NULL REFERENCES reservations(id) ON DELETE CASCADE,
 
@@ -62,8 +62,8 @@ CREATE TABLE booking_guests (
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_booking_guests_reservation ON booking_guests(reservation_id);
-CREATE INDEX idx_booking_guests_document    ON booking_guests(document_type, document_number);
+CREATE INDEX IF NOT EXISTS idx_booking_guests_reservation ON booking_guests(reservation_id);
+CREATE INDEX IF NOT EXISTS idx_booking_guests_document    ON booking_guests(document_type, document_number);
 
 COMMENT ON TABLE booking_guests IS
   'Todos los hóspedes declarados en el checkout, incluyendo el titular.
@@ -89,7 +89,7 @@ CREATE TYPE report_reason AS ENUM (
   'other'
 );
 
-CREATE TABLE guest_reports (
+CREATE TABLE IF NOT EXISTS guest_reports (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reservation_id    UUID NOT NULL REFERENCES reservations(id) ON DELETE RESTRICT,
   reported_guest_id UUID NOT NULL REFERENCES guests(id)  ON DELETE RESTRICT,
@@ -109,8 +109,8 @@ CREATE TABLE guest_reports (
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_guest_reports_guest  ON guest_reports(reported_guest_id);
-CREATE INDEX idx_guest_reports_status ON guest_reports(status) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_guest_reports_guest ON guest_reports(reported_guest_id);
+CREATE INDEX IF NOT EXISTS idx_guest_reports_status ON guest_reports(status) WHERE status = 'pending';
 
 COMMENT ON TABLE guest_reports IS
   'Reportes de admins parceiros sobre hóspedes problemáticos.

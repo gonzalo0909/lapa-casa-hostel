@@ -14,4 +14,4 @@ CREATE TYPE property_type AS ENUM ('hostel', 'apartment');
 ALTER TABLE room_types
   ADD COLUMN property_type property_type NOT NULL DEFAULT 'hostel';
 
-CREATE INDEX idx_room_types_property_type ON room_types (property_type);
+CREATE INDEX IF NOT EXISTS idx_room_types_property_type ON room_types (property_type);
