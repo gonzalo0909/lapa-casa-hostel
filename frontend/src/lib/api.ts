@@ -89,18 +89,13 @@ async function request<T = any>(
     ...headers
   };
 
-  // Agrega Bearer token si se pasa explícitamente, o si el endpoint es admin
-  // y hay un token guardado en localStorage (evita pasar el flag 'cookie-session').
-  const resolvedToken = token ?? (
-    endpoint.startsWith('/admin') && typeof window !== 'undefined'
-      ? (() => {
-          const t = localStorage.getItem('admin_token') || localStorage.getItem('token');
-          return t && t !== 'cookie-session' ? t : undefined;
-        })()
-      : undefined
-  );
-  if (resolvedToken) {
-    requestHeaders['Authorization'] = `Bearer ${resolvedToken}`;
+  // Agrega Bearer token solo si se pasa explícitamente. El panel admin real
+  // es la app vanilla JS servida aparte por el backend (backend/src/admin/)
+  // y se autentica con su propia cookie httpOnly -- este cliente Next.js
+  // nunca llama a un endpoint /admin/*, así que no hay token de admin que
+  // leer acá.
+  if (token) {
+    requestHeaders['Authorization'] = `Bearer ${token}`;
   }
 
   const requestOptions: RequestInit = {
@@ -167,16 +162,6 @@ async function request<T = any>(
   }
 
   throw lastError || new Error('Request failed');
-}
-
-/**
- * Devuelve el token de admin guardado en localStorage (si existe y no es el flag de cookie-session).
- * Los componentes del panel admin llaman getAdminToken() para incluirlo como Bearer header.
- */
-export function getAdminToken(): string | undefined {
-  if (typeof window === 'undefined') return undefined;
-  const t = localStorage.getItem('admin_token') || localStorage.getItem('token');
-  return t && t !== 'cookie-session' ? t : undefined;
 }
 
 /**
