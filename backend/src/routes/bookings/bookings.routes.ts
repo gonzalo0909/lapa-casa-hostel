@@ -21,6 +21,7 @@ import { authenticateToken, requireRole } from '../../middleware/auth';
 import { logger } from '../../utils/logger';
 import { bookingService } from '../../services/booking-service';
 import type { BookingStatus } from '../../types/database';
+import { ApiResponse } from '../../utils/responses';
 
 const router = Router();
 
@@ -136,7 +137,7 @@ router.get(
 
       const booking = await bookingService.getBooking(id);
       if (!booking) {
-        return res.status(404).json({ error: 'Booking not found' });
+        return res.status(404).json(ApiResponse.error('Booking not found'));
       }
 
       // L-02: QR generado localmente como data URI PNG — sin dependencia

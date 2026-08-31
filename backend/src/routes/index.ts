@@ -25,6 +25,7 @@ import otaWebhooksRouter from './webhooks/ota.routes';
 import { rateLimiter } from '../middleware/rate-limiter';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { logger } from '../utils/logger';
+import { ApiResponse } from '../utils/responses';
 
 const router = Router();
 
@@ -139,12 +140,9 @@ router.use(
  */
 router.use('*', (req: Request, res: Response) => {
   logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'The requested endpoint does not exist',
+  res.status(404).json(ApiResponse.error('The requested endpoint does not exist', {
     path: req.originalUrl,
-    timestamp: new Date().toISOString()
-  });
+  }));
 });
 
 // Sección 8 auditoría 17 secciones: se elimina el error handler local que

@@ -13,6 +13,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { paymentService } from '../../services/payment-service';
 import { stripeHandler } from '../../lib/payments/stripe-handler';
 import { logger } from '../../utils/logger';
+import { ApiResponse } from '../../utils/responses';
 
 export const handleWebhookHandler = async (
   req: Request,
@@ -22,7 +23,7 @@ export const handleWebhookHandler = async (
   try {
     const signature = req.headers['stripe-signature'] as string;
     if (!signature) {
-      res.status(400).json({ error: 'Falta stripe-signature' });
+      res.status(400).json(ApiResponse.error('Falta stripe-signature'));
       return;
     }
     // ventana6: la verificacion de firma de Stripe necesita los bytes
@@ -33,7 +34,7 @@ export const handleWebhookHandler = async (
     const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
     if (!rawBody) {
       logger.error('Stripe webhook sin rawBody -- no se puede verificar la firma');
-      res.status(400).json({ error: 'Webhook inválido' });
+      res.status(400).json(ApiResponse.error('Webhook inválido'));
       return;
     }
     let event;
@@ -41,7 +42,7 @@ export const handleWebhookHandler = async (
       event = stripeHandler.constructWebhookEvent(rawBody, signature);
     } catch (err) {
       logger.warn('Stripe webhook inválido', { err: (err as Error).message });
-      res.status(400).json({ error: 'Webhook inválido' });
+      res.status(400).json(ApiResponse.error('Webhook inválido'));
       return;
     }
     await paymentService.handleStripeWebhook(event);

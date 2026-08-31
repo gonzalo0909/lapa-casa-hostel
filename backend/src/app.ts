@@ -15,6 +15,7 @@ import { authenticateToken, requireRole } from '@/middleware/auth';
 import { getSystemHealth } from '@/monitoring/health';
 import { metricsMiddleware, getMetricsSnapshot } from '@/monitoring/metrics';
 import routes from '@/routes';
+import { ApiResponse } from '@/utils/responses';
 
 const app: Application = express();
 
@@ -212,12 +213,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use(`/api/${environment.API_VERSION}`, routes);
 
 app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
+  res.status(404).json(ApiResponse.error('Route not found', {
     path: req.originalUrl,
     method: req.method,
-  });
+  }));
 });
 
 app.use(errorHandler);

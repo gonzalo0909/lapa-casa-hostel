@@ -219,14 +219,14 @@ router.post(
       const secret = process.env.MP_WEBHOOK_SECRET;
       if (!secret) {
         logger.error('MP_WEBHOOK_SECRET no configurado — webhook rechazado');
-        res.status(500).json({ error: 'Webhook not configured' });
+        res.status(500).json(ApiResponse.error('Webhook not configured'));
         return;
       }
 
       const signatureHeader = req.headers['x-signature'] as string | undefined;
       if (!signatureHeader) {
         logger.warn('Webhook MP sin header X-Signature');
-        res.status(401).json({ error: 'Missing signature' });
+        res.status(401).json(ApiResponse.error('Missing signature'));
         return;
       }
 
@@ -234,7 +234,7 @@ router.post(
       const v1Match = signatureHeader.match(/v1=([a-f0-9]+)/);
       if (!tsMatch || !v1Match) {
         logger.warn('Webhook MP: formato de X-Signature inválido', { signatureHeader });
-        res.status(401).json({ error: 'Invalid signature format' });
+        res.status(401).json(ApiResponse.error('Invalid signature format'));
         return;
       }
 
@@ -255,7 +255,7 @@ router.post(
 
       if (!sigOk) {
         logger.warn('Webhook MP: firma inválida');
-        res.status(401).json({ error: 'Invalid signature' });
+        res.status(401).json(ApiResponse.error('Invalid signature'));
         return;
       }
 
