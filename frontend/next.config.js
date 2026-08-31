@@ -102,16 +102,20 @@ const nextConfig = {
               "default-src 'self'",
               // unsafe-inline: el snippet de Facebook Pixel se inyecta
               // inline (dangerouslySetInnerHTML en analytics-provider.tsx).
-              // unsafe-eval: requerido históricamente por los SDKs de
-              // Stripe/Mercado Pago -- no se pudo confirmar en este entorno
-              // si sigue siendo necesario sin probar un pago real en
-              // navegador (queda pendiente, ver auditoría de 17 secciones).
-              `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com https://www.googletagmanager.com https://connect.facebook.net`,
+              // unsafe-eval: la doc oficial de Stripe dice que Stripe.js v3
+              // no lo necesita, pero hay reportes reales de que sí en
+              // algunos casos (github.com/stripe/react-stripe-js/issues/380)
+              // -- no se pudo confirmar en este entorno sin probar un pago
+              // con tarjeta real en navegador, queda pendiente. Se elimina
+              // sdk.mercadopago.com: el SDK de Mercado Pago ya no se carga
+              // en el frontend (PIX se genera server-side), confirmado con
+              // grep -- ese dominio en el allowlist era muerto.
+              `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://api.mercadopago.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net`,
-              "frame-src https://js.stripe.com https://www.mercadopago.com",
+              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net`,
+              "frame-src https://js.stripe.com",
             ].join('; '),
           },
         ],
