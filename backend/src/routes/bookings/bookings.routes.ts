@@ -62,6 +62,7 @@ router.get(
  */
 router.patch(
   '/:id',
+  validate(bookingSchemas.update),
   updateBookingHandler
 );
 
@@ -104,7 +105,7 @@ router.get(
         limit: limit ? parseInt(limit as string, 10) : undefined
       });
 
-      res.status(200).json({
+      res.status(200).json(ApiResponse.success({
         bookings: result.data,
         pagination: {
           page: result.page,
@@ -112,7 +113,7 @@ router.get(
           total: result.total,
           totalPages: result.totalPages
         }
-      });
+      }));
     } catch (error) {
       next(error);
     }
@@ -144,7 +145,7 @@ router.get(
       // externa ni envío del número de reserva a api.qrserver.com.
       const qrCode = await QRCode.toDataURL(booking.reservation_number, { width: 200 });
 
-      res.status(200).json({
+      res.status(200).json(ApiResponse.success({
         bookingId: booking.id,
         confirmationNumber: booking.reservation_number,
         status: booking.status,
@@ -152,7 +153,7 @@ router.get(
         checkOutDate: booking.check_out_date,
         qrCode,
         checkInInstructions: 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro'
-      });
+      }));
     } catch (error) {
       next(error);
     }
