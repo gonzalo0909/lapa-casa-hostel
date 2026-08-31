@@ -3,6 +3,16 @@
  * Paleta y componentes tomados 1:1 del prototipo LCACOPIA (docs/mralapagon/
  * lcacopia.html). CSS Module para no filtrar estas variables/clases al
  * resto del sitio (Hostel usa su propio tema).
+ *
+ * DECISIÓN (auditoría 17 secciones, sección 3): esta paleta (--bg, --fg,
+ * --primary, etc. en .root) es una identidad visual propia del motor de
+ * apartamentos, deliberadamente distinta de los tokens HSL de
+ * tailwind.config.js y del tema de hostel-engine.styles.ts. No se conecta
+ * a esos tokens: haría perder la identidad de marca de cada motor sin
+ * ningún beneficio funcional, a cambio de reescribir ~530 líneas de CSS
+ * que ya funcionan visualmente y sin forma de verificar visualmente la
+ * migración en este entorno. Si en algún momento el motor de reservas se
+ * migra a Tailwind puro, ahí sí conviene unificar.
  */
 .root {
   --bg: #FAF7F0; --bg-subtle: #EEE9DC; --bg-card: #FFFDF8;
