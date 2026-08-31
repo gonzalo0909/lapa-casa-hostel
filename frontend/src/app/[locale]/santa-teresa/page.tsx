@@ -59,7 +59,7 @@ export async function generateMetadata({
   params: { locale: string };
 }): Promise<Metadata> {
   setRequestLocale(locale);
-  const safeLocale = (locales.includes(locale as Locale) ? locale : 'en') as Locale;
+  const safeLocale = (locales.includes(locale as Locale) ? locale : defaultLocale) as Locale;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const m = META[safeLocale]!;
   return {
@@ -640,6 +640,7 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
              locale === 'en' ? '🎒 Traveling with a group? See our group discounts' :
              locale === 'es' ? '🎒 ¿Viajando en grupo? Descubre nuestros descuentos para grupos' :
              locale === 'de' ? '🎒 Als Gruppe unterwegs? Gruppenrabatte entdecken' :
+             locale === 'it' ? '🎒 Viaggi in gruppo? Scopri i nostri sconti per gruppi' :
              '🎒 En voyage de groupe ? Découvrez nos remises de groupe'}
           </Link>
         </div>
