@@ -18,7 +18,7 @@ ALTER TABLE room_types
   DROP COLUMN group_discount_min_beds,
   DROP COLUMN group_discount_percentage;
 
-CREATE TABLE group_discount_tiers (
+CREATE TABLE IF NOT EXISTS group_discount_tiers (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   min_beds    SMALLINT NOT NULL UNIQUE CHECK (min_beds > 0),
   percentage  NUMERIC(4,3) NOT NULL CHECK (percentage >= 0 AND percentage < 1),
