@@ -1,5 +1,19 @@
 // frontend/src/components/booking/hostel-engine.styles.ts
 // CSS global del motor de reservas (hostel-engine y sus sub-componentes).
+// Se inyecta como <style> crudo en hostel-engine.tsx (dangerouslySetInnerHTML);
+// el aislamiento del resto del sitio es por convención de nombres (todo
+// selector empieza con ".he-"), no por CSS Module.
+//
+// DECISIÓN (auditoría 17 secciones, sección 3): paleta propia (verde oscuro
+// #1A2E1E, dorado #C8870A, fotos de los Arcos da Lapa/adoquines), distinta a
+// propósito tanto de los tokens HSL de tailwind.config.js como de la paleta
+// crema/marino de apartment-engine.module.css -- es la identidad visual del
+// motor de dormitorios compartidos. No se conecta a los tokens de Tailwind:
+// implicaría reescribir ~200 líneas de CSS que ya funcionan visualmente, sin
+// forma de verificar la migración en este entorno (sin browser real), a
+// cambio de "consistencia" que rompería la identidad de marca ya elegida
+// para este motor. Si en algún momento se migra a Tailwind puro, ahí sí
+// conviene unificar.
 
 export const HOSTEL_ENGINE_CSS = `
 .he-wrap{font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:url('/img/adoquines.png') center/cover;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 1rem 3rem}
