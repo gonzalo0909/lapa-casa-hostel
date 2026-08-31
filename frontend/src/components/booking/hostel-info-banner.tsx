@@ -29,11 +29,35 @@ const INFO_RULES: Record<string, Array<{ Icon: React.ElementType; text: React.Re
     { Icon: CigaretteOff, text: <>Smoking in the hostel and common areas is prohibited</> },
     { Icon: Ban,          text: <>Guests must be <strong>18 or older</strong></> },
   ],
+  de: [
+    { Icon: KeyRound,     text: <>Check-in: <strong>14 bis 22 Uhr</strong> — früher ankommen? Buchen Sie auch die Vornacht</> },
+    { Icon: DoorOpen,     text: <>Check-out: bis <strong>12 Uhr</strong> — mehr Zeit nötig? Buchen Sie eine zusätzliche Nacht</> },
+    { Icon: FileText,     text: <>Das Hochladen eines Ausweisfotos ist <strong>verpflichtend</strong>, ohne Ausnahme</> },
+    { Icon: CigaretteOff, text: <>Rauchen im Hostel und in den Gemeinschaftsbereichen ist verboten</> },
+    { Icon: Ban,          text: <>Nur für Gäste ab <strong>18 Jahren</strong></> },
+  ],
+  fr: [
+    { Icon: KeyRound,     text: <>Arrivée : <strong>14h à 22h</strong> — arrivée plus tôt ? Réservez aussi la nuit précédente</> },
+    { Icon: DoorOpen,     text: <>Départ : avant <strong>12h</strong> — besoin de plus de temps ? Réservez une nuit supplémentaire</> },
+    { Icon: FileText,     text: <>L'envoi d'une photo de pièce d'identité est <strong>obligatoire</strong>, sans exception</> },
+    { Icon: CigaretteOff, text: <>Interdiction de fumer dans le hostel et les espaces communs</> },
+    { Icon: Ban,          text: <>Réservé aux personnes de <strong>18 ans et plus</strong></> },
+  ],
+  it: [
+    { Icon: KeyRound,     text: <>Check-in: <strong>dalle 14 alle 22</strong> — arrivo anticipato? Prenota anche la notte precedente</> },
+    { Icon: DoorOpen,     text: <>Check-out: entro le <strong>12</strong> — hai bisogno di più tempo? Prenota una notte in più</> },
+    { Icon: FileText,     text: <>L'invio della foto del documento è <strong>obbligatorio</strong>, senza eccezioni</> },
+    { Icon: CigaretteOff, text: <>Vietato fumare nell'hostel e nelle aree comuni</> },
+    { Icon: Ban,          text: <>Solo per ospiti <strong>maggiorenni (18+)</strong></> },
+  ],
 };
 const INFO_TITLE: Record<string, string> = {
   pt: 'INFORMAÇÃO IMPORTANTE',
   es: 'INFORMACIÓN IMPORTANTE',
   en: 'IMPORTANT INFORMATION',
+  de: 'WICHTIGE INFORMATION',
+  fr: 'INFORMATION IMPORTANTE',
+  it: 'INFORMAZIONE IMPORTANTE',
 };
 
 interface HostelInfoBannerProps { lang: Lang; }
