@@ -540,7 +540,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                       <div className="he-group-meta">
                         {totalBeds} {totalBeds === 1 ? t.tBed : t.tBeds} · {t.gpMetaEach} {price ? fmtMoney(Math.round(price.total / totalBeds)) : ''}
                       </div>
+                      <label htmlFor="he-gp-name" className="sr-only">{t.lblName ?? 'Nome completo'}</label>
                       <input
+                        id="he-gp-name"
                         className="he-group-input"
                         type="text"
                         placeholder={t.lblName ?? 'Nome completo'}
@@ -548,7 +550,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                         onChange={e => setGpName(e.target.value)}
                         autoComplete="name"
                       />
+                      <label htmlFor="he-gp-email" className="sr-only">{t.lblEmail ?? 'E-mail'}</label>
                       <input
+                        id="he-gp-email"
                         className="he-group-input"
                         type="email"
                         placeholder={t.lblEmail ?? 'E-mail'}

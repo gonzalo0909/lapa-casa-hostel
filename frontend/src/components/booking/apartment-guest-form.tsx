@@ -272,11 +272,12 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               </div>
             ) : (
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #6b7280)', marginBottom: '6px' }}>
+                <label htmlFor="apt-coupon-code" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #6b7280)', marginBottom: '6px' }}>
                   ¿Tenés un código de descuento?
-                </div>
+                </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
+                    id="apt-coupon-code"
                     type="text"
                     value={couponInput}
                     onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
@@ -559,6 +560,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                     <input
                       type="text"
                       placeholder={t('companionNamePlaceholder')}
+                      aria-label={`${t('companionNamePlaceholder')} ${idx + 2}`}
                       value={g.fullName}
                       onChange={(e) => updateAdditionalGuest(idx, 'fullName', e.target.value)}
                       className={`${styles.guestDeclInput} ${!g.fullName.trim() ? styles.inputInvalid : ''}`}
@@ -567,6 +569,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                       <input
                         type="text"
                         placeholder={t('documentPlaceholder')}
+                        aria-label={`${t('documentPlaceholder')} ${idx + 2}`}
                         maxLength={20}
                         value={g.document}
                         onChange={(e) => updateAdditionalGuest(idx, 'document', e.target.value)}
