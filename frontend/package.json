@@ -47,9 +47,7 @@
     "axios": "^1.7.2",
     "swr": "^2.2.5",
     "@tanstack/react-query": "^5.51.11",
-    "sharp": "^0.33.4",
-    "react-gtm-module": "^2.0.11",
-    "posthog-js": "^1.142.1"
+    "sharp": "^0.33.4"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",
