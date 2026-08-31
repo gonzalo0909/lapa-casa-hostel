@@ -9,6 +9,7 @@ import { paymentAPI } from '@/lib/api';
 import { PixPayment } from './pix-payment';
 import { CardPayment } from './card-payment';
 import { StripeElementsWrapper } from './stripe-elements';
+import { type PaymentLocale, createPaymentT } from './payment-i18n';
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -39,16 +40,13 @@ interface CardPaymentData {
 
 // ── Helpers de localización ─────────────────────────────────────────────────
 
-type SupportedLocale = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
+const SUPPORTED: PaymentLocale[] = ['pt', 'es', 'en', 'fr', 'de', 'it'];
 
-const SUPPORTED: SupportedLocale[] = ['pt', 'es', 'en', 'fr', 'de', 'it'];
-
-function safeLocale(locale: string): SupportedLocale {
-  return SUPPORTED.includes(locale as SupportedLocale) ? (locale as SupportedLocale) : 'pt';
+function safeLocale(locale: string): PaymentLocale {
+  return SUPPORTED.includes(locale as PaymentLocale) ? (locale as PaymentLocale) : 'pt';
 }
 
-function T(key: string, locale: string): string {
-  const dict: Record<string, Record<string, string>> = {
+const T = createPaymentT({
     pt: {
       tabPix:            'PIX',
       tabCard:           'Cartão de Crédito',
@@ -121,9 +119,7 @@ function T(key: string, locale: string): string {
       error:             'Errore nell\'avvio del pagamento. Riprova.',
       checkIn:           'Check-in',
     },
-  };
-  return dict[locale]?.[key] ?? dict['pt']?.[key] ?? key;
-}
+});
 
 // ── Estilos inline con las CSS vars del apartment engine ────────────────────
 // Las vars --primary, --accent, --border, --bg-card, --fg, --primary-soft
