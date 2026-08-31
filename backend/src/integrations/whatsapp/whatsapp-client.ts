@@ -39,12 +39,10 @@ export class WhatsAppClient {
   private client: AxiosInstance;
   private phoneNumberId: string;
   private accessToken: string;
-  private businessAccountId: string;
 
   constructor() {
     this.phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
     this.accessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
-    this.businessAccountId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || '';
 
     if (!this.phoneNumberId || !this.accessToken) {
       throw new Error('WhatsApp credentials not configured');
