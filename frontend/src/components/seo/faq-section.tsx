@@ -45,7 +45,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: 'Qual é a política de cancelamento?',
-      answer:   'Cancelamento gratuito até 72 horas antes do check-in. Após esse prazo, cobra-se o valor da primeira noite.',
+      answer:   'O depósito pago na reserva não é reembolsável em caso de cancelamento ou no-show, independentemente da antecedência.',
     },
     {
       question: 'Tem Wi-Fi grátis?',
@@ -75,7 +75,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: '¿Cuál es la política de cancelación?',
-      answer:   'Cancelación gratuita hasta 72 horas antes del check-in. Después se cobra el valor de la primera noche.',
+      answer:   'El depósito abonado en la reserva no es reembolsable en caso de cancelación o no-show, sin importar la anticipación.',
     },
     {
       question: '¿Hay Wi-Fi gratis?',
@@ -105,7 +105,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: 'What is the cancellation policy?',
-      answer:   'Free cancellation up to 72 hours before check-in. After that, the first night is charged.',
+      answer:   'The deposit paid at booking is non-refundable in case of cancellation or no-show, regardless of notice.',
     },
     {
       question: 'Is there free Wi-Fi?',
@@ -135,7 +135,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: 'Wie lautet die Stornierungsrichtlinie?',
-      answer:   'Kostenlose Stornierung bis 72 Stunden vor dem Check-in. Danach wird die erste Nacht berechnet.',
+      answer:   'Die bei der Buchung gezahlte Anzahlung ist bei Stornierung oder Nichterscheinen nicht erstattungsfähig, unabhängig von der Vorlaufzeit.',
     },
     {
       question: 'Gibt es kostenloses WLAN?',
@@ -165,7 +165,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: "Quelle est la politique d'annulation ?",
-      answer:   "Annulation gratuite jusqu'à 72 heures avant l'arrivée. Après ce délai, la première nuit est facturée.",
+      answer:   "L'acompte versé lors de la réservation n'est pas remboursable en cas d'annulation ou de non-présentation, quel que soit le délai de préavis.",
     },
     {
       question: 'Y a-t-il le Wi-Fi gratuit ?',
@@ -195,7 +195,7 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     },
     {
       question: 'Qual è la politica di cancellazione?',
-      answer:   'Cancellazione gratuita fino a 72 ore prima del check-in. Dopo, viene addebitata la prima notte.',
+      answer:   'Il deposito pagato al momento della prenotazione non è rimborsabile in caso di cancellazione o no-show, indipendentemente dal preavviso.',
     },
     {
       question: 'C\'è il Wi-Fi gratuito?',
@@ -234,7 +234,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Qual é a política de cancelamento?',
-      answer:   'Cancelamento gratuito até 72 horas antes do check-in. Após esse prazo, cobra-se o valor da primeira noite.',
+      answer:   'O depósito pago na reserva não é reembolsável em caso de cancelamento ou no-show, independentemente da antecedência.',
     },
     {
       question: 'Café da manhã está incluído?',
@@ -264,7 +264,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: '¿Cuál es la política de cancelación?',
-      answer:   'Cancelación gratuita hasta 72 horas antes del check-in. Después se cobra el valor de la primera noche.',
+      answer:   'El depósito abonado en la reserva no es reembolsable en caso de cancelación o no-show, sin importar la anticipación.',
     },
     {
       question: '¿El desayuno está incluido?',
@@ -294,7 +294,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'What is the cancellation policy?',
-      answer:   'Free cancellation up to 72 hours before check-in. After that, the first night is charged.',
+      answer:   'The deposit paid at booking is non-refundable in case of cancellation or no-show, regardless of notice.',
     },
     {
       question: 'Is breakfast included?',
@@ -324,7 +324,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Wie lautet die Stornierungsrichtlinie?',
-      answer:   'Kostenlose Stornierung bis 72 Stunden vor dem Check-in. Danach wird die erste Nacht berechnet.',
+      answer:   'Die bei der Buchung gezahlte Anzahlung ist bei Stornierung oder Nichterscheinen nicht erstattungsfähig, unabhängig von der Vorlaufzeit.',
     },
     {
       question: 'Ist das Frühstück inbegriffen?',
@@ -354,7 +354,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: "Quelle est la politique d'annulation ?",
-      answer:   "Annulation gratuite jusqu'à 72 heures avant l'arrivée. Après ce délai, la première nuit est facturée.",
+      answer:   "L'acompte versé lors de la réservation n'est pas remboursable en cas d'annulation ou de non-présentation, quel que soit le délai de préavis.",
     },
     {
       question: 'Le petit-déjeuner est-il inclus ?',
@@ -384,7 +384,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Qual è la politica di cancellazione?',
-      answer:   'Cancellazione gratuita fino a 72 ore prima del check-in. Dopo, viene addebitata la prima notte.',
+      answer:   'Il deposito pagato al momento della prenotazione non è rimborsabile in caso di cancellazione o no-show, indipendentemente dal preavviso.',
     },
     {
       question: 'La colazione è inclusa?',
