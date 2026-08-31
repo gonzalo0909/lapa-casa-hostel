@@ -48,7 +48,6 @@ router.post('/', async (req, res, next) => {
     };
 
     const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '90d');
-    const refreshToken = generateToken(payload, process.env.REFRESH_TOKEN_EXPIRES_IN || '90d');
 
     logger.info('Login admin exitoso');
 
@@ -63,9 +62,22 @@ router.post('/', async (req, res, next) => {
       path: '/',
     });
 
+    // M-06: el JWT viaja solo en la cookie httpOnly de arriba -- devolverlo
+    // también acá en el body reintroducía la superficie de robo por XSS que
+    // esa cookie buscaba eliminar. Ningún cliente real (el panel admin
+    // vanilla JS de backend/src/admin/) lee este campo: confirmado por
+    // grep, se autentica solo con la cookie (ver api.js, credentials:
+    // 'include' + checkSession()).
+    //
+    // Tampoco se emite refreshToken: se generaba acá y solo viajaba en este
+    // mismo body (nunca en cookie), y no existe ningún endpoint /refresh
+    // que lo consuma -- era una pieza de un flujo de refresh que nunca se
+    // terminó de construir. Ver sección 8 de la auditoría de 17 secciones
+    // si se decide implementar ese flujo completo (endpoint + cookie propia
+    // + TTL corto en el access token).
     res.status(200).json(
       ApiResponse.success(
-        { token, refreshToken, expiresIn: process.env.JWT_EXPIRES_IN || '90d' },
+        { expiresIn: process.env.JWT_EXPIRES_IN || '90d' },
         'Login exitoso'
       )
     );
