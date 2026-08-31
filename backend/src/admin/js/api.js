@@ -65,8 +65,14 @@ async function apiFetch(path, options = {}) {
 
 async function logout() {
   try {
-    // M-03: revoca el token en el servidor antes de limpiar la sesión
-    await fetch(`${API_BASE}/admin/auth/logout`, {
+    // M-03: revoca el token en el servidor antes de limpiar la sesión.
+    // OJO: adminAuthRouter se monta en /admin/login (ver routes/index.ts),
+    // así que su sub-ruta /logout cuelga de /admin/login/logout, no de
+    // /admin/auth/logout -- con la URL vieja este fetch caía en el 404
+    // catch-all silenciosamente (el catch de abajo se comía el error), la
+    // cookie httpOnly nunca se limpiaba del lado del servidor y el token
+    // jamás se revocaba en Redis pese al comentario de la línea de abajo.
+    await fetch(`${API_BASE}/admin/login/logout`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
