@@ -217,13 +217,17 @@ export class BookingService {
       const reservation = reservationRows[0];
 
       try {
-        for (const bedId of candidateBedIds) {
-          await client.query(
-            `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
-             VALUES ($1, $2, $3::date, $4::date)`,
-            [reservation.id, bedId, data.checkIn, data.checkOut]
-          );
-        }
+        // Sección 9 auditoría 17 secciones: batch con unnest() en vez de un
+        // INSERT por cama en un loop -- N round-trips a la base por 1. El
+        // constraint EXCLUDE/trigger anti-overbooking se sigue evaluando
+        // por fila igual que antes (mismos códigos de error 23505/23P01),
+        // así que isOverbookingError() de abajo no cambia.
+        await client.query(
+          `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
+           SELECT $1, bed_id, $3::date, $4::date
+           FROM unnest($2::uuid[]) AS bed_id`,
+          [reservation.id, candidateBedIds, data.checkIn, data.checkOut]
+        );
       } catch (error) {
         if (isOverbookingError(error)) {
           throw new InsufficientAvailabilityError({ reason: 'overbooking_detected_at_insert' });
