@@ -7,6 +7,7 @@ import { Inter, Poppins, Cormorant_Garamond } from 'next/font/google';
 import Script from 'next/script';
 import { locales, type Locale } from '@/i18n';
 import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
+import { CookieConsentProvider } from '@/components/legal/cookie-consent';
 import '../globals.css';
 
 // display:'swap' evita el bloqueo de render en móviles (mejora CLS y FCP)
@@ -115,16 +116,21 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${inter.variable} ${poppins.variable} ${cormorant.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {/* AnalyticsProvider usa useSearchParams() (next/navigation) para
-              trackear page views en cada cambio de ruta -- Next.js exige un
-              Suspense boundary alrededor de cualquier consumidor de
-              useSearchParams(), si no toda página estática que pase por acá
-              (todas, este es el layout raíz) se ve forzada a render dinámico. */}
-          <Suspense fallback={<>{children}</>}>
-            <AnalyticsProvider>
-              {children}
-            </AnalyticsProvider>
-          </Suspense>
+          {/* CookieConsentProvider envuelve a AnalyticsProvider para que este
+              último pueda leer si el usuario ya aceptó cookies antes de
+              cargar GA4/Facebook Pixel (sección 14 auditoría 17 secciones). */}
+          <CookieConsentProvider>
+            {/* AnalyticsProvider usa useSearchParams() (next/navigation) para
+                trackear page views en cada cambio de ruta -- Next.js exige un
+                Suspense boundary alrededor de cualquier consumidor de
+                useSearchParams(), si no toda página estática que pase por acá
+                (todas, este es el layout raíz) se ve forzada a render dinámico. */}
+            <Suspense fallback={<>{children}</>}>
+              <AnalyticsProvider>
+                {children}
+              </AnalyticsProvider>
+            </Suspense>
+          </CookieConsentProvider>
         </NextIntlClientProvider>
 
         {/* Registro del Service Worker — mejora PWA y carga offline en móviles */}

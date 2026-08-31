@@ -736,5 +736,12 @@
     "whatsapp": "Écrire sur WhatsApp",
     "otaPlatforms": "Réservez sur nos plateformes partenaires",
     "bookingOnline": "Réservez maintenant avec notre moteur de réservation :"
+  },
+  "cookieConsent": {
+    "title": "Avis relatif aux cookies",
+    "message": "Nous utilisons des cookies propres et tiers (Google Analytics, Meta Pixel) pour comprendre votre navigation et améliorer votre expérience.",
+    "learnMore": "En savoir plus",
+    "accept": "Accepter",
+    "reject": "Refuser"
   }
 }
