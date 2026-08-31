@@ -256,7 +256,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         guest: { firstName, lastName, email: form.email, phone: form.phone, country: form.country, document: form.doc },
         specialRequests: form.requests,
         arrivalTime: form.arrival,
-        language: lang,
+        // El backend (email-service.ts) solo soporta pt/en/es -- de/fr/it
+        // caen a 'en' antes de mandarlas, mismo mapeo que apartment-engine.tsx.
+        language: lang === 'de' || lang === 'fr' || lang === 'it' ? 'en' : lang,
         source: 'direct',
         guestGender: gender,
       });
@@ -410,7 +412,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
           email:     titularEmail,
           phone:     form.phone   || undefined,
           country:   form.country || undefined,
-          language:  lang,
+          language:  lang === 'de' || lang === 'fr' || lang === 'it' ? 'en' : lang,
         },
         specialRequests: form.requests || undefined,
       });
