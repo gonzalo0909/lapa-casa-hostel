@@ -186,6 +186,7 @@ function ServiceJsonLd({ locale }: { locale: Locale }) {
           : locale === 'en' ? 'Hospitality management for property owners — Lapa Casa'
           : locale === 'es' ? 'Gestión hotelera para administradores de inmuebles — Lapa Casa'
           : locale === 'de' ? 'Hotelmanagement für Immobilienverwalter — Lapa Casa'
+          : locale === 'it' ? 'Gestione alberghiera per proprietari di immobili — Lapa Casa'
           : 'Gestion hôtelière pour propriétaires — Lapa Casa',
         description: locale === 'pt'
           ? 'Programa de parceiros Lapa Casa: gerencie seu imóvel em Santa Teresa com 5% de comissão, check-in operacional completo e repasse mensal garantido.'
@@ -195,6 +196,8 @@ function ServiceJsonLd({ locale }: { locale: Locale }) {
           ? 'Programa de socios Lapa Casa: gestione su inmueble en Santa Teresa con 5% de comisión, operaciones de check-in completas y pagos mensuales garantizados.'
           : locale === 'de'
           ? 'Lapa Casa Partnerprogramm: Verwalten Sie Ihre Immobilie in Santa Teresa mit 5% Provision, vollständigem Check-in-Service und garantierten monatlichen Auszahlungen.'
+          : locale === 'it'
+          ? 'Programma partner Lapa Casa: gestisci il tuo immobile a Santa Teresa con il 5% di commissione, operazioni di check-in complete e pagamenti mensili garantiti.'
           : 'Programme partenaire Lapa Casa : gérez votre bien à Santa Teresa avec 5% de commission, opérations de check-in complètes et virements mensuels garantis.',
         provider: {
           '@type': 'LodgingBusiness',
@@ -211,6 +214,7 @@ function ServiceJsonLd({ locale }: { locale: Locale }) {
           : locale === 'en' ? 'Hospitality management and short-term rental'
           : locale === 'es' ? 'Gestión hotelera y alquiler vacacional'
           : locale === 'de' ? 'Hotelmanagement und Kurzzeitvermietung'
+          : locale === 'it' ? 'Gestione alberghiera e affitto breve'
           : 'Gestion hôtelière et location saisonnière',
         offers: {
           '@type': 'Offer',
@@ -218,6 +222,7 @@ function ServiceJsonLd({ locale }: { locale: Locale }) {
             : locale === 'en' ? '5% commission per confirmed booking'
             : locale === 'es' ? 'Comisión del 5% por reserva confirmada'
             : locale === 'de' ? '5% Provision pro bestätigter Buchung'
+            : locale === 'it' ? '5% di commissione per ogni prenotazione confermata'
             : '5% de commission par réservation confirmée',
           price: '5',
           priceCurrency: 'BRL',
@@ -253,6 +258,7 @@ function PartnerFaqSection({ locale }: { locale: Locale }) {
     : locale === 'en' ? 'Partner FAQ'
     : locale === 'es' ? 'Preguntas frecuentes de socios'
     : locale === 'de' ? 'Häufige Fragen für Partner'
+    : locale === 'it' ? 'Domande frequenti dei partner'
     : 'Questions fréquentes des partenaires';
 
   return (

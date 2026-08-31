@@ -765,6 +765,8 @@ function buildGroupHowToSchema(locale: Locale) {
         ? 'Guía paso a paso para reservar tu grupo en Lapa Casa Hostel en Santa Teresa, Río de Janeiro'
         : locale === 'de'
         ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
+        : locale === 'it'
+        ? 'Guida passo passo per prenotare il tuo gruppo al Lapa Casa Hostel a Santa Teresa, Rio de Janeiro'
         : "Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Hostel à Santa Teresa, Rio de Janeiro",
     step: (steps[locale] ?? []).map((text, i) => ({
       '@type': 'HowToStep',
@@ -905,6 +907,8 @@ export default async function GruposPage({ params }: { params: { locale: string 
               ? 'Preguntas Frecuentes sobre Grupos'
               : locale === 'de'
               ? 'Häufige Fragen zu Gruppen'
+              : locale === 'it'
+              ? 'Domande Frequenti sui Gruppi'
               : 'Questions Fréquentes sur les Groupes'}
           </h2>
           <dl className="space-y-4">
@@ -941,6 +945,7 @@ export default async function GruposPage({ params }: { params: { locale: string 
            locale === 'en' ? '🗺️ Discover Santa Teresa — our neighborhood' :
            locale === 'es' ? '🗺️ Conoce Santa Teresa — el barrio donde estamos' :
            locale === 'de' ? '🗺️ Santa Teresa entdecken — unser Stadtviertel' :
+           locale === 'it' ? '🗺️ Scopri Santa Teresa — il nostro quartiere' :
            '🗺️ Découvrez Santa Teresa — notre quartier'}
         </a>
       </div>
@@ -998,6 +1003,8 @@ export default async function GruposPage({ params }: { params: { locale: string 
               ? 'Grupos'
               : locale === 'de'
               ? 'Gruppen'
+              : locale === 'it'
+              ? 'Gruppi'
               : 'Groupes'}
           </li>
         </ol>

@@ -222,7 +222,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         ]
           .filter(Boolean)
           .join('\n') || undefined,
-        language: locale === 'de' || locale === 'fr' ? 'en' : locale,
+        language: locale === 'de' || locale === 'fr' || locale === 'it' ? 'en' : locale,
         source: 'web',
         guestGender: 'mixed',
         ...(appliedCoupon ? { offerCode: appliedCoupon.code } : {}),
