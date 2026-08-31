@@ -32,6 +32,34 @@ const StripeCheckoutSchema = z.object({
   frontendUrl: z.string().trim().url().optional(),
 });
 
+const GroupSessionSchema = z.object({
+  checkIn: z.string().trim().min(1),
+  checkOut: z.string().trim().min(1),
+  totalBeds: z.number().int().min(2, 'El pago grupal requiere al menos 2 camas'),
+  nights: z.number().int().positive(),
+  guestGender: z.enum(['mixed', 'female', 'male']).optional(),
+  titular: z.object({
+    full_name: z.string().trim().min(1),
+    email: z.string().trim().email(),
+    phone: z.string().trim().optional(),
+    country: z.string().trim().optional(),
+    language: z.string().trim().optional(),
+  }),
+  specialRequests: z.string().trim().optional(),
+  appBaseUrl: z.string().trim().url().optional(),
+});
+
+const GroupMemberPaySchema = z.object({
+  guest: z.object({
+    full_name: z.string().trim().min(1),
+    email: z.string().trim().email(),
+    phone: z.string().trim().optional(),
+    country: z.string().trim().optional(),
+    language: z.string().trim().optional(),
+  }),
+  paymentMethod: z.enum(['card', 'pix']),
+});
+
 // POST /payments/stripe-wa-link — genera una Checkout Session sin reserva previa (flujo WhatsApp)
 router.post('/stripe-wa-link', validate(StripeWaLinkSchema), async (req, res, next) => {
   try {
@@ -83,27 +111,12 @@ router.post('/deposit', processDepositHandler);
 // ── Pago Grupal (Feature 2) ──────────────────────────────────────────────────
 
 // POST /payments/group-session — el titular crea la sesión grupal
-router.post('/group-session', async (req, res, next) => {
+router.post('/group-session', validate(GroupSessionSchema), async (req, res, next) => {
   try {
     const {
       checkIn, checkOut, totalBeds, nights, guestGender,
       titular, specialRequests, appBaseUrl
-    } = req.body as {
-      checkIn: string; checkOut: string; totalBeds: number; nights: number;
-      guestGender?: 'mixed' | 'female' | 'male';
-      titular: { full_name: string; email: string; phone?: string; country?: string; language?: string };
-      specialRequests?: string;
-      appBaseUrl?: string;
-    };
-
-    if (!checkIn || !checkOut || !totalBeds || !nights || !titular?.full_name || !titular?.email) {
-      res.status(400).json(ApiResponse.error('checkIn, checkOut, totalBeds, nights y titular son requeridos'));
-      return;
-    }
-    if (totalBeds < 2) {
-      res.status(400).json(ApiResponse.error('El pago grupal requiere al menos 2 camas'));
-      return;
-    }
+    } = req.body as z.infer<typeof GroupSessionSchema>;
 
     // La página /group-payment/:token la sirve el backend, no el frontend
     const baseUrl = appBaseUrl || process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
@@ -159,22 +172,10 @@ router.get('/group-member/:memberToken', async (req, res, next) => {
 });
 
 // POST /payments/group-member/:memberToken/pay — el invitado inicia su pago
-router.post('/group-member/:memberToken/pay', async (req, res, next) => {
+router.post('/group-member/:memberToken/pay', validate(GroupMemberPaySchema), async (req, res, next) => {
   try {
     const { memberToken } = req.params;
-    const { guest, paymentMethod } = req.body as {
-      guest: { full_name: string; email: string; phone?: string; country?: string; language?: string };
-      paymentMethod: 'card' | 'pix';
-    };
-
-    if (!guest?.full_name || !guest?.email) {
-      res.status(400).json(ApiResponse.error('Nombre y email son requeridos'));
-      return;
-    }
-    if (!['card', 'pix'].includes(paymentMethod)) {
-      res.status(400).json(ApiResponse.error('paymentMethod debe ser "card" o "pix"'));
-      return;
-    }
+    const { guest, paymentMethod } = req.body as z.infer<typeof GroupMemberPaySchema>;
 
     const result = await groupPaymentService.initiateMemberPayment({ memberToken, guest, paymentMethod });
     // Sección 10 auditoría 17 secciones: memberToken es una credencial
