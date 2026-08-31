@@ -61,7 +61,7 @@ router.get('/info', (req: Request, res: Response) => {
       admin: '/api/v1/admin'
     },
     documentation: '/api/docs',
-    support: 'tech@lapacasario.com'
+    support: 'lapalandiarj@gmail.com'
   });
 });
 
