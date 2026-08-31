@@ -60,8 +60,9 @@ http://localhost:3000
 - **next-intl 3.17** - PT/ES/EN support
 
 ### Analytics
-- **PostHog** - Product analytics
-- **Google Tag Manager** - Marketing tracking
+- **Google Analytics 4** - Product/ecommerce analytics
+- **Facebook Pixel** - Marketing tracking
+- Ambos gateados por el banner de consentimiento de cookies (`components/legal/cookie-consent.tsx`) -- no cargan hasta que el usuario acepta.
 
 ## 📁 Project Structure
 
@@ -198,7 +199,6 @@ xl:  1280px
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
 ```
 
 ### Required (Production)
@@ -206,9 +206,11 @@ NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
 NEXT_PUBLIC_SITE_URL=https://lapacasario.com
 NEXT_PUBLIC_API_URL=https://api.lapacasario.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-...
-NEXT_PUBLIC_GTM_ID=GTM-...
 ```
+
+Nota: MercadoPago/PIX ya no tiene SDK en el frontend -- el checkout se
+delega 100% al backend, así que no hace falta ninguna `NEXT_PUBLIC_MP_*`.
+Tampoco hay `NEXT_PUBLIC_GTM_ID` -- ver sección de Analytics.
 
 ### Optional (Analytics)
 ```bash
