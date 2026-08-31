@@ -12,6 +12,7 @@
 // calculate_final_price y calculate_deposit piden INTEGER, no SMALLINT.
 
 import { query } from '../config/database';
+import { getSeasonType } from './season-type';
 
 interface PricingRequest {
   checkInDate: string;
@@ -91,7 +92,7 @@ export class PricingService {
     const finalPrice = Math.round((preDiscountTotal - discountAmount) * 100) / 100;
 
     const seasonMultiplier = await this.getSeasonMultiplier(request.checkInDate);
-    const seasonType = await this.getSeasonType(request.checkInDate);
+    const seasonType = await getSeasonType(request.checkInDate);
     const minNights = await this.getMinNightsFromDb(request.checkInDate);
     if (seasonType === 'carnaval' && nights < minNights) {
       throw new Error(`Durante Carnaval se requiere minimo ${minNights} noches`);
@@ -201,18 +202,10 @@ export class PricingService {
     return parseFloat(rows[0].calculate_season_multiplier);
   }
 
-  private async getSeasonType(checkIn: string): Promise<string> {
-    const { rows } = await query<{ get_season_type: string }>(
-      `SELECT get_season_type($1::date) AS get_season_type`,
-      [checkIn]
-    );
-    return rows[0].get_season_type;
-  }
-
   /** determineSeason: usado por rutas para mostrar info de temporada -- via SQL, no tabla hardcodeada. */
   async determineSeason(checkIn: string, _checkOut: string): Promise<{ type: string; multiplier: number; minNights: number }> {
     const [type, multiplier, minNights] = await Promise.all([
-      this.getSeasonType(checkIn),
+      getSeasonType(checkIn),
       this.getSeasonMultiplier(checkIn),
       this.getMinNightsFromDb(checkIn)
     ]);
@@ -250,7 +243,7 @@ export class PricingService {
     const basePrice = this.calculateBasePrice(totalBeds, nights);
     const { discount } = await this.calculateGroupDiscount(totalBeds);
     const priceAfterDiscount = basePrice * (1 - discount);
-    const seasonType = await this.getSeasonType(checkInDate);
+    const seasonType = await getSeasonType(checkInDate);
     const seasonMultiplier = await this.getSeasonMultiplier(checkInDate);
     const seasonPrice = priceAfterDiscount * seasonMultiplier;
 
