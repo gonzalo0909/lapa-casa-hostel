@@ -16,6 +16,19 @@ import { ApiResponse } from '../../utils/responses';
 // M-03: prefijo para tokens revocados en Redis (TTL = expiración del token)
 const REVOKED_PREFIX = 'revoked_token:';
 
+// Sección 8 auditoría 17 secciones: convierte '24h'/'7d'/'90d' (mismo
+// formato que ya usan JWT_EXPIRES_IN acá y en render.yaml) a milisegundos
+// para el maxAge de la cookie -- antes estaba fijo en 90 días sin importar
+// el TTL real configurado para el JWT, así que la cookie sobrevivía mucho
+// más que el token válido dentro de ella.
+function durationToMs(duration: string, fallbackMs: number): number {
+  const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
+  if (!match) return fallbackMs;
+  const value = Number(match[1]);
+  const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
+  return value * unitMs;
+}
+
 const router = Router();
 
 router.post('/', async (req, res, next) => {
@@ -47,7 +60,7 @@ router.post('/', async (req, res, next) => {
       role: 'admin' as const
     };
 
-    const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '90d');
+    const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '24h');
 
     logger.info('Login admin exitoso');
 
@@ -58,7 +71,7 @@ router.post('/', async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 dias en ms
+      maxAge: durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000),
       path: '/',
     });
 
@@ -72,12 +85,16 @@ router.post('/', async (req, res, next) => {
     // Tampoco se emite refreshToken: se generaba acá y solo viajaba en este
     // mismo body (nunca en cookie), y no existe ningún endpoint /refresh
     // que lo consuma -- era una pieza de un flujo de refresh que nunca se
-    // terminó de construir. Ver sección 8 de la auditoría de 17 secciones
-    // si se decide implementar ese flujo completo (endpoint + cookie propia
-    // + TTL corto en el access token).
+    // terminó de construir. El default de JWT_EXPIRES_IN ya se acortó de
+    // 90d a 24h (ver sección 8 auditoría 17 secciones) para que un olvido
+    // de configurar la env var en el dashboard de Render falle corto, no
+    // largo. Un flujo de refresh completo (endpoint dedicado + cookie
+    // propia, para poder tener un access token de vida aún más corta sin
+    // forzar reloguearse tan seguido) sigue pendiente -- requiere probarlo
+    // con sesión de navegador real, no algo verificable solo desde el código.
     res.status(200).json(
       ApiResponse.success(
-        { expiresIn: process.env.JWT_EXPIRES_IN || '90d' },
+        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
         'Login exitoso'
       )
     );
