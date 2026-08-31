@@ -736,5 +736,12 @@
     "whatsapp": "Per WhatsApp schreiben",
     "otaPlatforms": "Auf Partnerplattformen buchen",
     "bookingOnline": "Jetzt mit unserem Buchungsmodul buchen:"
+  },
+  "cookieConsent": {
+    "title": "Cookie-Hinweis",
+    "message": "Wir verwenden eigene Cookies und Cookies von Drittanbietern (Google Analytics, Meta Pixel), um zu verstehen, wie Sie die Website nutzen, und Ihr Erlebnis zu verbessern.",
+    "learnMore": "Mehr erfahren",
+    "accept": "Akzeptieren",
+    "reject": "Ablehnen"
   }
 }

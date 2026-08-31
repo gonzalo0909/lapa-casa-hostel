@@ -736,5 +736,12 @@
     "whatsapp": "Falar no WhatsApp",
     "otaPlatforms": "Reserve nas plataformas parceiras",
     "bookingOnline": "Reserve agora pelo nosso motor de reservas:"
+  },
+  "cookieConsent": {
+    "title": "Aviso de cookies",
+    "message": "Usamos cookies próprios e de terceiros (Google Analytics, Meta Pixel) para entender como você usa o site e melhorar sua experiência.",
+    "learnMore": "Saiba mais",
+    "accept": "Aceitar",
+    "reject": "Recusar"
   }
 }

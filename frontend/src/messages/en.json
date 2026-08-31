@@ -736,5 +736,12 @@
     "whatsapp": "Chat on WhatsApp",
     "otaPlatforms": "Book on partner platforms",
     "bookingOnline": "Book now using our booking engine:"
+  },
+  "cookieConsent": {
+    "title": "Cookie notice",
+    "message": "We use our own and third-party cookies (Google Analytics, Meta Pixel) to understand how you use the site and improve your experience.",
+    "learnMore": "Learn more",
+    "accept": "Accept",
+    "reject": "Reject"
   }
 }

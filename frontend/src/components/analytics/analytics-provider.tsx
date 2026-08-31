@@ -16,6 +16,7 @@
 import React, { createContext, useContext, useEffect, useCallback } from 'react';
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useCookieConsent } from '@/components/legal/cookie-consent';
 
 /**
  * Analytics configuration
@@ -32,7 +33,6 @@ const ANALYTICS_CONFIG = {
   ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '',
   facebookPixelId: process.env.NEXT_PUBLIC_FB_PIXEL_ID || '',
   enableDebug: process.env.NODE_ENV === 'development',
-  cookieConsent: true
 } as const;
 
 const ga4Configured = ANALYTICS_CONFIG.ga4MeasurementId.length > 0;
@@ -203,6 +203,10 @@ export function AnalyticsProvider({
 }: AnalyticsProviderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Sección 14 auditoría 17 secciones: GA4/Facebook Pixel solo se cargan
+  // si el usuario ya aceptó cookies (ver components/legal/cookie-consent.tsx).
+  const { status: cookieConsentStatus } = useCookieConsent();
+  const consentGranted = cookieConsentStatus === 'accepted';
 
   /**
    * Track page view
@@ -479,8 +483,9 @@ export function AnalyticsProvider({
 
   return (
     <AnalyticsContext.Provider value={contextValue}>
-      {/* Google Analytics 4 — solo si NEXT_PUBLIC_GA4_MEASUREMENT_ID está configurada */}
-      {ga4Configured && (
+      {/* Google Analytics 4 — solo si NEXT_PUBLIC_GA4_MEASUREMENT_ID está
+          configurada Y el usuario aceptó cookies */}
+      {ga4Configured && consentGranted && (
         <Script
           id="ga4-script"
           strategy="afterInteractive"
@@ -489,8 +494,9 @@ export function AnalyticsProvider({
         />
       )}
 
-      {/* Facebook Pixel — solo si NEXT_PUBLIC_FB_PIXEL_ID está configurada */}
-      {fbPixelConfigured && (
+      {/* Facebook Pixel — solo si NEXT_PUBLIC_FB_PIXEL_ID está configurada
+          Y el usuario aceptó cookies */}
+      {fbPixelConfigured && consentGranted && (
         <Script
           id="fb-pixel"
           strategy="afterInteractive"
