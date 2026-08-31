@@ -467,7 +467,14 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             <span>Hostel</span>
           </h1>
           <div className="he-lang-sw">
-            {(['pt','es','en','fr','de','it'] as Lang[]).map(l => (
+            {/* 'it' queda fuera del selector a propósito (ver auditoría de
+                17 secciones, sección 5): sin ruta /it/* ni mensajes de
+                sitio en italiano (header/footer/SEO), el botón era un
+                callejón sin salida. Las traducciones internas del widget
+                en T.it (hostel-engine.types.ts) y DAY_LBL/MON_LBL.it
+                quedan sin usar, listas para cuando se agregue el locale
+                completo -- pendiente explícito post-Fase 2. */}
+            {(['pt','es','en','fr','de'] as Lang[]).map(l => (
               <button key={l} className={`he-lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
                 {l.toUpperCase()}
               </button>
