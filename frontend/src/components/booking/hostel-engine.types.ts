@@ -2,7 +2,7 @@
 // Tipos TypeScript · Traducciones PT/ES/EN · DEFAULT_ROOMS · DAY_LBL · MON_LBL
 
 // ─── Tipos base ─────────────────────────────────────────
-export type Lang = 'pt' | 'es' | 'en' | 'fr' | 'de';
+export type Lang = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 export type Phase = 'wizard' | 'success' | 'expired' | 'group';
 export type PayMethod = 'pix' | 'card' | 'group';
 
@@ -553,6 +553,7 @@ export const DAY_LBL: Record<Lang, string[]> = {
   en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
   fr:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],
   de:['So','Mo','Di','Mi','Do','Fr','Sa'],
+  it:['Dom','Lun','Mar','Mer','Gio','Ven','Sab'],
 };
 
 export const MON_LBL: Record<Lang, string[]> = {
@@ -561,4 +562,5 @@ export const MON_LBL: Record<Lang, string[]> = {
   en:['January','February','March','April','May','June','July','August','September','October','November','December'],
   fr:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
   de:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  it:['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
 };
