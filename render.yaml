@@ -25,6 +25,15 @@ services:
       # prompts/combo-VENTANA-1-completa.md).
       - key: DATABASE_URL
         sync: false
+      # CA real de Supabase en PEM, con \n literales (FIX incidente
+      # 2026-08-31: sin esto la conexión TLS falla con
+      # SELF_SIGNED_CERT_IN_CHAIN -- el trust store por defecto de Node no
+      # valida el certificado de conexión directa de Supabase). Sacarlo del
+      # dashboard de Supabase: Project Settings -> Database -> SSL
+      # Configuration -> "Download certificate". sync: false = se carga a
+      # mano en el dashboard de Render.
+      - key: DATABASE_CA_CERT
+        sync: false
       - key: REDIS_URL
         sync: false
       - key: JWT_SECRET
@@ -184,6 +193,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
+        sync: false
+      # Ver el comentario junto a DATABASE_CA_CERT en el servicio backend
+      # arriba -- este worker abre su propio pool de Postgres (src/config/
+      # database.ts) y necesita la misma CA.
+      - key: DATABASE_CA_CERT
         sync: false
       - key: REDIS_URL
         sync: false

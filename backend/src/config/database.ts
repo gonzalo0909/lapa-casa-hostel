@@ -7,22 +7,35 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required (see backend/.env)');
 }
 
+// rejectUnauthorized:true (auditoría 2026-08-30) asumía que el certificado de
+// Supabase valida contra una CA pública ya confiable para Node -- en la
+// práctica no fue así (SELF_SIGNED_CERT_IN_CHAIN en producción real, caída
+// confirmada). Se había revertido a rejectUnauthorized:false como parche de
+// emergencia, pero eso vuelve a dejar la conexión sin verificar el
+// certificado del servidor (vulnerable a MITM). En vez de eso, se fija
+// explícitamente la CA real de Supabase vía DATABASE_CA_CERT y se mantiene
+// rejectUnauthorized:true. Sacar el certificado desde el dashboard de
+// Supabase: Project Settings -> Database -> SSL Configuration -> "Download
+// certificate", y cargar su contenido (PEM) como variable de entorno en
+// Render (con los \n literales, mismo patrón que
+// GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY).
+const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n');
+
+if (process.env.NODE_ENV === 'production' && !databaseCaCert) {
+  throw new Error(
+    'DATABASE_CA_CERT environment variable is required in production ' +
+    '(descargar desde Supabase dashboard: Project Settings -> Database -> SSL Configuration)'
+  );
+}
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: parseInt(process.env.DB_MAX_CONNECTIONS || '10', 10),
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '5000', 10),
   idleTimeoutMillis: 30000,
-  // rejectUnauthorized:true (auditoría 2026-08-30) asumía que el certificado
-  // de Supabase valida contra una CA pública ya confiable para Node -- en la
-  // práctica no fue así: produjo SELF_SIGNED_CERT_IN_CHAIN en producción real
-  // (caída confirmada, Render "Failed deploy" durante horas). Se revierte a
-  // rejectUnauthorized:false -- la conexión sigue viajando cifrada por TLS,
-  // solo no se valida la cadena del certificado contra el store de Node
-  // (el mismo riesgo teórico de MITM que ya existía antes de la 2026-08-30).
-  // PENDIENTE: endurecer de nuevo pasando el certificado CA real de Supabase
-  // (Settings → Database → SSL Configuration en el dashboard) vía `ca:` en
-  // vez de sacar la verificación por completo.
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: true, ca: databaseCaCert }
+    : false
 });
 
 pool.on('error', (err) => {
