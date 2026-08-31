@@ -96,9 +96,14 @@ const nextConfig = {
           },
         ],
       },
-      // Cache control for static assets
+      // Cache control for static assets -- Next.js sirve los archivos de
+      // public/ en la raíz (/img/foo.png, /favicon.ico, etc.), nunca bajo
+      // un prefijo /static/: la regla anterior (source: '/static/:path*')
+      // no coincidía con ninguna ruta real y nunca se aplicaba. Se matchea
+      // por extensión en vez de por prefijo para que sí cubra los assets
+      // reales de public/ (íconos, imágenes, fuentes servidas localmente).
       {
-        source: '/static/:path*',
+        source: '/:path*.(ico|png|jpg|jpeg|svg|webp|avif|woff|woff2|ttf|otf)',
         headers: [
           {
             key: 'Cache-Control',
