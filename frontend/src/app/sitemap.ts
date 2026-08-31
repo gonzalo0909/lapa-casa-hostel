@@ -25,6 +25,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/grupos',         changeFrequency: 'monthly', priority: 0.8 },
     { path: '/galeria',        changeFrequency: 'monthly', priority: 0.7 },
     { path: '/parceiros',      changeFrequency: 'monthly', priority: 0.6 },
+    // Páginas legales
+    { path: '/privacy',        changeFrequency: 'yearly',  priority: 0.3 },
+    { path: '/termos-hospede', changeFrequency: 'yearly',  priority: 0.3 },
   ];
 
   return locales.flatMap((locale) =>
