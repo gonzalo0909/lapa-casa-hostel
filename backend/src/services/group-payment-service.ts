@@ -23,6 +23,7 @@ import { acquireLock } from '../database/lock-middleware';
 import { enqueueSheetsExport } from '../queues/sheets-export.queue';
 import redisClient from '../cache/redis-client';
 import { logger } from '../utils/logger';
+import { getSeasonType } from './season-type';
 
 const guestRepo = new GuestRepository();
 
@@ -132,13 +133,6 @@ async function getCardSurchargePercent(): Promise<number> {
     `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`
   );
   return rows[0]?.value ?? 0;
-}
-
-async function getSeasonType(checkIn: string): Promise<string> {
-  const { rows } = await query<{ get_season_type: string }>(
-    `SELECT get_season_type($1::date) AS get_season_type`, [checkIn]
-  );
-  return rows[0].get_season_type;
 }
 
 function resolvePricingStrategy(seasonType: string): 'min' | 'weighted_avg' | 'per_room' {
