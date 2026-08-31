@@ -20,6 +20,19 @@ interface StructuredDataProps {
 }
 
 /**
+ * Coordenadas GPS únicas del hostel -- fuente de verdad compartida.
+ * Antes había dos pares distintos (-22.9145/-43.1852 en OrganizationSchema
+ * y grupos/page.tsx, -22.9167/-43.1931 en LocalBusinessSchema), ~800-900m
+ * de diferencia entre sí para la misma dirección. Se unifica al valor de
+ * LocalBusinessSchema (el bloque JSON-LD principal del sitio).
+ */
+export const HOSTEL_GEO = {
+  '@type': 'GeoCoordinates' as const,
+  latitude: -22.9167,
+  longitude: -43.1931,
+};
+
+/**
  * Organization structured data for Lapa Casa
  */
 export const OrganizationSchema = {
@@ -43,11 +56,7 @@ export const OrganizationSchema = {
     postalCode: '20241-120',
     addressCountry: 'BR'
   },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: -22.9145,
-    longitude: -43.1852
-  },
+  geo: HOSTEL_GEO,
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
@@ -128,11 +137,7 @@ export const LocalBusinessSchema = {
     postalCode: '20241-120',
     addressCountry: 'BR'
   },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: -22.9167,
-    longitude: -43.1931
-  },
+  geo: HOSTEL_GEO,
   telephone: '+55-21-97715-7530',
   priceRange: 'R$ 60-100',
   aggregateRating: {
