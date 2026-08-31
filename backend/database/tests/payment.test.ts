@@ -189,15 +189,21 @@ describe('PaymentRepository - findByStripeIntent / findByMPId', () => {
     });
   });
 
-  it('findByStripeIntent() retorna el pago stripe correcto', async () => {
-    const p = await paymentRepo.findByStripeIntent(stripePaymentId);
+  // FIX (sección 13 auditoría 17 secciones): PaymentRepository nunca tuvo
+  // findByStripeIntent()/findByMPId() -- este test quedó desactualizado
+  // tras un refactor que unificó ambos lookups en un solo método genérico
+  // (misma tabla "payments", mismo campo provider_payment_id para
+  // cualquier proveedor). El test no compilaba, rompiendo el resto del
+  // suite de payment.test.ts junto con él.
+  it('findByProviderPaymentId() retorna el pago stripe correcto', async () => {
+    const p = await paymentRepo.findByProviderPaymentId(stripePaymentId);
     expect(p).not.toBeNull();
     expect(p!.provider).toBe('stripe');
     expect(p!.provider_payment_id).toBe(stripePaymentId);
   });
 
-  it('findByMPId() retorna el pago mercadopago correcto', async () => {
-    const p = await paymentRepo.findByMPId(mpProviderPaymentId);
+  it('findByProviderPaymentId() retorna el pago mercadopago correcto', async () => {
+    const p = await paymentRepo.findByProviderPaymentId(mpProviderPaymentId);
     expect(p).not.toBeNull();
     expect(p!.provider).toBe('mercadopago');
     expect(p!.provider_payment_id).toBe(mpProviderPaymentId);
