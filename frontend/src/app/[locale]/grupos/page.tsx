@@ -4,7 +4,7 @@
 
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import { StructuredData } from '@/components/seo/structured-data';
+import { StructuredData, HOSTEL_GEO } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 import { SiteFooter } from '@/components/layout/site-footer';
 
@@ -561,11 +561,7 @@ function buildGroupLodgingSchema() {
       postalCode: '20241-120',
       addressCountry: 'BR',
     },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: -22.9145,
-      longitude: -43.1852,
-    },
+    geo: HOSTEL_GEO,
     priceRange: 'R$ 60-100',
     specialOffer: [
       {
