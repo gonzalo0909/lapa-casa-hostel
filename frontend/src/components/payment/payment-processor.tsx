@@ -39,9 +39,9 @@ interface CardPaymentData {
 
 // ── Helpers de localización ─────────────────────────────────────────────────
 
-type SupportedLocale = 'pt' | 'es' | 'en' | 'fr' | 'de';
+type SupportedLocale = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 
-const SUPPORTED: SupportedLocale[] = ['pt', 'es', 'en', 'fr', 'de'];
+const SUPPORTED: SupportedLocale[] = ['pt', 'es', 'en', 'fr', 'de', 'it'];
 
 function safeLocale(locale: string): SupportedLocale {
   return SUPPORTED.includes(locale as SupportedLocale) ? (locale as SupportedLocale) : 'pt';
@@ -107,6 +107,18 @@ function T(key: string, locale: string): string {
       surchargePct:      '+ {pct}% Kartengebühr',
       loading:           'Zahlung wird vorbereitet…',
       error:             'Fehler beim Starten der Zahlung. Bitte erneut versuchen.',
+      checkIn:           'Check-in',
+    },
+    it: {
+      tabPix:            'PIX',
+      tabCard:           'Carta di Credito',
+      pixRecommended:    '✓ Consigliato – nessuna commissione extra',
+      depositNow:        'Caparra ora',
+      remainingCheckin:  'Saldo al check-in',
+      totalBooking:      'Totale prenotazione',
+      surchargePct:      '+ {pct}% di commissione carta',
+      loading:           'Preparazione del pagamento…',
+      error:             'Errore nell\'avvio del pagamento. Riprova.',
       checkIn:           'Check-in',
     },
   };

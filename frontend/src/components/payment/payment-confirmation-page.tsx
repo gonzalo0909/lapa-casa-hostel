@@ -22,7 +22,7 @@ import { LoadingSpinner } from '../ui/loading-spinner';
  */
 interface PaymentConfirmationPageProps {
   bookingId: string;
-  locale: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 }
 
 interface BookingSummary {
@@ -42,7 +42,7 @@ interface BookingSummary {
 }
 
 const BCP47: Record<string, string> = {
-  pt: 'pt-BR', es: 'es-ES', en: 'en-US', fr: 'fr-FR', de: 'de-DE',
+  pt: 'pt-BR', es: 'es-ES', en: 'en-US', fr: 'fr-FR', de: 'de-DE', it: 'it-IT',
 };
 
 function formatDate(value: string, locale: string): string {

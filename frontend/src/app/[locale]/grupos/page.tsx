@@ -37,6 +37,11 @@ const META: Record<Locale, { title: string; description: string }> = {
     description:
       'Voyage en groupe à Rio de Janeiro? Lapa Casa Hostel offre des réductions de groupe, des chambres privées et des dortoirs à Santa Teresa. Réservez directement.',
   },
+  it: {
+    title: 'Alloggio per Gruppi a Rio de Janeiro | Lapa Casa Hostel',
+    description:
+      'Viaggio di gruppo a Rio de Janeiro? Il Lapa Casa Hostel a Santa Teresa offre sconti per gruppi, camere private e dormitori. Prenota direttamente e risparmia.',
+  },
 };
 
 // ─── Full content per locale ───────────────────────────────────────────────────
@@ -540,6 +545,102 @@ const CONTENT: Record<Locale, Content> = {
     ctaBtn: 'Voir les Options de Chambres',
     ctaWa: 'Je veux un devis pour mon groupe',
   },
+
+  it: {
+    headline: 'Viaggio di Gruppo a Rio de Janeiro',
+    intro:
+      'Organizzare un viaggio di gruppo a Rio de Janeiro può essere impegnativo — trovare un alloggio che rientri nel budget di tutti, nello stesso posto, con spazi comuni per stare insieme. Al Lapa Casa Hostel, a Santa Teresa, ci abbiamo pensato noi.',
+    sections: [
+      {
+        heading: 'Sconto Speciale per Gruppi',
+        body: 'I gruppi di 6 o più persone hanno accesso a condizioni speciali al Lapa Casa:',
+        bullets: [
+          '10% di sconto per gruppi da 6 a 9 persone',
+          '15% di sconto per gruppi di 10 o più persone',
+          'Preventivo personalizzato per gruppi oltre le 20 persone',
+          'Possibilità di prenotare un dormitorio intero in esclusiva',
+          'Prenotazione di appartamento privato per il gruppo',
+        ],
+      },
+      {
+        heading: 'Perché Santa Teresa?',
+        body: 'Santa Teresa è il quartiere più affascinante e bohémien di Rio. Per gruppi di viaggiatori in cerca di autenticità, è la scelta giusta:',
+        bullets: [
+          'A 10 minuti di tram (VLT) dal centro di Rio',
+          'Vicino al Museo del Domani, AquaRio e Lapa (vita notturna)',
+          'Sicuro, tranquillo e con un\'ottima gastronomia locale',
+          'Vista panoramica sulla Baia di Guanabara e il centro storico',
+          'Cultura e arte a ogni angolo — atelier, gallerie, mercato artigianale',
+        ],
+      },
+      {
+        heading: 'Opzioni di Alloggio per Gruppi',
+        body: 'Abbiamo diverse soluzioni per il tuo gruppo:',
+        bullets: [
+          'Dormitori misti (da 7 a 12 letti) — opzione economica per gruppi più piccoli',
+          'Dormitorio femminile — per gruppi di sole donne',
+          'Camere private — per coppie o sottogruppi che preferiscono la privacy',
+          'Appartamenti indipendenti — per gruppi che vogliono cucina e soggiorno propri',
+          'Combinazioni miste (dormitorio + privato) per gruppi con esigenze diverse',
+        ],
+      },
+      {
+        heading: 'Come Prenotare per un Gruppo',
+        body: 'Il processo è semplice e diretto — senza intermediari:',
+        bullets: [
+          '1. Scrivici su WhatsApp con le date, il numero di persone e il tipo di camera',
+          '2. Ricevi un preventivo personalizzato entro 2 ore',
+          '3. Conferma con una caparra del 30% via PIX o carta',
+          '4. Il saldo si paga all\'arrivo — accettiamo PIX, carta di debito/credito',
+          '5. Check-in flessibile per gruppi — avvisando in anticipo',
+        ],
+      },
+      {
+        heading: 'Cosa È Incluso',
+        body: 'Per tutti gli ospiti, indipendentemente dal tipo di alloggio:',
+        bullets: [
+          'Wi-Fi ad alta velocità in tutto l\'hostel',
+          'Cucina condivisa attrezzata (frigorifero, fornelli, microonde)',
+          'Ampio spazio comune — perfetto per riunire il gruppo',
+          'Armadietti individuali con lucchetto',
+          'Consigli su escursioni e ristoranti per gruppi',
+          'Assistenza in portoghese, inglese, spagnolo e francese',
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Qual è la dimensione minima del gruppo per avere lo sconto?',
+        answer:
+          'A partire da 6 persone hai già diritto al 10% di sconto sulla prenotazione diretta. Per gruppi di 10 o più persone, lo sconto sale al 15%. I gruppi oltre le 20 persone ricevono un preventivo personalizzato.',
+      },
+      {
+        question: 'Posso prenotare il dormitorio intero per il mio gruppo?',
+        answer:
+          'Sì! È possibile prenotare il dormitorio intero in esclusiva per il tuo gruppo. Questo garantisce privacy ed è più economico che affittare camere private per tutti. Contattaci su WhatsApp per verificare la disponibilità.',
+      },
+      {
+        question: 'Quali metodi di pagamento sono accettati per i gruppi?',
+        answer:
+          'Accettiamo PIX (con sconto aggiuntivo), carta di credito (fino a 6 rate senza interessi) e carta di debito. Per i gruppi chiediamo una caparra del 30% alla conferma e il saldo all\'arrivo. Emettiamo fattura.',
+      },
+      {
+        question: 'È possibile fare il check-in in orari diversi per un gruppo?',
+        answer:
+          'Sì, sappiamo che i gruppi viaggiano insieme ma arrivano in orari diversi. Basta avvisarci in anticipo e conserviamo i bagagli in sicurezza finché tutti non possono completare il check-in ufficiale.',
+      },
+      {
+        question: 'L\'hostel ha uno spazio per riunioni o cene di gruppo?',
+        answer:
+          'Abbiamo un ampio spazio comune e una terrazza panoramica. Per gruppi più numerosi (15+ persone) che necessitano di uno spazio esclusivo per un evento o una riunione, verifica disponibilità e condizioni su WhatsApp.',
+      },
+    ],
+    ctaTitle: 'Organizza il tuo Gruppo e Prenota Ora',
+    ctaBody:
+      'Contattaci su WhatsApp per ricevere un preventivo personalizzato per il tuo gruppo. Rispondiamo entro 2 ore!',
+    ctaBtn: 'Vedi le Opzioni di Camere',
+    ctaWa: 'Vorrei un preventivo per il mio gruppo',
+  },
 };
 
 // ─── JSON-LD schemas ────────────────────────────────────────────────────────────
@@ -635,6 +736,13 @@ function buildGroupHowToSchema(locale: Locale) {
       "Le solde est payé à l'arrivée par PIX ou carte",
       'Profitez de votre séjour de groupe à Santa Teresa, Rio de Janeiro',
     ],
+    it: [
+      'Scrivici su WhatsApp con le tue date e il numero di persone',
+      'Ricevi il preventivo personalizzato entro 2 ore',
+      'Conferma la prenotazione con una caparra del 30%',
+      'Il saldo si paga all\'arrivo via PIX o carta',
+      'Goditi il tuo soggiorno di gruppo a Santa Teresa, Rio de Janeiro',
+    ],
   };
   const names: Record<Locale, string> = {
     pt: 'Como Reservar para um Grupo no Lapa Casa Hostel',
@@ -642,6 +750,7 @@ function buildGroupHowToSchema(locale: Locale) {
     es: 'Cómo Reservar como Grupo en Lapa Casa Hostel',
     de: 'So Buchen Sie Ihren Gruppenaufenthalt im Lapa Casa Hostel',
     fr: 'Comment Réserver en Groupe au Lapa Casa Hostel',
+    it: 'Come Prenotare per un Gruppo al Lapa Casa Hostel',
   };
   return {
     '@context': 'https://schema.org',

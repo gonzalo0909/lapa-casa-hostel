@@ -149,6 +149,28 @@ const PARTNER_FAQ: Record<Locale, FaqEntry[]> = {
       a: "Remplissez le formulaire de contact sur cette page avec les informations de votre bien. Notre équipe vous contactera sous 48 heures ouvrables pour planifier une visite d'évaluation et vous présenter le contrat complet.",
     },
   ],
+  it: [
+    {
+      q: 'Quale commissione applica Lapa Casa?',
+      a: 'La commissione è del 5% sul valore netto di ogni prenotazione confermata. Non ci sono costi di iscrizione né canoni mensili — paghi solo quando incassi.',
+    },
+    {
+      q: 'Chi si occupa del check-in e dell\'assistenza agli ospiti?',
+      a: 'Lapa Casa gestisce l\'intero processo operativo: check-in, check-out, assistenza durante il soggiorno e comunicazione con gli ospiti. Non è necessario essere presenti nell\'immobile.',
+    },
+    {
+      q: 'Quando e come ricevo il pagamento?',
+      a: 'I pagamenti vengono effettuati mensilmente, entro il 10° giorno lavorativo del mese successivo a quello delle prenotazioni saldate. Il pagamento avviene tramite bonifico bancario (TED/PIX) sul conto registrato.',
+    },
+    {
+      q: 'È necessario avere una partita IVA (CNPJ) per diventare partner?',
+      a: 'No. Sia le persone fisiche (CPF) che le persone giuridiche (CNPJ) possono partecipare al programma partner. Le condizioni contrattuali sono le stesse in entrambi i casi.',
+    },
+    {
+      q: 'Come registro il mio immobile?',
+      a: 'Compila il modulo di contatto in questa pagina con i dati dell\'immobile. Il nostro team ti contatterà entro 48 ore lavorative per fissare un sopralluogo di valutazione e presentarti il contratto completo.',
+    },
+  ],
 };
 
 // ── Service JSON-LD (B2B hospitality management) ─────────────────────────────

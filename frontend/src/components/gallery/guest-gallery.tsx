@@ -20,7 +20,7 @@ import type { GuestPhoto } from '@/types/global';
  * @component
  */
 interface GuestGalleryProps {
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 }
 
 export const GuestGallery: React.FC<GuestGalleryProps> = ({ locale = 'pt' }) => {

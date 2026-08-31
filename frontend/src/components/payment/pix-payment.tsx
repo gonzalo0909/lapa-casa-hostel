@@ -25,7 +25,7 @@ interface PixPaymentProps {
   qrCode: string;
   qrCodeBase64?: string;
   amount: number;
-  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de';
+  locale?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
   onSuccess: (paymentData: { paymentId: string; amount: number }) => void;
   onError: (error: Error) => void;
 }
@@ -280,6 +280,23 @@ function T(key: string, locale: string): string {
       alreadyPaid: 'Ich habe bereits bezahlt — jetzt prüfen',
       alreadyPaidHint: 'Klicken Sie hier, wenn die Bestätigung länger dauert.',
       verifying: 'Wird geprüft...'
+    },
+    it: {
+      howTo: 'Come pagare con PIX',
+      step1: '1. Apri l\'app della tua banca',
+      step2: '2. Scegli di pagare con PIX',
+      step3: '3. Scansiona il QR Code o copia il codice',
+      step4: '4. Conferma il pagamento',
+      codeLabel: 'Codice PIX (Copia e Incolla)',
+      copy: 'Copia',
+      copied: 'Copiato!',
+      amountLabel: 'Importo da pagare',
+      waiting: 'In attesa di conferma del pagamento...',
+      autoConfirm: 'Il pagamento verrà confermato automaticamente dopo l\'approvazione.',
+      dontClose: 'Non chiudere questa pagina fino alla conferma.',
+      alreadyPaid: 'Ho già pagato — verifica ora',
+      alreadyPaidHint: 'Clicca qui se la conferma tarda ad arrivare.',
+      verifying: 'Verifica in corso...'
     }
   };
   return t[locale]?.[key] || key;

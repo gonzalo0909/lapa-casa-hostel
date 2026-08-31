@@ -420,9 +420,10 @@ const GENERIC_ERROR_TEXT: Record<string, { timeout: string; unexpected: string }
   en: { timeout: 'The connection timed out. Please try again.', unexpected: 'An unexpected error occurred. Please try again.' },
   fr: { timeout: 'La connexion a pris trop de temps. Réessayez.', unexpected: 'Une erreur inattendue est survenue. Réessayez.' },
   de: { timeout: 'Die Verbindung hat zu lange gedauert. Bitte versuchen Sie es erneut.', unexpected: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.' },
+  it: { timeout: 'La connessione ha impiegato troppo tempo. Riprova.', unexpected: 'Si è verificato un errore imprevisto. Riprova.' },
 };
 
-export function handleAPIError(error: unknown, locale: 'pt' | 'es' | 'en' | 'fr' | 'de' = 'pt'): string {
+export function handleAPIError(error: unknown, locale: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it' = 'pt'): string {
   const text = GENERIC_ERROR_TEXT[locale] ?? GENERIC_ERROR_TEXT.pt!;
 
   if (error instanceof APIError) {

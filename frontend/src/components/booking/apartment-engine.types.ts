@@ -7,7 +7,7 @@ import type { ApartmentAvailability } from '@/types/global';
 
 export type Step = 1 | 2 | 3 | 4;
 
-export type AptLocale = 'pt' | 'es' | 'en' | 'fr' | 'de';
+export type AptLocale = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 
 // ─── Formulario de huésped ───────────────────────────────────────────────────
 
@@ -78,6 +78,7 @@ export const BCP47: Record<string, string> = {
   en: 'en-US',
   fr: 'fr-FR',
   de: 'de-DE',
+  it: 'it-IT',
 };
 
 /** Horarios de check-in disponibles (cada 30 min, 14:00–22:00). */
