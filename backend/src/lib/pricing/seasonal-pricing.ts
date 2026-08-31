@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/lib/pricing/seasonal-pricing.ts
 
-import { differenceInDays, format, isSameDay, parseISO } from 'date-fns';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface Season {
   name: string;
@@ -285,7 +285,6 @@ export class SeasonalPricingCalculator {
     const requestedPrice = requestedCalc.totalPrice;
 
     const alternatives = [];
-    const lowSeason = SEASONS.find(s => s.name === 'low')!;
 
     for (let monthOffset = 1; monthOffset <= 6; monthOffset++) {
       const altDate = new Date(requestedDate);

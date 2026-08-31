@@ -15,12 +15,12 @@
 // resourceKey generico con timeout, porque asi es como se llama de
 // verdad la funcion SQL.
 
-import { PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { withTransaction } from '../config/database';
 
 /** acquire_bed_locks() dentro de la transaccion activa. No-op si bedIds esta vacio. */
 export const acquireLock = async (client: PoolClient, bedIds: string[]): Promise<void> => {
-  if (bedIds.length === 0) return;
+  if (bedIds.length === 0) {return;}
   await client.query('SELECT acquire_bed_locks($1::uuid[])', [bedIds]);
 };
 

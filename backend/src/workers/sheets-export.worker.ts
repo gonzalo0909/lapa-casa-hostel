@@ -6,7 +6,7 @@
 // son no-ops que solo loguean -- el job se marca completado igual, no
 // tiene sentido reintentarlo hasta que alguien cargue las credenciales.
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
 import { upsertBookingInSheet, deleteBookingFromSheet } from '../integrations/google-sheets/booking-export';
 import { logger } from '../utils/logger';

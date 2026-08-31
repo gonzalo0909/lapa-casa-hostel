@@ -5,7 +5,7 @@
 // le faltaba Mixto 7C -- ninguna asignacion real podia funcionar con esos
 // IDs. Ahora lee las 5 habitaciones reales de room_types.
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
 import { AvailabilityService } from '../../services/availability-service';
 import { PricingService } from '../../services/pricing-service';
@@ -173,12 +173,12 @@ function generateAllocationOptions(
   let remaining = bedsNeeded;
   const option1: any[] = [];
   for (const room of sortedRooms) {
-    if (remaining <= 0) break;
+    if (remaining <= 0) {break;}
     const allocated = Math.min(remaining, room.availableBeds);
     option1.push({ roomId: room.roomId, name: room.name, bedsAllocated: allocated });
     remaining -= allocated;
   }
-  if (remaining === 0) options.push({ option: 1, totalRooms: option1.length, rooms: option1 });
+  if (remaining === 0) {options.push({ option: 1, totalRooms: option1.length, rooms: option1 });}
 
   // Option 2: balanced allocation
   if (sortedRooms.length > 1) {
@@ -186,14 +186,14 @@ function generateAllocationOptions(
     remaining = bedsNeeded;
     const option2: any[] = [];
     for (const room of sortedRooms) {
-      if (remaining <= 0) break;
+      if (remaining <= 0) {break;}
       const allocated = Math.min(remaining, Math.min(bedsPerRoom, room.availableBeds));
       if (allocated > 0) {
         option2.push({ roomId: room.roomId, name: room.name, bedsAllocated: allocated });
         remaining -= allocated;
       }
     }
-    if (remaining === 0 && option2.length > 0) options.push({ option: 2, totalRooms: option2.length, rooms: option2 });
+    if (remaining === 0 && option2.length > 0) {options.push({ option: 2, totalRooms: option2.length, rooms: option2 });}
   }
 
   return options.slice(0, 3);

@@ -1,7 +1,6 @@
 // lapa-casa-hostel/backend/src/integrations/ical/ical-parser.ts
 
-import ical, { VEvent } from 'node-ical';
-import { z } from 'zod';
+import ical, { type VEvent } from 'node-ical';
 import { promises as dns } from 'dns';
 import { isIP } from 'net';
 
@@ -384,7 +383,7 @@ export class ICalParser {
    * @returns {Date | null} Parsed date or null
    */
   private extractDate(dateValue: any): Date | null {
-    if (!dateValue) return null;
+    if (!dateValue) {return null;}
 
     try {
       // Handle Date objects

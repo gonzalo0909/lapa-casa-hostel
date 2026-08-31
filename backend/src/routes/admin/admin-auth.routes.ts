@@ -23,7 +23,7 @@ const REVOKED_PREFIX = 'revoked_token:';
 // más que el token válido dentro de ella.
 function durationToMs(duration: string, fallbackMs: number): number {
   const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
-  if (!match) return fallbackMs;
+  if (!match) {return fallbackMs;}
   const value = Number(match[1]);
   const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
   return value * unitMs;

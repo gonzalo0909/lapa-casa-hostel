@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/services/audit-log-service.ts
 // ventana4 (bloque 2): agrega listAll() -- panel admin, filtros por fecha/entidad/operación en vez de por entidad puntual
 
-import { PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { pool } from '../config/database';
 
 export interface AuditLogEntry {

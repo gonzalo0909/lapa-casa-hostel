@@ -35,7 +35,7 @@ let gmailTransporter: nodemailer.Transporter | null = null;
 function getGmailTransporter(): nodemailer.Transporter | null {
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
-  if (!user || !pass) return null;
+  if (!user || !pass) {return null;}
   if (!gmailTransporter) {
     gmailTransporter = nodemailer.createTransport({
       service: 'gmail',
@@ -54,7 +54,7 @@ function getResendClient(): Resend | null {
     }
     return null;
   }
-  if (!resendClient) resendClient = new Resend(apiKey);
+  if (!resendClient) {resendClient = new Resend(apiKey);}
   return resendClient;
 }
 
@@ -229,7 +229,7 @@ function formatDate(date: Date | string, language: Language): string {
 }
 
 function paymentButtonHtml(url: string | undefined, label: string): string {
-  if (!url) return '';
+  if (!url) {return '';}
   return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:4px;background-color:#1a1a1a;">
     <a href="${url}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;">${label}</a>
   </td></tr></table>`;

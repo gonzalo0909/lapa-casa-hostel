@@ -11,7 +11,7 @@
 // Prometheus/Grafana que hubo en infrastructure/monitoring/ se elimino
 // por estar rota y apuntar a un formato que este endpoint no expone).
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 const WINDOW_MS = 60_000;
 
@@ -67,7 +67,7 @@ export function getMetricsSnapshot(): MetricsSnapshot {
     latencies.push(s.latencyMs);
     const bucket = `${Math.floor(s.statusCode / 100)}xx`;
     statusCounts[bucket] = (statusCounts[bucket] || 0) + 1;
-    if (s.statusCode >= 500) errorCount++;
+    if (s.statusCode >= 500) {errorCount++;}
     pathCounts[s.path] = (pathCounts[s.path] || 0) + 1;
   }
 

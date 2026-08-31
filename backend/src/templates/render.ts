@@ -42,7 +42,7 @@ export type TemplateVars = Record<string, string | number | null | undefined>;
 function interpolate(template: string, vars: TemplateVars): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
     const value = vars[key];
-    if (value === undefined || value === null) return '';
+    if (value === undefined || value === null) {return '';}
     const str = String(value);
     return key.endsWith('Html') ? str : escapeHtml(str);
   });

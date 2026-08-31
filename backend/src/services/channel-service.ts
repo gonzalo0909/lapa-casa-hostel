@@ -21,7 +21,7 @@
 // booking_conflicts via conflict-service.ts, referenciando la reserva
 // que efectivamente esta ocupando la cama.
 
-import { PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { query, withTransaction } from '../config/database';
 import guestRepo from '../database/repositories/guest-repository';
 import { acquireLock } from '../database/lock-middleware';
@@ -98,7 +98,7 @@ export interface ChannelStats {
 
 async function getChannelById(channelId: string): Promise<ChannelRow> {
   const { rows } = await query<ChannelRow>(`SELECT * FROM channels WHERE id = $1`, [channelId]);
-  if (rows.length === 0) throw new Error(`Canal no encontrado: ${channelId}`);
+  if (rows.length === 0) {throw new Error(`Canal no encontrado: ${channelId}`);}
   return rows[0];
 }
 
@@ -109,16 +109,16 @@ async function getRoomTypeById(roomTypeId: string): Promise<RoomTypeRow | null> 
 
 /** Mapea un ID/nombre externo de habitacion de OTA al room_type real, por UUID, `code` exacto, o alias de nombre (config/channels.ts). */
 async function mapExternalRoomId(externalRoomIdOrName: string, _channelId?: string): Promise<RoomTypeRow | null> {
-  if (!externalRoomIdOrName) return null;
+  if (!externalRoomIdOrName) {return null;}
 
   const { rows: direct } = await query<RoomTypeRow>(
     `SELECT id, code, name FROM room_types WHERE id::text = $1 OR code = $1`,
     [externalRoomIdOrName]
   );
-  if (direct.length > 0) return direct[0];
+  if (direct.length > 0) {return direct[0];}
 
   const code = resolveRoomCodeFromName(externalRoomIdOrName);
-  if (!code) return null;
+  if (!code) {return null;}
   const { rows } = await query<RoomTypeRow>(`SELECT id, code, name FROM room_types WHERE code = $1`, [code]);
   return rows[0] ?? null;
 }
@@ -159,7 +159,7 @@ async function findBlockingReservation(
      LIMIT 1`,
     [roomTypeId, checkIn, checkOut]
   );
-  if (rows.length === 0) return null;
+  if (rows.length === 0) {return null;}
   return { id: rows[0].id, channelCode: rows[0].channel_code };
 }
 
@@ -223,7 +223,7 @@ async function handleChannelBooking(bookingData: IncomingOtaBooking, channelId: 
         `SELECT id FROM reservations WHERE channel_id = $1 AND external_reservation_id = $2`,
         [channelId, bookingData.externalReservationId]
       );
-      if (raceCheck.length > 0) return { reservationId: raceCheck[0].id, deduplicated: true };
+      if (raceCheck.length > 0) {return { reservationId: raceCheck[0].id, deduplicated: true };}
 
       const candidateBedIds = await pickAvailableBedsInRoom(client, roomType.id, bookingData.checkIn, bookingData.checkOut, bedsCount, gender);
       if (candidateBedIds.length < bedsCount) {
@@ -301,7 +301,7 @@ async function handleChannelBooking(bookingData: IncomingOtaBooking, channelId: 
           );
         }
       } catch (error) {
-        if (isOverbookingError(error)) throw new OtaAvailabilityError({ reason: 'overbooking_detected_at_insert' });
+        if (isOverbookingError(error)) {throw new OtaAvailabilityError({ reason: 'overbooking_detected_at_insert' });}
         throw error;
       }
 
@@ -327,8 +327,8 @@ async function handleChannelCancellation(externalReservationId: string, channelI
     `SELECT id, status FROM reservations WHERE channel_id = $1 AND external_reservation_id = $2`,
     [channelId, externalReservationId]
   );
-  if (rows.length === 0) return { found: false };
-  if (rows[0].status === 'cancelled') return { found: true, alreadyCancelled: true, reservationId: rows[0].id };
+  if (rows.length === 0) {return { found: false };}
+  if (rows[0].status === 'cancelled') {return { found: true, alreadyCancelled: true, reservationId: rows[0].id };}
 
   await query(
     `UPDATE reservations SET status = 'cancelled', cancelled_at = now(), cancellation_reason = 'ota_cancellation' WHERE id = $1`,
@@ -386,27 +386,27 @@ async function registerChannel(data: RegisterChannelInput): Promise<ChannelRow> 
   if (data.icalEnabled !== undefined) { params.push(data.icalEnabled); sets.push(`ical_enabled = $${params.length}`); }
   if (data.isActive !== undefined) { params.push(data.isActive); sets.push(`is_active = $${params.length}`); }
 
-  if (sets.length === 0) return getChannelByCode(data.code);
+  if (sets.length === 0) {return getChannelByCode(data.code);}
 
   params.push(data.code);
   const { rows } = await query<ChannelRow>(
     `UPDATE channels SET ${sets.join(', ')}, updated_at = now() WHERE code = $${params.length}::channel_code RETURNING *`,
     params
   );
-  if (rows.length === 0) throw new Error(`Canal "${data.code}" no existe (channel_code es un ENUM fijo, ver 0001_extensions_and_enums.sql)`);
+  if (rows.length === 0) {throw new Error(`Canal "${data.code}" no existe (channel_code es un ENUM fijo, ver 0001_extensions_and_enums.sql)`);}
   return rows[0];
 }
 
 async function getChannelByCode(code: ChannelCode): Promise<ChannelRow> {
   const { rows } = await query<ChannelRow>(`SELECT * FROM channels WHERE code = $1::channel_code`, [code]);
-  if (rows.length === 0) throw new Error(`Canal "${code}" no existe (channel_code es un ENUM fijo, ver 0001_extensions_and_enums.sql)`);
+  if (rows.length === 0) {throw new Error(`Canal "${code}" no existe (channel_code es un ENUM fijo, ver 0001_extensions_and_enums.sql)`);}
   return rows[0];
 }
 
 /** Sincroniza los feeds iCal configurados para un canal especifico (no-op si el canal no tiene ical_enabled). */
 async function syncChannel(channelId: string): Promise<{ synced: boolean; reason?: string } & Record<string, unknown>> {
   const channel = await getChannelById(channelId);
-  if (!channel.ical_enabled) return { synced: false, reason: `El canal "${channel.code}" no tiene ical_enabled` };
+  if (!channel.ical_enabled) {return { synced: false, reason: `El canal "${channel.code}" no tiene ical_enabled` };}
 
   // import perezoso para evitar que ical-service (que importa este archivo para procesar reservas) tenga que resolverse en el mismo tick de carga del modulo
   const { syncICalFeeds } = await import('./ical-service');

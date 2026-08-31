@@ -12,7 +12,7 @@ import { logger } from '../../utils/logger';
 let configured = false;
 
 function ensureConfigured(): boolean {
-  if (configured) return true;
+  if (configured) {return true;}
 
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;

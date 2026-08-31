@@ -1,12 +1,11 @@
 // lapa-casa-hostel/backend/src/workers/email-notifications.worker.ts
 // ventana4
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
-import { notificationService } from '../services/notification-service';
+import { notificationService, type NotificationType } from '../services/notification-service';
 import { logger } from '../utils/logger';
 import type { EmailNotificationJobData } from '../queues/email-notifications.queue';
-import type { NotificationType } from '../services/notification-service';
 
 export function startEmailNotificationsWorker(): Worker<EmailNotificationJobData> {
   const worker = new Worker<EmailNotificationJobData>(

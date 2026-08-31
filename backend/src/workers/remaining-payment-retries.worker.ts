@@ -8,17 +8,15 @@
 // queues/remaining-payment-retries.queue.ts: no hay cobro automatico
 // off-session todavia, asi que "reintento" es reenviar el link de pago).
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
 import { query } from '../config/database';
 import bookingRepo from '../database/repositories/booking-repository';
 import { paymentService } from '../services/payment-service';
 import { notificationService } from '../services/notification-service';
-import { emailService } from '../services/email-service';
-import { scheduleNextRetry } from '../queues/remaining-payment-retries.queue';
+import { emailService, type BookingWithGuest } from '../services/email-service';
+import { scheduleNextRetry, type RemainingPaymentRetryJobData } from '../queues/remaining-payment-retries.queue';
 import { logger } from '../utils/logger';
-import type { RemainingPaymentRetryJobData } from '../queues/remaining-payment-retries.queue';
-import type { BookingWithGuest } from '../services/email-service';
 
 export function startRemainingPaymentRetriesWorker(): Worker<RemainingPaymentRetryJobData> {
   const worker = new Worker<RemainingPaymentRetryJobData>(

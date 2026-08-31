@@ -12,7 +12,7 @@
 // realidad. Ahora usa availabilityService.getRoomDailyOccupancy(), que
 // delega en check_availability() dia por dia.
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { AvailabilityService } from '../../services/availability-service';
 import { roomService } from '../../services/room-service';
 import { logger } from '../../utils/logger';

@@ -132,13 +132,13 @@ export class MercadoPagoPaymentHandler {
     const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${this.accessToken}` },
     });
-    if (!resp.ok) throw new Error(`MercadoPago getPayment error: ${resp.status}`);
+    if (!resp.ok) {throw new Error(`MercadoPago getPayment error: ${resp.status}`);}
     const data: any = await resp.json();
     return { id: data.id.toString(), status: data.status, metadata: data.metadata ?? {} };
   }
 
   async verifyPayment(paymentId: string): Promise<boolean> {
-    if (!this.accessToken) return true;
+    if (!this.accessToken) {return true;}
     try {
       const payment = await this.getPayment(paymentId);
       return payment.status === 'approved';
@@ -170,16 +170,16 @@ export class MercadoPagoPaymentHandler {
 
   validateCPF(cpf: string): boolean {
     const clean = cpf.replace(/[^\d]/g, '');
-    if (clean.length !== 11 || /^(\d)\1+$/.test(clean)) return false;
+    if (clean.length !== 11 || /^(\d)\1+$/.test(clean)) {return false;}
     let sum = 0;
-    for (let i = 0; i < 9; i++) sum += parseInt(clean[i]) * (10 - i);
+    for (let i = 0; i < 9; i++) {sum += parseInt(clean[i]) * (10 - i);}
     let d = 11 - (sum % 11);
-    if (d >= 10) d = 0;
-    if (d !== parseInt(clean[9])) return false;
+    if (d >= 10) {d = 0;}
+    if (d !== parseInt(clean[9])) {return false;}
     sum = 0;
-    for (let i = 0; i < 10; i++) sum += parseInt(clean[i]) * (11 - i);
+    for (let i = 0; i < 10; i++) {sum += parseInt(clean[i]) * (11 - i);}
     d = 11 - (sum % 11);
-    if (d >= 10) d = 0;
+    if (d >= 10) {d = 0;}
     return d === parseInt(clean[10]);
   }
 }

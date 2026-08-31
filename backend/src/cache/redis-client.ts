@@ -45,7 +45,7 @@ class InMemoryCacheClient implements CacheClient {
 
   private alive(key: string): boolean {
     const e = this.store.get(key);
-    if (!e) return false;
+    if (!e) {return false;}
     if (e.expiresAt && Date.now() > e.expiresAt) {
       this.store.delete(key);
       return false;
@@ -54,7 +54,7 @@ class InMemoryCacheClient implements CacheClient {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    if (!this.alive(key)) return null;
+    if (!this.alive(key)) {return null;}
     const e = this.store.get(key);
     return e ? (JSON.parse(e.value) as T) : null;
   }
@@ -90,13 +90,13 @@ class InMemoryCacheClient implements CacheClient {
 
   async expire(key: string, seconds: number): Promise<boolean> {
     const e = this.store.get(key);
-    if (e) this.store.set(key, { ...e, expiresAt: Date.now() + seconds * 1000 });
+    if (e) {this.store.set(key, { ...e, expiresAt: Date.now() + seconds * 1000 });}
     return true;
   }
 
   async ttl(key: string): Promise<number> {
     const e = this.store.get(key);
-    if (!e?.expiresAt) return -1;
+    if (!e?.expiresAt) {return -1;}
     return Math.max(0, Math.floor((e.expiresAt - Date.now()) / 1000));
   }
 
@@ -112,7 +112,7 @@ class InMemoryCacheClient implements CacheClient {
   }
 
   async hget<T>(key: string, field: string): Promise<T | null> {
-    if (!this.alive(key)) return null;
+    if (!this.alive(key)) {return null;}
     const e = this.store.get(key);
     return e ? (JSON.parse(e.value)[field] ?? null) : null;
   }
@@ -126,18 +126,18 @@ class InMemoryCacheClient implements CacheClient {
   }
 
   async hgetall<T>(key: string): Promise<Record<string, T> | null> {
-    if (!this.alive(key)) return null;
+    if (!this.alive(key)) {return null;}
     const e = this.store.get(key);
-    if (!e) return null;
+    if (!e) {return null;}
     const raw = JSON.parse(e.value);
     const result: Record<string, T> = {};
-    for (const [k, v] of Object.entries(raw)) result[k] = JSON.parse(v as string) as T;
+    for (const [k, v] of Object.entries(raw)) {result[k] = JSON.parse(v as string) as T;}
     return result;
   }
 
   async hdel(key: string, field: string): Promise<boolean> {
     const e = this.store.get(key);
-    if (!e) return true;
+    if (!e) {return true;}
     const map = JSON.parse(e.value);
     delete map[field];
     this.store.set(key, { value: JSON.stringify(map), expiresAt: e.expiresAt });
@@ -153,7 +153,7 @@ class InMemoryCacheClient implements CacheClient {
   }
 
   async smembers(key: string): Promise<string[]> {
-    if (!this.alive(key)) return [];
+    if (!this.alive(key)) {return [];}
     const e = this.store.get(key);
     return e ? JSON.parse(e.value) : [];
   }
@@ -164,7 +164,7 @@ class InMemoryCacheClient implements CacheClient {
 
   async srem(key: string, ...members: string[]): Promise<number> {
     const e = this.store.get(key);
-    if (!e) return 0;
+    if (!e) {return 0;}
     const set: Set<string> = new Set(JSON.parse(e.value));
     members.forEach((m) => set.delete(m));
     this.store.set(key, { value: JSON.stringify([...set]), expiresAt: e.expiresAt });
@@ -188,7 +188,7 @@ class InMemoryCacheClient implements CacheClient {
   }
 
   async lrange(key: string, start: number, stop: number): Promise<string[]> {
-    if (!this.alive(key)) return [];
+    if (!this.alive(key)) {return [];}
     const e = this.store.get(key);
     const arr: string[] = e ? JSON.parse(e.value) : [];
     return arr.slice(start, stop === -1 ? undefined : stop + 1);
@@ -196,7 +196,7 @@ class InMemoryCacheClient implements CacheClient {
 
   async ltrim(key: string, start: number, stop: number): Promise<boolean> {
     const e = this.store.get(key);
-    if (!e) return true;
+    if (!e) {return true;}
     const arr: string[] = JSON.parse(e.value);
     this.store.set(key, { value: JSON.stringify(arr.slice(start, stop + 1)), expiresAt: e.expiresAt });
     return true;
@@ -228,7 +228,7 @@ class InMemoryCacheClient implements CacheClient {
 
   async cacheWithFallback<T>(key: string, fetchFn: () => Promise<T>, ttl: number = 300): Promise<T> {
     const cached = await this.get<T>(key);
-    if (cached !== null) return cached;
+    if (cached !== null) {return cached;}
     const fresh = await fetchFn();
     await this.set(key, fresh, ttl);
     return fresh;
@@ -309,8 +309,8 @@ class RedisBackedCacheClient implements CacheClient {
   async set(key: string, value: any, ttlSeconds?: number): Promise<boolean> {
     return this.safe(async () => {
       const payload = JSON.stringify(value);
-      if (ttlSeconds) await this.client.set(key, payload, 'EX', ttlSeconds);
-      else await this.client.set(key, payload);
+      if (ttlSeconds) {await this.client.set(key, payload, 'EX', ttlSeconds);}
+      else {await this.client.set(key, payload);}
       return true;
     }, false);
   }
@@ -329,7 +329,7 @@ class RedisBackedCacheClient implements CacheClient {
       do {
         const [next, keys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', 200);
         cursor = next;
-        if (keys.length) deleted += await this.client.del(...keys);
+        if (keys.length) {deleted += await this.client.del(...keys);}
       } while (cursor !== '0');
       return deleted;
     }, 0);
@@ -372,9 +372,9 @@ class RedisBackedCacheClient implements CacheClient {
   async hgetall<T>(key: string): Promise<Record<string, T> | null> {
     return this.safe(async () => {
       const raw = await this.client.hgetall(key);
-      if (!raw || Object.keys(raw).length === 0) return null;
+      if (!raw || Object.keys(raw).length === 0) {return null;}
       const result: Record<string, T> = {};
-      for (const [k, v] of Object.entries(raw)) result[k] = JSON.parse(v) as T;
+      for (const [k, v] of Object.entries(raw)) {result[k] = JSON.parse(v) as T;}
       return result;
     }, null);
   }
@@ -459,7 +459,7 @@ class RedisBackedCacheClient implements CacheClient {
 
   async cacheWithFallback<T>(key: string, fetchFn: () => Promise<T>, ttl: number = 300): Promise<T> {
     const cached = await this.get<T>(key);
-    if (cached !== null) return cached;
+    if (cached !== null) {return cached;}
     const fresh = await fetchFn();
     await this.set(key, fresh, ttl);
     return fresh;

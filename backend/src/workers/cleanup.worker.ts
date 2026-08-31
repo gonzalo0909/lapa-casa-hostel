@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/workers/cleanup.worker.ts
 // ventana4
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
 import { query } from '../config/database';
 import bookingRepo from '../database/repositories/booking-repository';
@@ -140,7 +140,7 @@ export function startCleanupWorker(): Worker {
       await notifyPostCheckoutReviews();
       // Feature 2: cancelar sesiones de pago grupal expiradas (timer 30 min)
       const cancelled = await groupPaymentService.cancelExpiredSessions();
-      if (cancelled > 0) logger.info('Sesiones grupales expiradas canceladas', { count: cancelled });
+      if (cancelled > 0) {logger.info('Sesiones grupales expiradas canceladas', { count: cancelled });}
       logger.info('cleanup worker completado', { ms: Date.now() - start });
     },
     { connection: getQueueConnection() }

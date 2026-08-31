@@ -31,7 +31,7 @@
 import { randomUUID } from 'crypto';
 import ical, { ICalEventStatus, ICalEventBusyStatus } from 'ical-generator';
 import { query } from '../config/database';
-import { ICalParser } from '../integrations/ical/ical-parser';
+import { ICalParser, type ParsedBooking } from '../integrations/ical/ical-parser';
 import { channelService } from './channel-service';
 import { resolveRoomCodeFromName } from '../config/channels';
 import { logger } from '../utils/logger';
@@ -105,10 +105,10 @@ export async function addFeed(input: { channelCode: ChannelCode; roomTypeId: str
     `SELECT id FROM channels WHERE code = $1::channel_code`,
     [input.channelCode]
   );
-  if (channelRows.length === 0) throw new Error(`Canal "${input.channelCode}" no existe`);
+  if (channelRows.length === 0) {throw new Error(`Canal "${input.channelCode}" no existe`);}
 
   const { rows: roomRows } = await query<{ id: string }>(`SELECT id FROM room_types WHERE id = $1`, [input.roomTypeId]);
-  if (roomRows.length === 0) throw new Error(`room_type no encontrado: ${input.roomTypeId}`);
+  if (roomRows.length === 0) {throw new Error(`room_type no encontrado: ${input.roomTypeId}`);}
 
   const feed: IcalFeedConfig = {
     id: randomUUID(),
@@ -129,7 +129,7 @@ export async function addFeed(input: { channelCode: ChannelCode; roomTypeId: str
 
 export async function updateFeed(feedId: string, patch: { url?: string; isActive?: boolean }): Promise<IcalFeedConfig | null> {
   const existing = await getFeed(feedId);
-  if (!existing) return null;
+  if (!existing) {return null;}
   const next: IcalFeedConfig = { ...existing, ...patch };
   await query(`UPDATE system_config SET value = $2::jsonb, updated_at = now() WHERE key = $1`, [
     `${FEED_KEY_PREFIX}${feedId}`,
@@ -162,7 +162,7 @@ export async function getSyncStatus(): Promise<Record<string, unknown>> {
     `SELECT key, value FROM system_config WHERE key LIKE '${SYNC_STATUS_KEY_PREFIX}%'`
   );
   const result: Record<string, unknown> = {};
-  for (const row of rows) result[row.key.slice(SYNC_STATUS_KEY_PREFIX.length)] = row.value;
+  for (const row of rows) {result[row.key.slice(SYNC_STATUS_KEY_PREFIX.length)] = row.value;}
   return result;
 }
 
@@ -212,7 +212,7 @@ function addBookingEvent(calendar: ReturnType<typeof ical>, booking: BookingRow,
 /** Feed iCal publico de disponibilidad para UNA habitacion (room_types.id). */
 export async function generateICalFeed(roomTypeId: string): Promise<string> {
   const { rows } = await query<RoomTypeRow>(`SELECT id, code, name FROM room_types WHERE id = $1`, [roomTypeId]);
-  if (rows.length === 0) throw new Error(`room_type no encontrado: ${roomTypeId}`);
+  if (rows.length === 0) {throw new Error(`room_type no encontrado: ${roomTypeId}`);}
   const room = rows[0];
 
   const calendar = ical({
@@ -224,7 +224,7 @@ export async function generateICalFeed(roomTypeId: string): Promise<string> {
   });
 
   const bookings = await fetchBookingsForRoom(roomTypeId);
-  for (const booking of bookings) addBookingEvent(calendar, booking, room.name);
+  for (const booking of bookings) {addBookingEvent(calendar, booking, room.name);}
 
   return calendar.toString();
 }
@@ -243,7 +243,7 @@ export async function generateAllFeeds(): Promise<string> {
 
   for (const room of rooms) {
     const bookings = await fetchBookingsForRoom(room.id);
-    for (const booking of bookings) addBookingEvent(calendar, booking, room.name);
+    for (const booking of bookings) {addBookingEvent(calendar, booking, room.name);}
   }
 
   return calendar.toString();
@@ -271,7 +271,7 @@ const toISODate = (d: Date): string => d.toISOString().slice(0, 10);
  * (integrations/ical/ical-parser.ts): ya sabe extraer fechas/nombre/
  * plataforma de forma generica y no conoce nada del schema real.
  */
-function toParsedIcalEvents(bookings: import('../integrations/ical/ical-parser').ParsedBooking[]): ParsedIcalEvent[] {
+function toParsedIcalEvents(bookings: ParsedBooking[]): ParsedIcalEvent[] {
   return bookings.map((booking) => {
     const uid = booking.rawEvent?.uid ? String(booking.rawEvent.uid) : booking.externalId;
     const rawStatus = (booking.rawEvent as unknown as { status?: string })?.status;
@@ -332,13 +332,13 @@ export async function importICalFeed(feed: IcalFeedConfig): Promise<FeedImportRe
 
   try {
     const parsed = await parser.parseFromUrl(feed.url, feed.channelCode);
-    if (!parsed.success) throw new Error(`Parseo fallido: ${parsed.errors.join(', ')}`);
+    if (!parsed.success) {throw new Error(`Parseo fallido: ${parsed.errors.join(', ')}`);}
     const events = toParsedIcalEvents(parsed.bookings);
     errors.push(...parsed.errors);
 
     for (const event of events) {
       if (event.isOwn) { skippedOwn++; continue; }
-      if (event.isBlocked) continue;
+      if (event.isBlocked) {continue;}
 
       if (event.isCancelled) {
         await channelService.handleChannelCancellation(event.uid, feed.channelId);
@@ -359,7 +359,7 @@ export async function importICalFeed(feed: IcalFeedConfig): Promise<FeedImportRe
           },
           feed.channelId
         );
-        if (result.deduplicated) alreadyKnown++; else imported++;
+        if (result.deduplicated) {alreadyKnown++;} else {imported++;}
       } catch (error) {
         errors.push(`Evento ${event.uid}: ${error instanceof Error ? error.message : 'error desconocido'}`);
       }
@@ -468,7 +468,7 @@ export async function refreshAvailabilityCache(daysAhead = 180): Promise<void> {
 /** Mapea un nombre libre de habitacion (tal como aparece en una OTA) al room_type real, por `code`. */
 export async function mapOTARoomToLocalRoom(otaRoomName: string): Promise<RoomTypeRow | null> {
   const code = resolveRoomCodeFromName(otaRoomName);
-  if (!code) return null;
+  if (!code) {return null;}
   const { rows } = await query<RoomTypeRow>(`SELECT id, code, name FROM room_types WHERE code = $1`, [code]);
   return rows[0] ?? null;
 }

@@ -69,13 +69,13 @@ export function normalizeRoomName(value: string): string {
 export function resolveRoomCodeFromName(otaRoomName: string): string | null {
   const normalized = normalizeRoomName(otaRoomName);
   for (const [code, aliases] of Object.entries(ROOM_NAME_ALIASES)) {
-    if (normalized === normalizeRoomName(code)) return code;
-    if (aliases.some((alias) => normalizeRoomName(alias) === normalized)) return code;
+    if (normalized === normalizeRoomName(code)) {return code;}
+    if (aliases.some((alias) => normalizeRoomName(alias) === normalized)) {return code;}
   }
   // fallback: substring match (ej. "Mixto 12A - Lapa Casa" contiene "12a")
   for (const [code, aliases] of Object.entries(ROOM_NAME_ALIASES)) {
     const candidates = [code, ...aliases].map(normalizeRoomName);
-    if (candidates.some((c) => normalized.includes(c) || c.includes(normalized))) return code;
+    if (candidates.some((c) => normalized.includes(c) || c.includes(normalized))) {return code;}
   }
   return null;
 }

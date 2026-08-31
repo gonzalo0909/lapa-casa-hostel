@@ -314,7 +314,7 @@ router.get('/bookings/export', async (req, res, next) => {
     );
 
     const escapeCell = (v: any): string => {
-      if (v == null) return '';
+      if (v == null) {return '';}
       const s = String(v);
       return (s.includes(',') || s.includes('"') || s.includes('\n'))
         ? '"' + s.replace(/"/g, '""') + '"'
@@ -365,10 +365,10 @@ router.put('/bookings/:id', async (req, res, next) => {
     }
 
     const updateData: Record<string, any> = {};
-    if (body.specialRequests !== undefined) updateData.special_requests = body.specialRequests;
-    if (body.finalPrice !== undefined) updateData.final_price = Number(body.finalPrice);
-    if (body.depositAmount !== undefined) updateData.deposit_amount = Number(body.depositAmount);
-    if (body.remainingAmount !== undefined) updateData.remaining_amount = Number(body.remainingAmount);
+    if (body.specialRequests !== undefined) {updateData.special_requests = body.specialRequests;}
+    if (body.finalPrice !== undefined) {updateData.final_price = Number(body.finalPrice);}
+    if (body.depositAmount !== undefined) {updateData.deposit_amount = Number(body.depositAmount);}
+    if (body.remainingAmount !== undefined) {updateData.remaining_amount = Number(body.remainingAmount);}
 
     if (Object.keys(updateData).length > 0) {
       await bookingService.updateBooking(id, updateData);
@@ -376,9 +376,9 @@ router.put('/bookings/:id', async (req, res, next) => {
 
     if (body.guest) {
       const guestUpdate: Record<string, any> = {};
-      if (body.guest.fullName) guestUpdate.full_name = body.guest.fullName;
-      if (body.guest.phone) guestUpdate.phone = body.guest.phone;
-      if (body.guest.country) guestUpdate.country = body.guest.country;
+      if (body.guest.fullName) {guestUpdate.full_name = body.guest.fullName;}
+      if (body.guest.phone) {guestUpdate.phone = body.guest.phone;}
+      if (body.guest.country) {guestUpdate.country = body.guest.country;}
       if (Object.keys(guestUpdate).length > 0) {
         await bookingService.updateGuest(existing.guest_id, guestUpdate);
       }

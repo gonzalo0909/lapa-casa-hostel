@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/middleware/auth.ts
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { redisCache } from '@/config/redis';
 import { logger } from '@/utils/logger';

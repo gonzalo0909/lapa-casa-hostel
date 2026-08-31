@@ -33,7 +33,7 @@ export class DateBlocker {
     this.validateDates(startDate, endDate);
 
     const { rows: roomRows } = await pool.query(`SELECT id FROM room_types WHERE id = $1`, [roomId]);
-    if (roomRows.length === 0) throw new Error(`Room not found: ${roomId}`);
+    if (roomRows.length === 0) {throw new Error(`Room not found: ${roomId}`);}
 
     const conflicts = await this.findConflicts(roomId, startDate, endDate);
     if (conflicts.length > 0) {
@@ -53,13 +53,13 @@ export class DateBlocker {
 
   async blockMultipleRanges(roomId: string, ranges: Array<{ startDate: Date; endDate: Date }>, reason?: string): Promise<string[]> {
     const ids: string[] = [];
-    for (const range of ranges) ids.push(await this.blockDates({ roomId, startDate: range.startDate, endDate: range.endDate, reason }));
+    for (const range of ranges) {ids.push(await this.blockDates({ roomId, startDate: range.startDate, endDate: range.endDate, reason }));}
     return ids;
   }
 
   async unblockDates(blockId: string): Promise<void> {
     const { rowCount } = await pool.query(`DELETE FROM room_blocks WHERE id = $1`, [blockId]);
-    if (rowCount === 0) throw new Error(`Block not found: ${blockId}`);
+    if (rowCount === 0) {throw new Error(`Block not found: ${blockId}`);}
   }
 
   async unblockDateRange(roomId: string, startDate: Date, endDate: Date): Promise<number> {
@@ -108,7 +108,7 @@ export class DateBlocker {
 
   async blockWeekdays(roomId: string, startDate: Date, endDate: Date, weekdays: number[], reason?: string): Promise<string[]> {
     this.validateDates(startDate, endDate);
-    if (!weekdays.length) throw new Error('Weekdays array is required');
+    if (!weekdays.length) {throw new Error('Weekdays array is required');}
     const ids: string[] = [];
     const current = new Date(startDate);
     current.setHours(0, 0, 0, 0);
@@ -116,7 +116,11 @@ export class DateBlocker {
       if (weekdays.includes(current.getDay())) {
         const next = new Date(current);
         next.setDate(next.getDate() + 1);
-        try { ids.push(await this.blockDates({ roomId, startDate: new Date(current), endDate: next, reason, blockType: 'seasonal' })); } catch { }
+        try {
+          ids.push(await this.blockDates({ roomId, startDate: new Date(current), endDate: next, reason, blockType: 'seasonal' }));
+        } catch {
+          // intencional: si un día puntual falla (ej. ya bloqueado), se sigue con el resto del rango
+        }
       }
       current.setDate(current.getDate() + 1);
     }
@@ -138,13 +142,13 @@ export class DateBlocker {
   }
 
   private validateDates(startDate: Date, endDate: Date): void {
-    if (!(startDate instanceof Date) || isNaN(startDate.getTime())) throw new Error('Invalid start date');
-    if (!(endDate instanceof Date) || isNaN(endDate.getTime())) throw new Error('Invalid end date');
-    if (endDate <= startDate) throw new Error('End date must be after start date');
+    if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {throw new Error('Invalid start date');}
+    if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {throw new Error('Invalid end date');}
+    if (endDate <= startDate) {throw new Error('End date must be after start date');}
     const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    if (startDate < oneYearAgo) throw new Error('Cannot block dates more than 1 year in the past');
+    if (startDate < oneYearAgo) {throw new Error('Cannot block dates more than 1 year in the past');}
     const twoYearsFromNow = new Date(); twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
-    if (endDate > twoYearsFromNow) throw new Error('Cannot block dates more than 2 years in the future');
+    if (endDate > twoYearsFromNow) {throw new Error('Cannot block dates more than 2 years in the future');}
   }
 }
 

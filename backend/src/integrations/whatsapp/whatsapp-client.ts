@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/integrations/whatsapp/whatsapp-client.ts
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { type AxiosInstance } from 'axios';
 import { logger } from '../../utils/logger';
 
 interface WhatsAppMessage {

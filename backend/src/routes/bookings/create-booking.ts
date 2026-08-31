@@ -1,14 +1,13 @@
 // lapa-casa-hostel/backend/src/routes/bookings/create-booking.ts
 // ventana4: envío de email de confirmación reenganchado a notificationService (ver notify('booking_confirmation', ...) más abajo)
 
-import { Request, Response, NextFunction } from 'express';
-import { BookingService } from '../../services/booking-service';
+import type { Request, Response, NextFunction } from 'express';
+import { BookingService, InsufficientAvailabilityError } from '../../services/booking-service';
 import { AvailabilityService } from '../../services/availability-service';
 import { PricingService } from '../../services/pricing-service';
 import { notificationService } from '../../services/notification-service';
 import { whatsappNotificationService } from '../../services/whatsapp-notification-service';
 import type { BookingWithGuest } from '../../services/email-service';
-import { InsufficientAvailabilityError } from '../../services/booking-service';
 import { query } from '../../config/database';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';

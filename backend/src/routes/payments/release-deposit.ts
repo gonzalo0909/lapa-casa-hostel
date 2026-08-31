@@ -20,7 +20,7 @@
 //            aplicados en index.ts para todo /payments; este endpoint
 //            tiene además una verificación explícita de rol admin.
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { query } from '../../config/database';
 import { stripeConnectHandler } from '../../lib/payments/stripe-connect';
 import { auditLogService } from '../../services/audit-log-service';
@@ -155,8 +155,6 @@ router.post(
       // (la comisión ya se cobró en el momento del depósito — aquí solo
       //  descontamos la tasa de payout)
       const payoutFeeRate = parseFloat(r.payout_fee_rate);
-      const commissionRate = parseFloat(r.commission_rate);
-      const finalPrice = parseFloat(r.final_price);
 
       const { payoutFeeAmount, adminNetAmount } = stripeConnectHandler.calculateAdminAmount({
         finalPrice: heldAmount,

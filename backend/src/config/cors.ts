@@ -7,7 +7,7 @@
 // la fábrica ni el default export de este archivo. corsOptions es el
 // único export real en uso.
 
-import { CorsOptions } from 'cors';
+import type { CorsOptions } from 'cors';
 import { env, isProduction } from './environment';
 import { logger } from '../utils/logger';
 

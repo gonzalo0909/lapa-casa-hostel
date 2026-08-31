@@ -11,7 +11,7 @@
  * @requires express
  */
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 import { roomService } from '../../services/room-service';
@@ -31,7 +31,7 @@ export const listRoomsHandler = async (
 
     const roomsByType = ROOMS.reduce((acc, room) => {
       const type = room.isFlexible ? 'flexible' : room.type;
-      if (!acc[type]) acc[type] = [];
+      if (!acc[type]) {acc[type] = [];}
       acc[type].push(room);
       return acc;
     }, {} as Record<string, typeof ROOMS>);

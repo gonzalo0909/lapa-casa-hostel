@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/workers/flexible-conversion.worker.ts
 // ventana4
 
-import { Worker, Job } from 'bullmq';
+import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';
 import { query } from '../config/database';
 import { logger } from '../utils/logger';

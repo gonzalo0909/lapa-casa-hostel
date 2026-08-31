@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/routes/bookings/update-booking.ts
 // ventana3
 
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { bookingService } from '../../services/booking-service';
 import { AvailabilityService } from '../../services/availability-service';
 import { PricingService } from '../../services/pricing-service';
@@ -140,8 +140,8 @@ export const updateBookingHandler = async (
         const last = updates.guest.lastName || '';
         guestUpdate.full_name = `${first} ${last}`.trim();
       }
-      if (updates.guest.phone) guestUpdate.phone = updates.guest.phone;
-      if (updates.guest.country) guestUpdate.country = updates.guest.country;
+      if (updates.guest.phone) {guestUpdate.phone = updates.guest.phone;}
+      if (updates.guest.country) {guestUpdate.country = updates.guest.country;}
 
       if (Object.keys(guestUpdate).length > 0) {
         await bookingService.updateGuest(existingBooking.guest_id, guestUpdate);
@@ -153,7 +153,7 @@ export const updateBookingHandler = async (
     }
 
     const updatedBooking = await bookingService.getBooking(id);
-    if (!updatedBooking) throw new Error('No se pudo obtener la reserva actualizada');
+    if (!updatedBooking) {throw new Error('No se pudo obtener la reserva actualizada');}
 
     const oldTotal = Number(existingBooking.final_price);
     const priceDifference = datesChanged || roomsChanged ? newFinalPrice - oldTotal : 0;

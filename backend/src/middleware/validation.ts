@@ -1,7 +1,7 @@
 // lapa-casa-hostel/backend/src/middleware/validation.ts
 
-import { Request, Response, NextFunction } from 'express';
-import { z, ZodSchema } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
+import { z, type ZodSchema } from 'zod';
 
 export const validate = (schema: ZodSchema) => (
   req: Request,
@@ -68,7 +68,7 @@ export const sanitizeInput = (req: Request, _res: Response, next: NextFunction):
   }
   if (req.query && typeof req.query === 'object' && Object.keys(req.query).length > 0) {
     const sanitizedQuery = sanitizeValue(req.query as Record<string, unknown>);
-    for (const key of Object.keys(req.query)) delete (req.query as Record<string, unknown>)[key];
+    for (const key of Object.keys(req.query)) {delete (req.query as Record<string, unknown>)[key];}
     Object.assign(req.query as Record<string, unknown>, sanitizedQuery);
   }
   next();

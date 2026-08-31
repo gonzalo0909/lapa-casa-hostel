@@ -9,12 +9,11 @@
 // constraint EXCLUDE (autoridad final anti-overbooking) nunca llegaba a
 // intervenir. Corregido acá.
 
-import { PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { query, withTransaction } from '../config/database';
 import { GuestRepository } from '../database/repositories/guest-repository';
 import { BookingRepository } from '../database/repositories/booking-repository';
 import { acquireLock } from '../database/lock-middleware';
-import { pricingService } from './pricing-service';
 import { enqueueSheetsExport } from '../queues/sheets-export.queue';
 import redisClient from '../cache/redis-client';
 import { logger } from '../utils/logger';
@@ -138,7 +137,7 @@ export class BookingService {
       });
 
       const { rows: channelRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
-      if (channelRows.length === 0) throw new Error('Canal "direct" no encontrado en la tabla channels');
+      if (channelRows.length === 0) {throw new Error('Canal "direct" no encontrado en la tabla channels');}
       const channelId = channelRows[0].id;
 
       // 1) Elegir camas candidatas por habitacion (sin lock todavia)

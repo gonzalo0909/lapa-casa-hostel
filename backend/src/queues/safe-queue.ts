@@ -7,7 +7,7 @@
 // o un cobro de saldo, loguea un warning y sigue. El worker (proceso
 // separado, src/workers/index.ts) si requiere Redis real para existir.
 
-import { Queue, JobsOptions, RepeatOptions } from 'bullmq';
+import { Queue, type JobsOptions, type RepeatOptions } from 'bullmq';
 import { queuesEnabled, getQueueConnection } from './connection';
 import { logger } from '../utils/logger';
 
@@ -15,7 +15,7 @@ export function createSafeQueue<DataType = any>(name: string, defaultJobOptions?
   let queue: Queue<DataType> | null = null;
 
   function getQueue(): Queue<DataType> | null {
-    if (!queuesEnabled) return null;
+    if (!queuesEnabled) {return null;}
     if (!queue) {
       queue = new Queue<DataType>(name, {
         connection: getQueueConnection(),

@@ -96,7 +96,7 @@ class DynamicPricingService {
 
   async updateConfig(data: Partial<DynamicPricingConfig>): Promise<DynamicPricingConfig> {
     const entries = Object.entries(data).filter(([k]) => k !== 'id' && k !== 'updated_at');
-    if (!entries.length) return this.getConfig();
+    if (!entries.length) {return this.getConfig();}
     const fields = entries.map(([k], i) => `${k} = $${i + 1}`).join(', ');
     const values = entries.map(([, v]) => v);
     const res = await query(
@@ -230,21 +230,21 @@ class DynamicPricingService {
 
   private occFactor(occPct: number, cfg: DynamicPricingConfig): number {
     let adj: number;
-    if      (occPct < cfg.occ_tier_low_pct)   adj = cfg.occ_adj_low;
-    else if (occPct < cfg.occ_tier_mid_pct)   adj = cfg.occ_adj_mid;
-    else if (occPct < cfg.occ_tier_high_pct)  adj = cfg.occ_adj_high;
-    else if (occPct < cfg.occ_tier_vhigh_pct) adj = cfg.occ_adj_vhigh;
-    else                                       adj = cfg.occ_adj_max;
+    if      (occPct < cfg.occ_tier_low_pct)   {adj = cfg.occ_adj_low;}
+    else if (occPct < cfg.occ_tier_mid_pct)   {adj = cfg.occ_adj_mid;}
+    else if (occPct < cfg.occ_tier_high_pct)  {adj = cfg.occ_adj_high;}
+    else if (occPct < cfg.occ_tier_vhigh_pct) {adj = cfg.occ_adj_vhigh;}
+    else                                       {adj = cfg.occ_adj_max;}
     return 1 + adj / 100;
   }
 
   private proxFactor(daysAhead: number, cfg: DynamicPricingConfig): number {
     let adj: number;
-    if      (daysAhead > cfg.prox_tier_far)   adj = cfg.prox_adj_far;
-    else if (daysAhead > cfg.prox_tier_mid)   adj = cfg.prox_adj_mid;
-    else if (daysAhead > cfg.prox_tier_near)  adj = cfg.prox_adj_near;
-    else if (daysAhead > cfg.prox_tier_close) adj = cfg.prox_adj_close;
-    else                                       adj = cfg.prox_adj_lastmin;
+    if      (daysAhead > cfg.prox_tier_far)   {adj = cfg.prox_adj_far;}
+    else if (daysAhead > cfg.prox_tier_mid)   {adj = cfg.prox_adj_mid;}
+    else if (daysAhead > cfg.prox_tier_near)  {adj = cfg.prox_adj_near;}
+    else if (daysAhead > cfg.prox_tier_close) {adj = cfg.prox_adj_close;}
+    else                                       {adj = cfg.prox_adj_lastmin;}
     return 1 + adj / 100;
   }
 
@@ -262,7 +262,7 @@ class DynamicPricingService {
       e.is_active && e.date_from <= dateStr && e.date_to >= dateStr &&
       (e.applies_to === 'all' || e.applies_to === propertyType)
     );
-    if (!applicable.length) return { factor: 1 };
+    if (!applicable.length) {return { factor: 1 };}
     applicable.sort((a, b) => b.adjustment_pct - a.adjustment_pct);
     const top = applicable[0];
     return { factor: 1 + top.adjustment_pct / 100, name: top.name };
@@ -350,7 +350,7 @@ class DynamicPricingService {
         'https://www.sympla.com.br/api/public/v3/events?token=&s=&city=Rio+de+Janeiro&state=RJ&page=1&page_size=20',
         { signal: AbortSignal.timeout(8000) }
       );
-      if (!res.ok) throw new Error(`Sympla HTTP ${res.status}`);
+      if (!res.ok) {throw new Error(`Sympla HTTP ${res.status}`);}
       const data = await res.json() as any;
       return (data?.data ?? []).slice(0, 20).map((e: any) => ({
         name: e.name ?? '', date: e.start_date ?? '',

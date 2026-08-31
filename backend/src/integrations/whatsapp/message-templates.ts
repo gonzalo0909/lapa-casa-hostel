@@ -310,7 +310,7 @@ ${this.HOSTEL_PHONE}
 Equipe ${this.HOSTEL_NAME}`;
   }
 
-  feedbackRequest(guestName: string, checkOutDate: string): string {
+  feedbackRequest(guestName: string, _checkOutDate: string): string {
     return `💬 *Sua Opinião é Importante - ${this.HOSTEL_NAME}*
 
 Olá ${guestName}! 👋
