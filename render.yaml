@@ -31,8 +31,6 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
-      - key: REFRESH_TOKEN_EXPIRES_IN
-        value: 7d
       - key: ENCRYPTION_KEY
         generateValue: true
       - key: PORT

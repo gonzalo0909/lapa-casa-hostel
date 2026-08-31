@@ -27,9 +27,10 @@ const env = {
   REDIS_URL: process.env.REDIS_URL || '',
 
   // C-02: sin fallback hardcodeado en producción
+  // JWT_EXPIRES_IN se lee directo de process.env en admin-auth.routes.ts
+  // (default real '24h') -- no se duplica acá para evitar que este objeto
+  // quede con un default desactualizado que nadie lee.
   JWT_SECRET: requireSecret('JWT_SECRET', isProd ? undefined : 'dev-secret-change-in-production'),
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '90d',
-  REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
 
   // C-02: sin fallback hardcodeado en producción
   ENCRYPTION_KEY: requireSecret('ENCRYPTION_KEY', isProd ? undefined : 'dev-encryption-key-32-chars-long!'),
