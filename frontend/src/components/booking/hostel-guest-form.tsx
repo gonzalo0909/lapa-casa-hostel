@@ -303,6 +303,24 @@ export function HostelGuestForm({
         })}
       </div>
 
+      {/* Restricción de edad y movilidad — obligatoria */}
+      <div style={{ background: 'rgba(245,200,66,.12)', border: '1.5px solid rgba(245,200,66,.55)', borderRadius: 9, padding: '.85rem .9rem', margin: '.9rem 0' }}>
+        <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', cursor: 'pointer', fontSize: '.82rem', lineHeight: 1.5 }}>
+          <input
+            type="checkbox"
+            id="he-f-restriction"
+            checked={form.restrictionAccepted}
+            onChange={e => {
+              onFormChange({ restrictionAccepted: e.target.checked });
+              onFormErrors({ restriction: undefined });
+            }}
+            style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: 'pointer' }}
+          />
+          <span>{t.restrictionText}</span>
+        </label>
+        {formErrors.restriction && <div className="he-ferr">{formErrors.restriction}</div>}
+      </div>
+
       {/* Política de cancelación */}
       <div className="he-cancel">
         <button className="he-cancel-btn" type="button" onClick={onCancelToggle}>

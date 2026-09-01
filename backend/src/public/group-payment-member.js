@@ -277,6 +277,12 @@ function applyLang() {
   // Expirado
   setText('expired-msg',   S.expiredMsg);
   setText('book-link',     S.btnBook);
+  // El link de "reservar directamente" respeta el idioma detectado del
+  // invitado -- lapacasario.com/hostel (sin idioma) también funciona, el
+  // middleware de next-intl redirige, pero así evitamos ese salto extra
+  // y el invitado cae directo en su propio idioma.
+  var bookLinkEl = document.getElementById('book-link');
+  if (bookLinkEl) bookLinkEl.href = 'https://lapacasario.com/' + currentLang + '/hostel';
   setText('wa-btn-text',   S.waBtnText);
   setText('members-label', S.membersLabel);
 

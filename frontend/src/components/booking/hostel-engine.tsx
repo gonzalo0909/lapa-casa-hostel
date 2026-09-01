@@ -78,7 +78,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [gpEmail, setGpEmail] = useState('');
 
   // ─ Estado del formulario ─
-  const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'', docPhotoBase64:'' });
+  const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'', docPhotoBase64:'', restrictionAccepted:false });
   const [formErrors, setFormErrors]   = useState<FormErrors>({});
   const [docFeedback, setDocFeedback] = useState('');
   const [emailFb, setEmailFb]         = useState('');
@@ -196,6 +196,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     if (!docOk)                                        errs.doc     = isBR ? t.errCPF : t.errDocForeign;
     if (!form.arrival)                                 errs.arrival = t.errArrival;
     if (!form.docPhotoBase64)                          errs.docPhoto = t.errDocPhoto;
+    if (!form.restrictionAccepted)                     errs.restriction = t.errRestriction;
 
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) {
@@ -203,7 +204,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const fieldMap: Record<string, string> = {
         name:'he-f-name', email:'he-f-email', email2:'he-f-email2',
         phone:'he-f-phone', country:'he-f-country', doc:'he-f-doc', arrival:'he-f-arrival',
-        docPhoto:'he-f-doc-photo',
+        docPhoto:'he-f-doc-photo', restriction:'he-f-restriction',
       };
       const el = document.getElementById(fieldMap[firstKey] ?? '');
       if (el) {

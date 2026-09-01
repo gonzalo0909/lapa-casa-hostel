@@ -28,6 +28,8 @@ export interface FormState {
   requests: string;
   /** Foto del documento (DNI/pasaporte) como data URL base64 — obligatoria */
   docPhotoBase64: string;
+  /** Confirmación de que ningún huésped supera los 50 años ni tiene movilidad reducida */
+  restrictionAccepted: boolean;
 }
 
 export interface FormErrors {
@@ -39,6 +41,7 @@ export interface FormErrors {
   doc?: string;
   arrival?: string;
   docPhoto?: string;
+  restriction?: string;
 }
 
 // ─── Traducciones ────────────────────────────────────────
@@ -62,6 +65,7 @@ export const T = {
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número do passaporte',
     fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceito',
+    restrictionText:'Confirmo que tenho menos de 50 anos e li e aceito as restrições da hospedagem: as camas são beliches de três andares, não adequadas para pessoas com mobilidade reduzida.',errRestriction:'Você deve confirmar que leu e aceita as restrições.',
     lblDocPhoto:'Foto do documento (RG / Passaporte)',docPhotoBtn:'Toque para tirar foto ou enviar imagem',changeDocPhoto:'Trocar foto',errDocPhoto:'A foto do documento é obrigatória',
     lblArrival:'Horário de chegada',errArrival:'Horário de chegada obrigatório',
     arrivalPlaceholder:'Selecione (14h–22h)',
@@ -140,6 +144,7 @@ export const T = {
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número de pasaporte',
     fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceptado',
+    restrictionText:'Confirmo que tengo menos de 50 años y he leído y acepto las restricciones: las camas son literas de tres pisos, no aptas para personas con movilidad reducida.',errRestriction:'Debés confirmar que leíste y aceptás las restricciones.',
     lblDocPhoto:'Foto del documento (DNI / Pasaporte)',docPhotoBtn:'Tocá para sacar foto o subir imagen',changeDocPhoto:'Cambiar foto',errDocPhoto:'La foto del documento es obligatoria',
     lblArrival:'Hora de llegada',errArrival:'Hora de llegada obligatoria',
     arrivalPlaceholder:'Seleccionar (14h–22h)',
@@ -223,6 +228,7 @@ export const T = {
     errCPF:'Invalid CPF',errDocForeign:'Invalid document (min. 5 characters)',
     phCPF:'000.000.000-00',phPassport:'Passport number',
     fbCPFok:'✓ Valid CPF',fbCPFerr:'✗ Invalid CPF',fbDocOk:'✓ Document accepted',
+    restrictionText:'I confirm I am under 50 years old and have read and accept the accommodation restrictions: beds are triple-decker bunk beds, not suitable for people with reduced mobility.',errRestriction:'You must confirm you have read and accept the restrictions.',
     lblDocPhoto:'Document photo (ID / Passport)',docPhotoBtn:'Tap to take a photo or upload an image',changeDocPhoto:'Change photo',errDocPhoto:'Document photo is required',
     lblArrival:'Arrival time',errArrival:'Arrival time required',
     arrivalPlaceholder:'Select (2 pm–10 pm)',
@@ -306,6 +312,7 @@ export const T = {
     errCPF:'CPF invalide',errDocForeign:'Document invalide (min. 5 caractères)',
     phCPF:'000.000.000-00',phPassport:'Numéro de passeport',
     fbCPFok:'✓ CPF valide',fbCPFerr:'✗ CPF invalide',fbDocOk:'✓ Document accepté',
+    restrictionText:'Je confirme avoir moins de 50 ans et avoir lu et accepté les restrictions : les lits sont des lits superposés à trois niveaux, non adaptés aux personnes à mobilité réduite.',errRestriction:'Vous devez confirmer avoir lu et accepté les restrictions.',
     lblDocPhoto:'Photo du document (pièce d\'identité / passeport)',docPhotoBtn:'Touchez pour prendre une photo ou envoyer une image',changeDocPhoto:'Changer la photo',errDocPhoto:'La photo du document est obligatoire',
     lblArrival:'Heure d\'arrivée',errArrival:'Heure d\'arrivée obligatoire',
     arrivalPlaceholder:'Sélectionner (14h–22h)',
@@ -389,6 +396,7 @@ export const T = {
     errCPF:'Ungültige CPF',errDocForeign:'Ungültiges Dokument (mind. 5 Zeichen)',
     phCPF:'000.000.000-00',phPassport:'Reisepassnummer',
     fbCPFok:'✓ CPF gültig',fbCPFerr:'✗ CPF ungültig',fbDocOk:'✓ Dokument akzeptiert',
+    restrictionText:'Ich bestätige, unter 50 Jahre alt zu sein, und habe die Unterkunftseinschränkungen gelesen und akzeptiert: Die Betten sind dreistöckige Etagenbetten, nicht geeignet für Personen mit eingeschränkter Mobilität.',errRestriction:'Du musst bestätigen, dass du die Einschränkungen gelesen und akzeptiert hast.',
     lblDocPhoto:'Ausweisfoto (Ausweis / Reisepass)',docPhotoBtn:'Tippen, um ein Foto aufzunehmen oder hochzuladen',changeDocPhoto:'Foto ändern',errDocPhoto:'Ausweisfoto ist erforderlich',
     lblArrival:'Ankunftszeit',errArrival:'Ankunftszeit erforderlich',
     arrivalPlaceholder:'Auswählen (14–22 Uhr)',
@@ -472,6 +480,7 @@ export const T = {
     errCPF:'CPF non valido',errDocForeign:'Documento non valido (min. 5 caratteri)',
     phCPF:'000.000.000-00',phPassport:'Numero di passaporto',
     fbCPFok:'✓ CPF valido',fbCPFerr:'✗ CPF non valido',fbDocOk:'✓ Documento accettato',
+    restrictionText:'Confermo di avere meno di 50 anni e di aver letto e accettato le restrizioni: i letti sono a castello a tre livelli, non adatti a persone con mobilità ridotta.',errRestriction:'Devi confermare di aver letto e accettato le restrizioni.',
     lblDocPhoto:'Foto del documento (carta d\'identità / passaporto)',docPhotoBtn:'Tocca per scattare una foto o caricare un\'immagine',changeDocPhoto:'Cambia foto',errDocPhoto:'La foto del documento è obbligatoria',
     lblArrival:'Orario di arrivo',errArrival:'Orario di arrivo obbligatorio',
     arrivalPlaceholder:'Seleziona (14h–22h)',
