@@ -3,7 +3,7 @@
 // Panel de éxito tras confirmar la reserva: QR PIX o link de Stripe + timer de expiración.
 
 import React from 'react';
-import { CheckCircle2, CreditCard } from 'lucide-react';
+import { CheckCircle2, CreditCard, Check } from 'lucide-react';
 import { PayMethod, Translations } from './hostel-engine.types';
 import { calcPrice, fmtMoney } from './hostel-engine.utils';
 
@@ -64,7 +64,7 @@ export function HostelSuccessPanel({
                   className="he-pix-copy-btn"
                   onClick={onPixCopy}
                 >
-                  {pixCopied ? '✓ Código copiado' : 'Copiar código PIX'}
+                  {pixCopied ? <><Check size={13} aria-hidden style={{ display: 'inline', verticalAlign: '-2px', marginRight: '.3em' }} />Código copiado</> : 'Copiar código PIX'}
                 </button>
               )}
               <div className="he-pix-key">{t.pixKey}</div>

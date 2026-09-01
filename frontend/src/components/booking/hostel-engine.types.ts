@@ -44,6 +44,12 @@ export interface FormErrors {
   restriction?: string;
 }
 
+/** Feedback de validación inline (email/teléfono/documento) — el ícono lo pone la UI, esto solo dice el texto y si está OK. */
+export interface FieldFeedback {
+  text: string;
+  ok: boolean;
+}
+
 // ─── Traducciones ────────────────────────────────────────
 export const T = {
   pt: {
@@ -64,7 +70,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Passaporte / Documento',
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número do passaporte',
-    fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceito',
+    fbCPFok:'CPF válido',fbCPFerr:'CPF inválido',fbDocOk:'Documento aceito',
     restrictionText:'Confirmo que li e aceito as regras da casa acima.',errRestriction:'Você deve confirmar que leu e aceita as restrições.',
     lblDocPhoto:'Foto do documento (RG / Passaporte)',docPhotoBtn:'Toque para tirar foto ou enviar imagem',changeDocPhoto:'Trocar foto',errDocPhoto:'A foto do documento é obrigatória',
     lblArrival:'Horário de chegada',errArrival:'Horário de chegada obrigatório',
@@ -115,11 +121,6 @@ export const T = {
     pmCardTotal:'Total com cartão',
     pmNote:'PIX: 30% sem acréscimo · Cartão de crédito: 10% a mais',
     pmPixUnavailable:'Disponível apenas no Brasil',
-    pmGroup:'Pagamento em grupo',pmGroupSub:'Cada pessoa paga a sua própria cama',
-    groupTitle:'Um link para todo o grupo',groupSub:'Reencaminhe este link por onde quiser. Cada pessoa preenche seus dados e paga sua cama. Quando o último pagar, a reserva é confirmada automaticamente.',
-    groupSlot:'Cama',groupShare:'Compartilhar no WhatsApp',groupCopy:'Copiar link',groupCopied:'Copiado',
-    groupDone:'Nova reserva',groupNote:'O link expira em 30 minutos. Todos os integrantes devem pagar nesse prazo.',
-    groupCreating:'Criando sessão...',
     gpOr:'Ou pagar em grupo',gpTitle:'Um link para todo o grupo',
     gpDesc:'Reencaminhe este link por onde quiser. Cada pessoa preenche seus dados e paga sua cama. Quando o último pagar, a reserva é confirmada automaticamente.',
     gpMetaEach:'cada pessoa paga aprox.',gpBtn:'Gerar link de pagamento em grupo',
@@ -144,7 +145,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Pasaporte / Documento',
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número de pasaporte',
-    fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceptado',
+    fbCPFok:'CPF válido',fbCPFerr:'CPF inválido',fbDocOk:'Documento aceptado',
     restrictionText:'Confirmo que leí y acepto las normas de la casa de arriba.',errRestriction:'Debés confirmar que leíste y aceptás las restricciones.',
     lblDocPhoto:'Foto del documento (DNI / Pasaporte)',docPhotoBtn:'Tocá para sacar foto o subir imagen',changeDocPhoto:'Cambiar foto',errDocPhoto:'La foto del documento es obligatoria',
     lblArrival:'Hora de llegada',errArrival:'Hora de llegada obligatoria',
@@ -205,11 +206,6 @@ export const T = {
     gpShareWa:'Compartir por WhatsApp',
     gpExpire:'El link expira en 10 minutos. Todos los integrantes deben pagar en ese plazo.',
     gpErrGeneric:'Error al generar el link. Intentá de nuevo.',
-    pmGroup:'Pago grupal',pmGroupSub:'Cada persona paga su propia cama',
-    groupTitle:'Links para cada huésped',groupSub:'Compartí cada link con tus compañeros de viaje por WhatsApp',
-    groupSlot:'Cama',groupShare:'Compartir por WhatsApp',groupCopy:'Copiar link',groupCopied:'✓ ¡Copiado!',
-    groupDone:'Listo',groupNote:'Cada huésped paga el 30% de depósito individualmente con su link.',
-    groupCreating:'Creando sesión…',
   },
   en: {
     step1:'Dates',step2:'Rooms',step3:'Guest',step4:'Summary',
@@ -229,7 +225,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Passport / ID',
     errCPF:'Invalid CPF',errDocForeign:'Invalid document (min. 5 characters)',
     phCPF:'000.000.000-00',phPassport:'Passport number',
-    fbCPFok:'✓ Valid CPF',fbCPFerr:'✗ Invalid CPF',fbDocOk:'✓ Document accepted',
+    fbCPFok:'Valid CPF',fbCPFerr:'Invalid CPF',fbDocOk:'Document accepted',
     restrictionText:'I confirm I\'ve read and accept the house rules above.',errRestriction:'You must confirm you have read and accept the restrictions.',
     lblDocPhoto:'Document photo (ID / Passport)',docPhotoBtn:'Tap to take a photo or upload an image',changeDocPhoto:'Change photo',errDocPhoto:'Document photo is required',
     lblArrival:'Arrival time',errArrival:'Arrival time required',
@@ -290,11 +286,6 @@ export const T = {
     gpShareWa:'Share via WhatsApp',
     gpExpire:'The link expires in 10 minutes. All members must pay within this time.',
     gpErrGeneric:'Error generating link. Please try again.',
-    pmGroup:'Group payment',pmGroupSub:'Each guest pays for their own bed',
-    groupTitle:'Links for each guest',groupSub:'Share each link with your travel companions via WhatsApp',
-    groupSlot:'Bed',groupShare:'Share via WhatsApp',groupCopy:'Copy link',groupCopied:'✓ Copied!',
-    groupDone:'Done',groupNote:'Each guest pays the 30% deposit individually through their own link.',
-    groupCreating:'Creating session…',
   },
   fr: {
     step1:'Dates',step2:'Chambres',step3:'Voyageur',step4:'Récapitulatif',
@@ -314,7 +305,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Passeport / Pièce d\'identité',
     errCPF:'CPF invalide',errDocForeign:'Document invalide (min. 5 caractères)',
     phCPF:'000.000.000-00',phPassport:'Numéro de passeport',
-    fbCPFok:'✓ CPF valide',fbCPFerr:'✗ CPF invalide',fbDocOk:'✓ Document accepté',
+    fbCPFok:'CPF valide',fbCPFerr:'CPF invalide',fbDocOk:'Document accepté',
     restrictionText:'Je confirme avoir lu et accepté les règles de la maison ci-dessus.',errRestriction:'Vous devez confirmer avoir lu et accepté les restrictions.',
     lblDocPhoto:'Photo du document (pièce d\'identité / passeport)',docPhotoBtn:'Touchez pour prendre une photo ou envoyer une image',changeDocPhoto:'Changer la photo',errDocPhoto:'La photo du document est obligatoire',
     lblArrival:'Heure d\'arrivée',errArrival:'Heure d\'arrivée obligatoire',
@@ -375,11 +366,6 @@ export const T = {
     gpShareWa:'Partager via WhatsApp',
     gpExpire:'Le lien expire dans 10 minutes. Tous les membres doivent payer dans ce délai.',
     gpErrGeneric:'Erreur lors de la génération du lien. Réessayez.',
-    pmGroup:'Paiement groupé',pmGroupSub:'Chaque personne paie son propre lit',
-    groupTitle:'Liens pour chaque voyageur',groupSub:'Partagez chaque lien avec vos compagnons de voyage via WhatsApp',
-    groupSlot:'Lit',groupShare:'Partager par WhatsApp',groupCopy:'Copier le lien',groupCopied:'✓ Copié !',
-    groupDone:'Terminer',groupNote:'Chaque voyageur paie l\'acompte de 30% individuellement via son lien.',
-    groupCreating:'Création de la session…',
   },
   de: {
     step1:'Daten',step2:'Zimmer',step3:'Gast',step4:'Übersicht',
@@ -399,7 +385,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Reisepass / Ausweis',
     errCPF:'Ungültige CPF',errDocForeign:'Ungültiges Dokument (mind. 5 Zeichen)',
     phCPF:'000.000.000-00',phPassport:'Reisepassnummer',
-    fbCPFok:'✓ CPF gültig',fbCPFerr:'✗ CPF ungültig',fbDocOk:'✓ Dokument akzeptiert',
+    fbCPFok:'CPF gültig',fbCPFerr:'CPF ungültig',fbDocOk:'Dokument akzeptiert',
     restrictionText:'Ich bestätige, die obigen Hausregeln gelesen und akzeptiert zu haben.',errRestriction:'Du musst bestätigen, dass du die Einschränkungen gelesen und akzeptiert hast.',
     lblDocPhoto:'Ausweisfoto (Ausweis / Reisepass)',docPhotoBtn:'Tippen, um ein Foto aufzunehmen oder hochzuladen',changeDocPhoto:'Foto ändern',errDocPhoto:'Ausweisfoto ist erforderlich',
     lblArrival:'Ankunftszeit',errArrival:'Ankunftszeit erforderlich',
@@ -460,11 +446,6 @@ export const T = {
     gpShareWa:'Per WhatsApp teilen',
     gpExpire:'Der Link läuft in 10 Minuten ab. Alle Mitglieder müssen innerhalb dieser Zeit zahlen.',
     gpErrGeneric:'Fehler beim Erstellen des Links. Erneut versuchen.',
-    pmGroup:'Gruppenzahlung',pmGroupSub:'Jeder Gast zahlt sein eigenes Bett',
-    groupTitle:'Links für jeden Gast',groupSub:'Teilen Sie jeden Link per WhatsApp mit Ihren Mitreisenden',
-    groupSlot:'Bett',groupShare:'Per WhatsApp teilen',groupCopy:'Link kopieren',groupCopied:'✓ Kopiert!',
-    groupDone:'Fertig',groupNote:'Jeder Gast zahlt die 30%-Anzahlung individuell über seinen eigenen Link.',
-    groupCreating:'Sitzung wird erstellt…',
   },
   it: {
     step1:'Date',step2:'Camere',step3:'Ospite',step4:'Riepilogo',
@@ -484,7 +465,7 @@ export const T = {
     lblCPF:'CPF',lblPassport:'Passaporto / Documento',
     errCPF:'CPF non valido',errDocForeign:'Documento non valido (min. 5 caratteri)',
     phCPF:'000.000.000-00',phPassport:'Numero di passaporto',
-    fbCPFok:'✓ CPF valido',fbCPFerr:'✗ CPF non valido',fbDocOk:'✓ Documento accettato',
+    fbCPFok:'CPF valido',fbCPFerr:'CPF non valido',fbDocOk:'Documento accettato',
     restrictionText:'Confermo di aver letto e accettato le regole della casa sopra.',errRestriction:'Devi confermare di aver letto e accettato le restrizioni.',
     lblDocPhoto:'Foto del documento (carta d\'identità / passaporto)',docPhotoBtn:'Tocca per scattare una foto o caricare un\'immagine',changeDocPhoto:'Cambia foto',errDocPhoto:'La foto del documento è obbligatoria',
     lblArrival:'Orario di arrivo',errArrival:'Orario di arrivo obbligatorio',
@@ -545,11 +526,6 @@ export const T = {
     gpShareWa:'Condividi via WhatsApp',
     gpExpire:'Il link scade in 10 minuti. Tutti i membri devono pagare entro questo termine.',
     gpErrGeneric:'Errore durante la generazione del link. Riprova.',
-    pmGroup:'Pagamento di gruppo',pmGroupSub:'Ogni ospite paga il proprio letto',
-    groupTitle:'Link per ogni ospite',groupSub:'Condividi ogni link con i tuoi compagni di viaggio via WhatsApp',
-    groupSlot:'Letto',groupShare:'Condividi su WhatsApp',groupCopy:'Copia link',groupCopied:'✓ Copiato!',
-    groupDone:'Fine',groupNote:'Ogni ospite paga l\'acconto del 30% individualmente tramite il proprio link.',
-    groupCreating:'Creazione sessione…',
   },
 } as const;
 

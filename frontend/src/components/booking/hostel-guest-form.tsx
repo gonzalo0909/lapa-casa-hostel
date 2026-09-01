@@ -4,9 +4,20 @@
 // Incluye formateo CPF/phone inline, validación por campo y política de cancelación.
 
 import React from 'react';
-import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility, AlertTriangle, ChevronDown, Camera } from 'lucide-react';
-import { Lang, FormState, FormErrors, T } from './hostel-engine.types';
+import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility, AlertTriangle, ChevronDown, Camera, Check, X } from 'lucide-react';
+import { Lang, FormState, FormErrors, FieldFeedback, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
+
+function FieldFb({ fb }: { fb: FieldFeedback | null }) {
+  if (!fb) return null;
+  const Icon = fb.ok ? Check : X;
+  return (
+    <div className={`he-ffb ${fb.ok ? 'ok' : 'err'}`}>
+      <Icon size={12} aria-hidden style={{ display: 'inline', verticalAlign: '-1px', marginRight: '.3em' }} />
+      {fb.text}
+    </div>
+  );
+}
 
 // Redimensiona la foto del documento a max 900px de ancho antes de mandarla
 // -- evita subir la foto de un celular a resolución completa.
@@ -36,15 +47,15 @@ interface HostelGuestFormProps {
   lang: Lang;
   form: FormState;
   formErrors: FormErrors;
-  docFeedback: string;
-  emailFb: string;
-  phoneFb: string;
+  docFeedback: FieldFeedback | null;
+  emailFb: FieldFeedback | null;
+  phoneFb: FieldFeedback | null;
   cancelOpen: boolean;
   onFormChange: (patch: Partial<FormState>) => void;
   onFormErrors: (patch: Partial<FormErrors>) => void;
-  onDocFeedback: (v: string) => void;
-  onEmailFb: (v: string) => void;
-  onPhoneFb: (v: string) => void;
+  onDocFeedback: (v: FieldFeedback | null) => void;
+  onEmailFb: (v: FieldFeedback | null) => void;
+  onPhoneFb: (v: FieldFeedback | null) => void;
   onCancelToggle: () => void;
 }
 
@@ -95,12 +106,12 @@ export function HostelGuestForm({
           onChange={e => onFormChange({ email: e.target.value })}
           onBlur={() => {
             const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-            onEmailFb(form.email ? (ok ? '✓ E-mail válido' : '✗ E-mail inválido') : '');
+            onEmailFb(form.email ? { text: ok ? 'E-mail válido' : 'E-mail inválido', ok } : null);
             onFormErrors({ email: !ok ? t.errEmail : undefined });
           }}
         />
         {formErrors.email && <div className="he-ferr">{formErrors.email}</div>}
-        {emailFb && <div className={`he-ffb ${emailFb.startsWith('✓') ? 'ok' : 'err'}`}>{emailFb}</div>}
+        <FieldFb fb={emailFb} />
       </div>
 
       {/* Confirmar e-mail */}
@@ -140,12 +151,12 @@ export function HostelGuestForm({
             onChange={e => onFormChange({ phone: formatPhone(e.target.value) })}
             onBlur={() => {
               const ok = form.phone.replace(/\D/g, '').length >= 10;
-              onPhoneFb(form.phone ? (ok ? '✓ Telefone válido' : '✗ Mínimo 10 dígitos') : '');
+              onPhoneFb(form.phone ? { text: ok ? 'Telefone válido' : 'Mínimo 10 dígitos', ok } : null);
               onFormErrors({ phone: !ok ? t.errPhone : undefined });
             }}
           />
           {formErrors.phone && <div className="he-ferr">{formErrors.phone}</div>}
-          {phoneFb && <div className={`he-ffb ${phoneFb.startsWith('✓') ? 'ok' : 'err'}`}>{phoneFb}</div>}
+          <FieldFb fb={phoneFb} />
         </div>
         <div>
           <label className="he-label" htmlFor="he-f-country">
@@ -183,7 +194,7 @@ export function HostelGuestForm({
           </label>
           <input
             id="he-f-doc"
-            className={`he-inp${formErrors.doc ? ' err' : docFeedback.startsWith('✓') ? ' ok' : ''}`}
+            className={`he-inp${formErrors.doc ? ' err' : docFeedback?.ok ? ' ok' : ''}`}
             value={form.doc}
             placeholder={form.country === 'BR' ? t.phCPF : t.phPassport}
             maxLength={form.country === 'BR' ? 14 : 30}
@@ -197,17 +208,17 @@ export function HostelGuestForm({
               const digits = form.doc.replace(/\D/g, '');
               if (isBR) {
                 const ok = digits.length === 11 && validateCPF(digits);
-                onDocFeedback(digits.length === 11 ? (ok ? t.fbCPFok : t.fbCPFerr) : '');
+                onDocFeedback(digits.length === 11 ? { text: ok ? t.fbCPFok : t.fbCPFerr, ok } : null);
                 onFormErrors({ doc: !ok ? t.errCPF : undefined });
               } else {
                 const ok = form.doc.trim().length > 4;
-                onDocFeedback(ok ? t.fbDocOk : '');
+                onDocFeedback(ok ? { text: t.fbDocOk, ok: true } : null);
                 onFormErrors({ doc: !ok ? t.errDocForeign : undefined });
               }
             }}
           />
           {formErrors.doc && <div className="he-ferr">{formErrors.doc}</div>}
-          {docFeedback && <div className={`he-ffb ${docFeedback.startsWith('✓') ? 'ok' : 'err'}`}>{docFeedback}</div>}
+          <FieldFb fb={docFeedback} />
         </div>
         <div>
           <label className="he-label" htmlFor="he-f-arrival">
