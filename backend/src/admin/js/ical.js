@@ -172,28 +172,27 @@ async function loadExportURLs() {
     el.innerHTML = rooms.map((r) => {
       const url = `${base}/api/v1/ical/export/${r.id}`;
       return `
-        <div style="margin-bottom:14px;">
+        <div style="margin-bottom:14px;" data-url="${escapeHtml(url)}">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${escapeHtml(r.name)}</div>
           <div style="display:flex;align-items:center;gap:8px;background:var(--bg,#f5f5f5);border:1px solid #ddd;border-radius:6px;padding:8px 12px;">
             <code style="font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(url)}</code>
-            <button onclick="copyToClipboard('${escapeHtml(url)}', this)" style="white-space:nowrap;font-size:12px;">Copiar</button>
+            <button data-action="copy-url" style="white-space:nowrap;font-size:12px;">Copiar</button>
           </div>
         </div>
       `;
     }).join('');
+
+    // onclick="..." en el HTML lo bloquea la CSP del backend (scriptSrc:
+    // 'self', sin unsafe-inline) -- el botón "Copiar" nunca funcionó antes.
+    el.querySelectorAll('button[data-action="copy-url"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.closest('[data-url]').dataset.url;
+        copyToClipboard(url, btn);
+      });
+    });
   } catch (err) {
     document.getElementById('export-list').innerHTML = `<p style="color:red;">${escapeHtml(err.message)}</p>`;
   }
-}
-
-function copyToClipboard(text, btn) {
-  navigator.clipboard?.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copiado';
-    setTimeout(() => { btn.textContent = orig; }, 1800);
-  }).catch(() => {
-    prompt('Copiá esta URL:', text);
-  });
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
