@@ -51,7 +51,11 @@ app.use(cookieParser());
 // Content-Length), pero rechaza sin gastar CPU de parseo el caso comun.
 const PAYLOAD_LIMITS_BY_PREFIX: Array<{ prefix: string; bytes: number }> = [
   { prefix: `/api/${environment.API_VERSION}/availability`, bytes: 10 * 1024 },
-  { prefix: `/api/${environment.API_VERSION}/bookings`, bytes: 50 * 1024 },
+  // 2MB: guest.documentPhotoBase64 va acá (foto de documento, obligatoria
+  // para reservar) -- redimensionada a 900px por el cliente, pero en
+  // base64 una JPEG así todavía puede pasar los 50kb que tenía este límite
+  // antes de que existiera la foto, lo que tiraba abajo toda reserva.
+  { prefix: `/api/${environment.API_VERSION}/bookings`, bytes: 2 * 1024 * 1024 },
 ];
 
 app.use((req: Request, res: Response, next: NextFunction) => {
