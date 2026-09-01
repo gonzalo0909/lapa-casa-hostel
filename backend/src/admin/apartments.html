@@ -254,14 +254,5 @@
 <script src="/admin/js/api.js"></script>
 <script src="/admin/js/nav.js"></script>
 <script src="/admin/js/apartments.js"></script>
-<script>
-  document.querySelectorAll('.outer-tab-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var tab = btn.dataset.otab;
-      document.querySelectorAll('.outer-tab-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
-      document.querySelectorAll('.outer-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'opanel-' + tab); });
-    });
-  });
-</script>
 </body>
 </html>

@@ -55,14 +55,5 @@
 <script src="/admin/js/api.js"></script>
 <script src="/admin/js/nav.js"></script>
 <script src="/admin/js/rooms.js"></script>
-<script>
-  document.querySelectorAll('.inner-tab-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var tab = btn.dataset.tab;
-      document.querySelectorAll('.inner-tab-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
-      document.querySelectorAll('.inner-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + tab); });
-    });
-  });
-</script>
 </body>
 </html>

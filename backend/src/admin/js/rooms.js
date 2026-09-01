@@ -57,3 +57,14 @@ async function saveRoom(row) {
 }
 
 loadRooms();
+
+// ── Pestañas internas (Cuartos / Bloqueos / Ofertas / Precios dinámicos) ──────
+// Como archivo externo: la CSP del backend (scriptSrc: 'self', sin
+// unsafe-inline) bloquea silenciosamente cualquier <script> inline.
+document.querySelectorAll('.inner-tab-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var tab = btn.dataset.tab;
+    document.querySelectorAll('.inner-tab-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.inner-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + tab); });
+  });
+});
