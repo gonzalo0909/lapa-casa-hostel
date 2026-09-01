@@ -467,7 +467,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       <div className="he-wrap">
 
         {/* Volver al home */}
-        <div style={{ width: '100%', maxWidth: 500, padding: '.6rem 0 .1rem', display: 'flex', alignItems: 'center', gap: '.6rem' }}>
+        <div style={{ width: '100%', maxWidth: 500, padding: '.6rem 0 .1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.6rem' }}>
           <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.78rem', color: '#fff', textDecoration: 'none', fontWeight: 700, letterSpacing: '.04em', background: 'rgba(0,0,0,.42)', borderRadius: '999px', padding: '.28em .85em', border: '1.5px solid rgba(255,255,255,.25)', backdropFilter: 'blur(6px)', boxShadow: '0 1px 6px rgba(0,0,0,.35)' }}>
             ← Home
           </Link>
