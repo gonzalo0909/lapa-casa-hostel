@@ -4,7 +4,7 @@
 // Incluye formateo CPF/phone inline, validación por campo y política de cancelación.
 
 import React from 'react';
-import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, AlertTriangle, ChevronDown, Camera } from 'lucide-react';
+import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility, AlertTriangle, ChevronDown, Camera } from 'lucide-react';
 import { Lang, FormState, FormErrors, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
 
@@ -49,7 +49,7 @@ interface HostelGuestFormProps {
 }
 
 // ─── Iconos de reglas de la casa (Lucide) ────────────────
-const RULE_ICONS = [KeyRound, DoorOpen, FileText, Ban, CigaretteOff] as const;
+const RULE_ICONS = [KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility] as const;
 
 // ─── Component ────────────────────────────────────────────
 export function HostelGuestForm({
@@ -286,13 +286,13 @@ export function HostelGuestForm({
         />
       </div>
 
-      {/* Reglas de la casa */}
+      {/* Reglas de la casa (incluye la restricción de edad/movilidad y su confirmación) */}
       <div className="he-rules">
         <div className="he-rules-title">
           <AlertTriangle size={14} color="#6A6058" aria-hidden />
           {t.rulesTitle}
         </div>
-        {([t.rule1, t.rule2, t.rule3, t.rule4, t.rule5] as string[]).map((rule, i) => {
+        {([t.rule1, t.rule2, t.rule3, t.rule4, t.rule5, t.rule6] as string[]).map((rule, i) => {
           const Icon = RULE_ICONS[i];
           return (
             <div key={i} className="he-rule">
@@ -301,11 +301,7 @@ export function HostelGuestForm({
             </div>
           );
         })}
-      </div>
-
-      {/* Restricción de edad y movilidad — obligatoria */}
-      <div style={{ background: 'rgba(255,255,255,.05)', border: '1.5px solid rgba(255,255,255,.14)', borderRadius: 9, padding: '.85rem .9rem', margin: '.9rem 0' }}>
-        <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', cursor: 'pointer', fontSize: '.82rem', lineHeight: 1.5 }}>
+        <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', cursor: 'pointer', fontSize: '.75rem', lineHeight: 1.5, marginTop: '.6rem', paddingTop: '.6rem', borderTop: '1px solid rgba(255,255,255,.1)', color: '#F0EDE0' }}>
           <input
             type="checkbox"
             id="he-f-restriction"
@@ -314,7 +310,7 @@ export function HostelGuestForm({
               onFormChange({ restrictionAccepted: e.target.checked });
               onFormErrors({ restriction: undefined });
             }}
-            style={{ marginTop: 3, flexShrink: 0, width: 16, height: 16, cursor: 'pointer' }}
+            style={{ marginTop: 2, flexShrink: 0, width: 15, height: 15, cursor: 'pointer' }}
           />
           <span>{t.restrictionText}</span>
         </label>

@@ -177,14 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
   docInput.addEventListener('change', async function() {
     const file = this.files[0];
     if (!file) return;
+    const docText = document.getElementById('doc-upload-text');
     try {
       docPhotoBase64 = await resizeImage(file, 900, 0.82);
       docImg.src = docPhotoBase64;
-      docBtn.textContent = '✓ ' + file.name;
+      docText.textContent = file.name;
       docBtn.classList.add('has-file');
       docPrev.style.display = 'block';
     } catch {
-      docBtn.textContent = '⚠ Error al procesar la imagen';
+      docText.textContent = 'Error al procesar la imagen';
     }
   });
 
