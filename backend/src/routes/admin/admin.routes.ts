@@ -144,10 +144,23 @@ router.get('/bookings', async (req, res, next) => {
         `SELECT r.id, r.reservation_number, r.status, r.check_in_date, r.check_out_date,
                 r.beds_count, r.final_price, r.deposit_amount, r.remaining_amount,
                 g.full_name AS guest_name, g.email AS guest_email,
-                c.code AS channel_code, r.created_at
+                c.code AS channel_code, r.created_at,
+                units.property_type, units.unit_names
          FROM reservations r
          JOIN guests g ON g.id = r.guest_id
          JOIN channels c ON c.id = r.channel_id
+         -- Hostel y apartamentos comparten la misma tabla reservations
+         -- (room_types.property_type los distingue) -- sin este join la
+         -- lista de Reservas no dice de cuál se trata.
+         LEFT JOIN LATERAL (
+           SELECT
+             (ARRAY_AGG(DISTINCT rt.property_type::text))[1] AS property_type,
+             STRING_AGG(DISTINCT rt.name, ', ') AS unit_names
+           FROM reservation_beds rb
+           JOIN beds b ON b.id = rb.bed_id
+           JOIN room_types rt ON rt.id = b.room_type_id
+           WHERE rb.reservation_id = r.id
+         ) units ON true
          ${where}
          ORDER BY r.created_at DESC
          LIMIT ${limitNum} OFFSET ${(pageNum - 1) * limitNum}`,
@@ -493,18 +506,20 @@ router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res,
  */
 router.get('/pricing', async (req, res, next) => {
   try {
-    const [ratePlans, carnivalConfig, groupDiscountTiers, cardSurcharge] = await Promise.all([
+    const [ratePlans, carnivalConfig, groupDiscountTiers, cardSurcharge, luggageStorage] = await Promise.all([
       query(`SELECT season_type, multiplier, min_nights, description FROM rate_plans ORDER BY season_type`),
       query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'carnival_dates'`),
       query(`SELECT id, min_beds, percentage FROM group_discount_tiers ORDER BY min_beds`),
-      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`)
+      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`),
+      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'luggage_storage'`)
     ]);
     res.status(200).json(
       ApiResponse.success({
         ratePlans: ratePlans.rows,
         carnivalDates: carnivalConfig.rows[0]?.value ?? [],
         groupDiscountTiers: groupDiscountTiers.rows,
-        cardSurchargePercent: cardSurcharge.rows[0]?.value ?? 10
+        cardSurchargePercent: cardSurcharge.rows[0]?.value ?? 10,
+        luggageStorage: luggageStorage.rows[0]?.value ?? { price: 30, currency: 'BRL', days: 'Todos los días', start_time: '08:00', end_time: '22:00' }
       })
     );
   } catch (error) {
@@ -529,11 +544,18 @@ const PricingUpdateSchema = z.object({
     endDate: z.string().trim().min(1),
   }).optional(),
   cardSurchargePercent: z.number().min(0).max(100).optional(),
+  // Guarda-equipaje (Malas/Guardavolumes): precio de la diaria (BRL), días en que se ofrece y franja horaria HH:MM.
+  luggageStorage: z.object({
+    price: z.number().min(0),
+    days: z.string().trim().min(1),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
+  }).optional(),
 });
 
 router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => {
   try {
-    const { seasonType, multiplier, minNights, carnival, cardSurchargePercent } =
+    const { seasonType, multiplier, minNights, carnival, cardSurchargePercent, luggageStorage } =
       req.body as z.infer<typeof PricingUpdateSchema>;
 
     const updated: Record<string, any> = {};
@@ -581,8 +603,27 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
       updated.cardSurchargePercent = rows[0];
     }
 
+    if (luggageStorage) {
+      const { rows: existingRows } = await query<{ value: { currency?: string } }>(
+        `SELECT value FROM system_config WHERE key = 'luggage_storage'`
+      );
+      const currency = existingRows[0]?.value?.currency ?? 'BRL';
+      const nextValue = {
+        price: luggageStorage.price,
+        currency,
+        days: luggageStorage.days,
+        start_time: luggageStorage.startTime,
+        end_time: luggageStorage.endTime,
+      };
+      const { rows } = await query(
+        `UPDATE system_config SET value = $1::jsonb, updated_at = now() WHERE key = 'luggage_storage' RETURNING *`,
+        [JSON.stringify(nextValue)]
+      );
+      updated.luggageStorage = rows[0];
+    }
+
     if (Object.keys(updated).length === 0) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar: seasonType+multiplier/minNights, carnival, o cardSurchargePercent'));
+      res.status(400).json(ApiResponse.error('Nada para actualizar: seasonType+multiplier/minNights, carnival, cardSurchargePercent, o luggageStorage'));
       return;
     }
 

@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Precios — Admin Lapa Casa Hostel</title>
+<title>Precios — Admin Lapa Casa</title>
 <link rel="stylesheet" href="/admin/css/admin.css">
 </head>
 <body>
@@ -63,6 +63,27 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>🧳 Malas/Guardavolumes</h2>
+    <p style="font-size:13px;color:#888;">Precio de la diaria, días en que se ofrece y horario en que se recibe/entrega equipaje. Se muestra en la página pública /guardavolumes, abierta a cualquier huésped en Rio (no solo del hostel).</p>
+    <div id="luggage-msg"></div>
+    <form class="stack" id="luggage-form">
+      <label>Precio de la diaria
+        R$ <input type="number" step="1" min="0" id="luggage-price" style="width:80px;">
+      </label>
+      <label>Días
+        <input type="text" id="luggage-days" style="width:200px;" placeholder="Todos los días">
+      </label>
+      <label>Desde
+        <input type="time" id="luggage-start" required>
+      </label>
+      <label>Hasta
+        <input type="time" id="luggage-end" required>
+      </label>
+      <button type="submit">Guardar</button>
+    </form>
   </div>
 
   <div class="card">

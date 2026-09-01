@@ -138,11 +138,17 @@ const mergeContent = (r: RoomTypeRow): RoomSummary => {
 };
 
 export class RoomService {
-  /** Las 5 habitaciones reales, con contenido descriptivo mergeado por `code`. */
+  /**
+   * Las 5 habitaciones reales del hostel, con contenido descriptivo
+   * mergeado por `code`. Solo property_type = 'hostel' -- los
+   * apartamentos viven en room_types también (0018_room_type_property_type.sql)
+   * pero tienen su propio motor y su propio listado admin
+   * (/admin/room-types), nunca este.
+   */
   async getRooms(): Promise<RoomSummary[]> {
     const { rows } = await query<RoomTypeRow>(
       `SELECT ${ROOM_TYPE_COLUMNS}
-       FROM room_types ORDER BY capacity, code`
+       FROM room_types WHERE property_type = 'hostel' ORDER BY capacity, code`
     );
     return rows.map(mergeContent);
   }
