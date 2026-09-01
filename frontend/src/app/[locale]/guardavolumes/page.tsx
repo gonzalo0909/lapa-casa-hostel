@@ -8,7 +8,8 @@
 
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import { Luggage, Clock, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Luggage, Clock, Wallet } from 'lucide-react';
 import { StructuredData } from '@/components/seo/structured-data';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { locales, defaultLocale, type Locale } from '@/i18n';
@@ -105,6 +106,13 @@ export default async function GuardavolumesPage({ params }: { params: { locale: 
       {/* ── Hero ── */}
       <section className="border-b border-border">
         <div className="max-w-3xl mx-auto px-4 py-16">
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Home
+          </Link>
           <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-4">
             Santa Teresa · Rio de Janeiro
           </p>
