@@ -59,10 +59,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
       question: 'Tem estacionamento?',
       answer:   'Não temos estacionamento próprio, mas há vagas na rua próximas ao hostel em Santa Teresa.',
     },
-    {
-      question: 'Vocês guardam bagagem?',
-      answer:   'Sim, recebemos bagagem das 8h às 22h. A diária custa R$ 30 (faixa 8h–22h).',
-    },
   ],
   es: [
     {
@@ -92,10 +88,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     {
       question: '¿Hay estacionamiento?',
       answer:   'No tenemos estacionamiento propio, pero hay lugares en la calle cerca del hostel en Santa Teresa.',
-    },
-    {
-      question: '¿Guardan el equipaje?',
-      answer:   'Sí, recibimos equipaje de 8:00 a 22:00. La diaria cuesta R$ 30 (franja 8:00–22:00).',
     },
   ],
   en: [
@@ -127,10 +119,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
       question: 'Is there parking?',
       answer:   'We do not have our own parking, but there is street parking near the hostel in Santa Teresa.',
     },
-    {
-      question: 'Do you store luggage?',
-      answer:   'Yes, we accept luggage from 8:00 AM to 10:00 PM. The daily rate is R$ 30 (8:00 AM–10:00 PM window).',
-    },
   ],
   de: [
     {
@@ -160,10 +148,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     {
       question: 'Gibt es Parkplätze?',
       answer:   'Wir haben keinen eigenen Parkplatz, aber es gibt Straßenparkplätze in der Nähe des Hostels in Santa Teresa.',
-    },
-    {
-      question: 'Verwahren Sie Gepäck?',
-      answer:   'Ja, wir nehmen Gepäck von 8:00 bis 22:00 Uhr an. Die Tagesgebühr beträgt R$ 30 (Zeitfenster 8:00–22:00 Uhr).',
     },
   ],
   fr: [
@@ -195,10 +179,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
       question: 'Y a-t-il un parking ?',
       answer:   "Nous n'avons pas de parking propre, mais il y a des places dans la rue près de l'auberge.",
     },
-    {
-      question: 'Gardez-vous les bagages ?',
-      answer:   'Oui, nous acceptons les bagages de 8h00 à 22h00. Le tarif journalier est de R$ 30 (créneau 8h00–22h00).',
-    },
   ],
   it: [
     {
@@ -228,10 +208,6 @@ const FAQ_HOSTEL: Record<string, FAQItem[]> = {
     {
       question: 'C\'è un parcheggio?',
       answer:   'Non abbiamo un parcheggio proprio, ma ci sono posti in strada vicino all\'ostello a Santa Teresa.',
-    },
-    {
-      question: 'Custodite i bagagli?',
-      answer:   'Sì, accettiamo bagagli dalle 8:00 alle 22:00. La tariffa giornaliera è di R$ 30 (fascia 8:00–22:00).',
     },
   ],
 };
