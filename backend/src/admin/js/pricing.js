@@ -20,6 +20,10 @@ async function loadPricing() {
     const pixPct = data.pixDiscountPercent ?? 0;
     document.getElementById('pix-pct').value = pixPct;
     updatePixPreview(pixPct);
+    const luggage = data.luggageStorage ?? { price: 30, start_time: '08:00', end_time: '22:00' };
+    document.getElementById('luggage-price').value = luggage.price;
+    document.getElementById('luggage-start').value = luggage.start_time;
+    document.getElementById('luggage-end').value = luggage.end_time;
   } catch (err) {
     showMsg('seasons-msg', err.message, 'error');
   }
@@ -154,6 +158,23 @@ document.getElementById('pix-form').addEventListener('submit', async (event) => 
       : 'Descuento PIX desactivado. El banner no se mostrará.', 'success');
   } catch (err) {
     showMsg('pix-msg', err.message, 'error');
+  }
+});
+
+// ── Guarda-equipaje ──────────────────────────────────────────────────────────
+
+document.getElementById('luggage-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const luggageStorage = {
+    price: Number(document.getElementById('luggage-price').value),
+    startTime: document.getElementById('luggage-start').value,
+    endTime: document.getElementById('luggage-end').value,
+  };
+  try {
+    await apiFetch('/admin/pricing', { method: 'PUT', body: JSON.stringify({ luggageStorage }) });
+    showMsg('luggage-msg', 'Guarda-equipaje actualizado.', 'success');
+  } catch (err) {
+    showMsg('luggage-msg', err.message, 'error');
   }
 });
 

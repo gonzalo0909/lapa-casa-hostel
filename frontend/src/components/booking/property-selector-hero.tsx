@@ -7,9 +7,17 @@ import { BedDouble, Home, MapPin, ArrowRight, Wifi, UtensilsCrossed, Lock, Lugga
 interface PropertySelectorHeroProps {
   onSelectHostel: () => void
   onSelectApartments: () => void
+  /** Precio/horario del guarda-equipaje -- editable desde /admin/pricing.html. */
+  luggageStorage?: { price: number; startTime: string; endTime: string }
 }
 
-export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: PropertySelectorHeroProps) {
+const DEFAULT_LUGGAGE_STORAGE = { price: 30, startTime: "08:00", endTime: "22:00" }
+
+export function PropertySelectorHero({
+  onSelectHostel,
+  onSelectApartments,
+  luggageStorage = DEFAULT_LUGGAGE_STORAGE,
+}: PropertySelectorHeroProps) {
   const pathname = usePathname()
   // Extract locale from path: /es, /pt, /en, /fr, /de
   const localeMatch = pathname.match(/^\/([a-z]{2})\b/)
@@ -98,7 +106,7 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
             <AmenityItem
               icon={<Luggage className="h-5 w-5" />}
               title="Guarda-equipaje"
-              description="Recibimos tu equipaje de 8:00 a 22:00. Diaria: R$ 30 (franja 8:00–22:00)."
+              description={`Recibimos tu equipaje de ${luggageStorage.startTime} a ${luggageStorage.endTime}. Diaria: R$ ${luggageStorage.price} (franja ${luggageStorage.startTime}–${luggageStorage.endTime}).`}
             />
           </div>
         </div>
