@@ -66,13 +66,13 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Estado del pago grupal ─
   const [isGroupLoading, setIsGroupLoading]       = useState(false);
   const [groupError, setGroupError]               = useState('');
-  const [groupLink, setGroupLink]                 = useState('');
-  const [groupWaUrl, setGroupWaUrl]               = useState('');
+  // Un link individual y de un solo uso por invitado -- el titular reparte cada uno
+  const [groupLinks, setGroupLinks]               = useState<{ slotIndex: number; url: string; waUrl: string }[]>([]);
   const [groupResNum, setGroupResNum]             = useState('');
   const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
   // N-1: invitados que tienen que pagar (no incluye la cama del titular)
   const [groupTotalBeds, setGroupTotalBeds]       = useState(0);
-  const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
+  const [copiedLinkIndex, setCopiedLinkIndex]     = useState<number | null>(null);
   // Datos mínimos del titular para el flujo grupal desde Step 2
   const [gpName, setGpName]   = useState('');
   const [gpEmail, setGpEmail] = useState('');
@@ -423,8 +423,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         specialRequests: form.requests || undefined,
       });
       const payload = result.data?.data ?? result.data;
-      setGroupLink(payload.groupPaymentUrl ?? '');
-      setGroupWaUrl(payload.waShareUrl ?? '');
+      setGroupLinks(payload.memberLinks ?? []);
       setGroupResNum(payload.reservationNumber ?? '');
       setGroupAmountPerBed(payload.amountPerBed ?? 0);
       // El backend ya descuenta la cama del titular (N-1 invitados)
@@ -437,7 +436,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     }
   }, [checkIn, checkOut, price, beds, totalBeds, form, gpName, gpEmail, lang, t]);
 
-  // ─ Copiar código PIX / link grupal ─
+  // ─ Copiar código PIX ─
   const handlePixCopy = useCallback(() => {
     if (!pixData?.qrCode) return;
     navigator.clipboard.writeText(pixData.qrCode).catch(() => {});
@@ -445,11 +444,12 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     setTimeout(() => setPixCopied(false), 3000);
   }, [pixData]);
 
-  const handleGroupLinkCopy = useCallback(() => {
-    navigator.clipboard.writeText(groupLink).catch(() => {});
-    setGroupLinkCopied(true);
-    setTimeout(() => setGroupLinkCopied(false), 3000);
-  }, [groupLink]);
+  // ─ Copiar un link individual del grupo ─
+  const handleGroupLinkCopy = useCallback((slotIndex: number, url: string) => {
+    navigator.clipboard.writeText(url).catch(() => {});
+    setCopiedLinkIndex(slotIndex);
+    setTimeout(() => setCopiedLinkIndex(null), 3000);
+  }, []);
 
   const handleNewBooking = useCallback(() => { window.location.reload(); }, []);
 
@@ -669,9 +669,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             t={t}
             totalBeds={groupTotalBeds}
             groupResNum={groupResNum}
-            groupLink={groupLink}
-            groupWaUrl={groupWaUrl}
-            groupLinkCopied={groupLinkCopied}
+            groupLinks={groupLinks}
+            copiedLinkIndex={copiedLinkIndex}
             onCopyLink={handleGroupLinkCopy}
             groupAmountPerBed={groupAmountPerBed}
             onNewBooking={handleNewBooking}
