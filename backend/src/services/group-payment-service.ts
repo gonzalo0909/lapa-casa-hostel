@@ -1,14 +1,18 @@
 // lapa-casa-hostel/backend/src/services/group-payment-service.ts
-// Feature 2 v2: tokens individuales por invitado.
+// Feature 2 v3: un solo link compartido para todo el grupo.
 //
-// Flujo rediseñado:
-//   1. Titular crea la sesión desde la página principal → recibe N links
-//      individuales, uno por acompañante.
-//   2. Cada link es de un solo uso (member_token único). El titular reenvía
-//      cada link al invitado correspondiente por WhatsApp.
-//   3. El invitado abre su link, llena sus datos y paga su cama.
-//   4. Al expirar el tiempo: los que pagaron quedan confirmados, los que no
-//      reciben un link de reserva individual.
+// Flujo:
+//   1. Titular crea la sesión desde el motor del hostel → recibe UN solo
+//      link + mensaje de WhatsApp. Lo reenvía manualmente (compartir/
+//      reenviar) a cada invitado, uno por uno.
+//   2. El mismo link lo abren los N-1 invitados. Cada uno completa sus
+//      datos, sube la foto de su documento (obligatoria) y paga su propia
+//      cama — al pagar, esa cama queda cerrada (no se puede pagar dos veces).
+//   3. Un solo timer de 10 minutos para toda la sesión, no por invitado.
+//   4. Al expirar: los que pagaron quedan confirmados; los que no, se
+//      liberan y esos invitados son derivados a reservar manualmente.
+//   5. El titular reserva su propia cama por separado, con pago individual
+//      normal — esta sesión no incluye su cama.
 //
 // Opción D de precios por overflow:
 //   baja     → todos pagan el precio de la habitación más barata del grupo
@@ -24,6 +28,8 @@ import { enqueueSheetsExport } from '../queues/sheets-export.queue';
 import redisClient from '../cache/redis-client';
 import { logger } from '../utils/logger';
 import { getSeasonType } from './season-type';
+import { uploadDocumentPhoto } from '../lib/cloudinary/cloudinary-client';
+import { decodeBase64Image } from '../utils/decode-base64-image';
 
 const guestRepo = new GuestRepository();
 
@@ -58,17 +64,12 @@ export interface RoomAllocation {
   bedIds: string[];
 }
 
-export interface MemberLink {
-  slotIndex: number;
-  url: string;
-  waUrl: string;
-}
-
 export interface GroupSessionResult {
   sessionId: string;
   token: string;
   reservationId: string;
   reservationNumber: string;
+  /** N-1: cantidad de invitados que tienen que pagar (no incluye al titular) */
   totalBeds: number;
   paidBeds: number;
   pricingStrategy: string;
@@ -76,16 +77,14 @@ export interface GroupSessionResult {
   amountPerBed: number;
   roomAllocations: RoomAllocation[];
   expiresAt: string;
-  /** Links individuales para cada invitado (uno por cama) */
-  memberLinks: MemberLink[];
-  /** URL de resumen de estado para el titular (solo lectura) */
+  /** Único link, compartido por el titular a todos los invitados */
   groupPaymentUrl: string;
   waShareUrl: string;
 }
 
-export interface MemberPaymentInput {
-  /** Token individual del slot del invitado */
-  memberToken: string;
+export interface ClaimSlotInput {
+  /** Token de la sesión (el único link que comparte el titular) */
+  sessionToken: string;
   guest: {
     full_name: string;
     email: string;
@@ -94,6 +93,8 @@ export interface MemberPaymentInput {
     language?: string;
   };
   paymentMethod: 'card' | 'pix';
+  /** Foto del documento (DNI/pasaporte) como data URL base64 — obligatoria */
+  documentPhotoBase64: string;
 }
 
 export interface MemberPaymentResult {
@@ -104,21 +105,6 @@ export interface MemberPaymentResult {
   checkoutUrl?: string;
   pixData?: { qrCode: string; qrCodeBase64: string; expiresAt: string };
   providerPaymentId: string;
-}
-
-export interface MemberStatusResult {
-  found: boolean;
-  expired: boolean;
-  completed: boolean;
-  alreadyPaid: boolean;
-  memberId: string;
-  slotIndex: number;
-  sessionId: string;
-  totalBeds: number;
-  paidBeds: number;
-  amountPerBed: number;
-  expiresAt: string;
-  members: Array<{ guestName: string; paymentMethod: string }>;
 }
 
 // ── Helpers internos ─────────────────────────────────────────────────────────
@@ -347,11 +333,12 @@ export class GroupPaymentService {
         [reservation.id, allBedIds, input.checkIn, input.checkOut]
       );
 
-      // Sesión grupal (token del titular para ver el estado general)
+      // Único link de la sesión: el titular lo comparte por WhatsApp,
+      // reenviándolo a cada invitado (uno por uno, mismo link).
       const sessionToken = generateToken();
       const groupPaymentUrl = `${input.appBaseUrl}/group-payment/${sessionToken}`;
       const waShareUrl = `https://wa.me/?text=${encodeURIComponent(
-        `Hola! Te comparto el estado del pago grupal en Lapa Casa Hostel:\n${groupPaymentUrl}`
+        `Hola! Te invito a pagar tu cama para nuestro grupo en Lapa Casa Hostel. Cada uno paga la suya:\n${groupPaymentUrl}\n\nTenés 10 minutos desde que abrí este link.`
       )}`;
 
       const { rows: sessionRows } = await client.query(
@@ -364,40 +351,26 @@ export class GroupPaymentService {
       );
       const sessionId = sessionRows[0].id;
 
-      // Pre-crear N slots de miembro con tokens individuales
-      // Cada slot tiene asignada una cama específica desde el inicio.
-      // Sección 9 auditoría 17 secciones: se arman los N tokens/links en
-      // memoria primero y se insertan todos en un solo batch con
-      // unnest() de 3 arrays en paralelo -- antes era un INSERT por
-      // slot en el loop (N round-trips a la base por 1).
-      const memberLinks: MemberLink[] = [];
-      const memberTokens: string[] = [];
+      // Pre-crear N slots, cada uno con una cama específica ya asignada.
+      // No se generan links por slot: todos los invitados usan el mismo
+      // link de la sesión y van reclamando el próximo slot libre al pagar
+      // (ver claimAndPaySlot). member_token queda null -- ya no se expone
+      // ningún link individual.
+      // Sección 9 auditoría 17 secciones: batch con unnest() en vez de un
+      // INSERT por slot en el loop.
       const slotIndices: number[] = [];
       const slotBedIds: Array<string | null> = [];
 
       for (let i = 0; i < totalBeds; i++) {
-        const memberToken = generateToken();
-        const bedId = allBedIds[i] ?? null;
-
-        memberTokens.push(memberToken);
         slotIndices.push(i + 1);
-        slotBedIds.push(bedId);
-
-        const memberUrl = `${input.appBaseUrl}/group-payment-member/${memberToken}`;
-        memberLinks.push({
-          slotIndex: i + 1,
-          url: memberUrl,
-          waUrl: `https://wa.me/?text=${encodeURIComponent(
-            `Hola! Te invito a pagar tu cama en Lapa Casa Hostel:\n${memberUrl}`
-          )}`,
-        });
+        slotBedIds.push(allBedIds[i] ?? null);
       }
 
       await client.query(
-        `INSERT INTO group_payment_members (session_id, member_token, slot_index, bed_id, status)
-         SELECT $1, member_token, slot_index, bed_id, 'invited'
-         FROM unnest($2::text[], $3::int[], $4::uuid[]) AS t(member_token, slot_index, bed_id)`,
-        [sessionId, memberTokens, slotIndices, slotBedIds]
+        `INSERT INTO group_payment_members (session_id, slot_index, bed_id, status)
+         SELECT $1, slot_index, bed_id, 'invited'
+         FROM unnest($2::int[], $3::uuid[]) AS t(slot_index, bed_id)`,
+        [sessionId, slotIndices, slotBedIds]
       );
 
       return {
@@ -412,7 +385,6 @@ export class GroupPaymentService {
         amountPerBed: defaultAmountPerBed,
         roomAllocations: allocations,
         expiresAt: expiresAt.toISOString(),
-        memberLinks,
         groupPaymentUrl,
         waShareUrl,
       };
@@ -493,108 +465,24 @@ export class GroupPaymentService {
   }
 
   /**
-   * Estado del slot individual de un invitado.
-   * Usado para la página /group-payment-member/:memberToken.
+   * Reclama el próximo cupo libre de la sesión e inicia el pago del invitado.
+   * Todos los invitados abren el MISMO link (token de sesión); cada uno que
+   * paga reclama un slot distinto -- el UPDATE con la subquery
+   * FOR UPDATE SKIP LOCKED es atómico, así que dos invitados pagando al
+   * mismo tiempo nunca terminan reclamando el mismo slot.
+   * La foto del documento es obligatoria y se sube a Cloudinary antes de
+   * reclamar el slot (si la subida falla, no se consume ningún cupo).
    */
-  async getMemberStatus(memberToken: string): Promise<MemberStatusResult> {
-    const empty: MemberStatusResult = {
-      found: false, expired: false, completed: false, alreadyPaid: false,
-      memberId: '', slotIndex: 0, sessionId: '',
-      totalBeds: 0, paidBeds: 0, amountPerBed: 0, expiresAt: '', members: []
-    };
-
-    const { rows: memberRows } = await query<{
-      id: string; slot_index: number; status: string; session_id: string;
-    }>(
-      `SELECT id, slot_index, status, session_id
-       FROM group_payment_members WHERE member_token = $1`,
-      [memberToken]
-    );
-
-    if (memberRows.length === 0) {return empty;}
-    const member = memberRows[0];
-
-    const { rows: sessionRows } = await query<{
-      id: string; status: string; total_beds: number; paid_beds: number;
-      expires_at: string; reservation_id: string;
-    }>(
-      `SELECT id, status, total_beds, paid_beds, expires_at, reservation_id
-       FROM group_payment_sessions WHERE id = $1`,
-      [member.session_id]
-    );
-
-    if (sessionRows.length === 0) {return empty;}
-    const session = sessionRows[0];
-
-    const { rows: resRows } = await query<{ base_price: string; season_multiplier: string; nights_count: number }>(
-      `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
-      [session.reservation_id]
-    );
-    const res = resRows[0];
-    const amountPerBed = res
-      ? parseFloat((parseFloat(res.base_price) * parseFloat(res.season_multiplier) * res.nights_count).toFixed(2))
-      : 0;
-
-    const { rows: paidRows } = await query<{ guest_name: string; payment_method: string }>(
-      `SELECT g.full_name AS guest_name, m.payment_method
-       FROM group_payment_members m
-       LEFT JOIN guests g ON g.id = m.guest_id
-       WHERE m.session_id = $1 AND m.status = 'paid'
-       ORDER BY m.paid_at ASC`,
-      [session.id]
-    );
-
-    return {
-      found: true,
-      expired: session.status === 'expired',
-      completed: session.status === 'completed',
-      alreadyPaid: member.status === 'paid',
-      memberId: member.id,
-      slotIndex: member.slot_index,
-      sessionId: session.id,
-      totalBeds: session.total_beds,
-      paidBeds: session.paid_beds,
-      amountPerBed,
-      expiresAt: session.expires_at,
-      members: paidRows.map((m) => ({
-        guestName: m.guest_name,
-        paymentMethod: m.payment_method,
-      })),
-    };
-  }
-
-  /**
-   * Inicia el pago de un invitado usando su token individual.
-   * Actualiza el slot pre-creado (status: invited → pending) con los datos del guest.
-   * Race condition cubierta: el UPDATE con AND status='invited' falla atómicamente
-   * si alguien ya reclamó el slot.
-   */
-  async initiateMemberPayment(input: MemberPaymentInput): Promise<MemberPaymentResult> {
-    // Buscar slot por member_token
-    const { rows: memberRows } = await query<{
-      id: string; status: string; session_id: string; bed_id: string;
-    }>(
-      `SELECT id, status, session_id, bed_id
-       FROM group_payment_members WHERE member_token = $1`,
-      [input.memberToken]
-    );
-
-    if (memberRows.length === 0) {throw new Error('Link de pago no encontrado');}
-    const member = memberRows[0];
-
-    if (member.status === 'paid') {throw new Error('Esta cama ya fue pagada');}
-    if (member.status === 'pending') {throw new Error('Ya hay un pago en proceso para este slot');}
-
-    // Verificar sesión
+  async claimAndPaySlot(input: ClaimSlotInput): Promise<MemberPaymentResult> {
     const { rows: sessionRows } = await query<{
       id: string; status: string; expires_at: string; reservation_id: string;
     }>(
       `SELECT id, status, expires_at, reservation_id
-       FROM group_payment_sessions WHERE id = $1`,
-      [member.session_id]
+       FROM group_payment_sessions WHERE token = $1`,
+      [input.sessionToken]
     );
 
-    if (sessionRows.length === 0) {throw new Error('Sesión de pago no encontrada');}
+    if (sessionRows.length === 0) {throw new Error('Link de pago no encontrado');}
     const session = sessionRows[0];
 
     if (session.status !== 'open') {throw new Error('Esta sesión ya está cerrada o expirada');}
@@ -615,7 +503,11 @@ export class GroupPaymentService {
     const cardSurcharge = parseFloat((amountPerBed * cardSurchargePct / 100).toFixed(2));
     const amountCharged = parseFloat((amountPerBed + cardSurcharge).toFixed(2));
 
-    // Upsert del guest
+    // Foto del documento — obligatoria, se sube antes de tocar el slot
+    const photoBuffer = decodeBase64Image(input.documentPhotoBase64);
+    const photo = await uploadDocumentPhoto(photoBuffer);
+
+    // Upsert del guest + guardar la foto del documento
     const guest = await guestRepo.upsert({
       full_name: input.guest.full_name,
       email: input.guest.email,
@@ -623,25 +515,32 @@ export class GroupPaymentService {
       country: input.guest.country ?? null,
       language: input.guest.language ?? null
     });
+    await guestRepo.setDocumentPhoto(guest.id, photo);
 
-    // Actualizar el slot: claimed → pending (atómico, evita doble-claim)
-    const { rows: updatedRows } = await query<{ id: string }>(
+    // Reclamar el próximo slot libre de esta sesión (atómico)
+    const { rows: claimedRows } = await query<{ id: string }>(
       `UPDATE group_payment_members
        SET guest_id = $2, amount_charged = $3, payment_method = $4,
            card_surcharge = $5, status = 'pending', updated_at = now()
-       WHERE id = $1 AND status = 'invited'
+       WHERE id = (
+         SELECT id FROM group_payment_members
+         WHERE session_id = $1 AND status = 'invited'
+         ORDER BY slot_index ASC
+         FOR UPDATE SKIP LOCKED
+         LIMIT 1
+       )
        RETURNING id`,
-      [member.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge]
+      [session.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge]
     );
 
-    if (updatedRows.length === 0) {
-      throw new Error('Esta cama ya fue reclamada por otro invitado');
+    if (claimedRows.length === 0) {
+      throw new Error('Ya no quedan camas disponibles en este link');
     }
 
-    const memberId = member.id;
+    const memberId = claimedRows[0].id;
     const appBaseUrl = process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
-    const successUrl = `${appBaseUrl}/group-payment-member/${input.memberToken}?status=success`;
-    const cancelUrl  = `${appBaseUrl}/group-payment-member/${input.memberToken}?status=cancel`;
+    const successUrl = `${appBaseUrl}/group-payment/${input.sessionToken}?status=success`;
+    const cancelUrl  = `${appBaseUrl}/group-payment/${input.sessionToken}?status=cancel`;
 
     if (input.paymentMethod === 'card') {
       const { stripeHandler } = await import('../lib/payments/stripe-handler');

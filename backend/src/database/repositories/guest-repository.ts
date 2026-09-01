@@ -37,6 +37,21 @@ export class GuestRepository {
     return rows[0];
   }
 
+  async setDocumentPhoto(id: string, photo: { url: string; publicId: string }): Promise<Guest> {
+    const { rows } = await query<Guest>(
+      `UPDATE guests
+       SET document_photo_url = $2,
+           document_photo_public_id = $3,
+           document_photo_uploaded_at = now(),
+           updated_at = now()
+       WHERE id = $1
+       RETURNING *`,
+      [id, photo.url, photo.publicId]
+    );
+    if (!rows[0]) {throw new Error('Guest not found');}
+    return rows[0];
+  }
+
   async update(id: string, data: Partial<{
     full_name: string;
     phone: string;

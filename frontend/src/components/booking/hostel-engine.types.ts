@@ -4,7 +4,7 @@
 // ─── Tipos base ─────────────────────────────────────────
 export type Lang = 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
 export type Phase = 'wizard' | 'success' | 'expired' | 'group';
-export type PayMethod = 'pix' | 'card' | 'group';
+export type PayMethod = 'pix' | 'card';
 
 export interface RoomDef {
   id: string;
@@ -26,6 +26,8 @@ export interface FormState {
   doc: string;
   arrival: string;
   requests: string;
+  /** Foto del documento (DNI/pasaporte) como data URL base64 — obligatoria */
+  docPhotoBase64: string;
 }
 
 export interface FormErrors {
@@ -36,6 +38,7 @@ export interface FormErrors {
   country?: string;
   doc?: string;
   arrival?: string;
+  docPhoto?: string;
 }
 
 // ─── Traducciones ────────────────────────────────────────
@@ -59,6 +62,7 @@ export const T = {
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número do passaporte',
     fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceito',
+    lblDocPhoto:'Foto do documento (RG / Passaporte)',docPhotoBtn:'Toque para tirar foto ou enviar imagem',changeDocPhoto:'Trocar foto',errDocPhoto:'A foto do documento é obrigatória',
     lblArrival:'Horário de chegada',errArrival:'Horário de chegada obrigatório',
     arrivalPlaceholder:'Selecione (14h–22h)',
     lblRequests:'Solicitações especiais',optional:'(opcional)',
@@ -80,13 +84,12 @@ export const T = {
     cardInstruction:'Você receberá o link de pagamento por e-mail.',
     timerLabel:'Expira em',pixKey:'Chave PIX: lapalandiarj@gmail.com',
     restNote:'O restante (70%) é pago no check-in, em dinheiro ou cartão.',
-    btnNewBooking:'Nova reserva',
+    btnNewBooking:'Nova reserva',btnBookOwnBed:'Reservar minha cama →',
     expiredTitle:'Reserva não concluída',expiredSub:'O tempo expirou. As vagas foram liberadas.',
     btnTryAgain:'Tentar novamente',
     priceBase:'Base por noite',btnBack:'Voltar',btnNext:'Próximo',
-    discountActive:'Desconto de grupo ativo!',
     flexibleNotice:'Cuarto 6 — Solo Mujeres: quarto feminino por padrão. Converte para misto 48h antes do check-in se necessário.',
-    tNights:'Noites',tTotalBeds:'Total de camas',tGroupDisc:'Desconto de grupo',
+    tNights:'Noites',tTotalBeds:'Total de camas',
     tTotal:'Total',tDepositNow:'Depósito agora (PIX/Cartão)',tAtCheckin:'no check-in',
     tNight:'noite',tNights2:'noites',tBed:'cama',tBeds:'camas',
     tSelectCheckout:'Selecione check-out',tClickCheckout:'Clique em uma data de saída',
@@ -116,7 +119,7 @@ export const T = {
     gpDesc:'Reencaminhe este link por onde quiser. Cada pessoa preenche seus dados e paga sua cama. Quando o último pagar, a reserva é confirmada automaticamente.',
     gpMetaEach:'cada pessoa paga aprox.',gpBtn:'Gerar link de pagamento em grupo',
     gpLoading:'Gerando link...',gpCopy:'Copiar link',gpCopied:'Copiado',
-    gpShareWa:'Compartilhar no WhatsApp',gpExpire:'O link expira em 30 minutos.',gpErrGeneric:'Erro ao criar o link. Tente novamente.',
+    gpShareWa:'Compartilhar no WhatsApp',gpExpire:'O link expira em 10 minutos.',gpErrGeneric:'Erro ao criar o link. Tente novamente.',
   },
   es: {
     step1:'Fechas',step2:'Cuartos',step3:'Huésped',step4:'Resumen',
@@ -137,6 +140,7 @@ export const T = {
     errCPF:'CPF inválido',errDocForeign:'Documento inválido (mín. 5 caracteres)',
     phCPF:'000.000.000-00',phPassport:'Número de pasaporte',
     fbCPFok:'✓ CPF válido',fbCPFerr:'✗ CPF inválido',fbDocOk:'✓ Documento aceptado',
+    lblDocPhoto:'Foto del documento (DNI / Pasaporte)',docPhotoBtn:'Tocá para sacar foto o subir imagen',changeDocPhoto:'Cambiar foto',errDocPhoto:'La foto del documento es obligatoria',
     lblArrival:'Hora de llegada',errArrival:'Hora de llegada obligatoria',
     arrivalPlaceholder:'Seleccionar (14h–22h)',
     lblRequests:'Solicitudes especiales',optional:'(opcional)',
@@ -158,13 +162,12 @@ export const T = {
     cardInstruction:'Recibirás el enlace de pago por e-mail.',
     timerLabel:'Expira en',pixKey:'Clave PIX: lapalandiarj@gmail.com',
     restNote:'El resto (70%) se paga en el check-in, en efectivo o tarjeta.',
-    btnNewBooking:'Nueva reserva',
+    btnNewBooking:'Nueva reserva',btnBookOwnBed:'Reservar mi cama →',
     expiredTitle:'Reserva no concretada',expiredSub:'El tiempo expiró. Los espacios fueron liberados.',
     btnTryAgain:'Intentar de nuevo',
     priceBase:'Base por noche',btnBack:'Volver',btnNext:'Siguiente',
-    discountActive:'¡Descuento de grupo activo!',
     flexibleNotice:'Cuarto 6 — Solo Mujeres: habitación femenina por defecto. Se convierte a mixto 48h antes del check-in si es necesario.',
-    tNights:'Noches',tTotalBeds:'Total de camas',tGroupDisc:'Descuento de grupo',
+    tNights:'Noches',tTotalBeds:'Total de camas',
     tTotal:'Total',tDepositNow:'Depósito ahora (PIX/Tarjeta)',tAtCheckin:'en el check-in',
     tNight:'noche',tNights2:'noches',tBed:'cama',tBeds:'camas',
     tSelectCheckout:'Seleccionar check-out',tClickCheckout:'Haz clic en una fecha de salida',
@@ -193,7 +196,7 @@ export const T = {
     gpLoading:'Generando link...',
     gpCopy:'Copiar link',gpCopied:'Copiado',
     gpShareWa:'Compartir por WhatsApp',
-    gpExpire:'El link expira en 30 minutos. Todos los integrantes deben pagar en ese plazo.',
+    gpExpire:'El link expira en 10 minutos. Todos los integrantes deben pagar en ese plazo.',
     gpErrGeneric:'Error al generar el link. Intentá de nuevo.',
     pmGroup:'Pago grupal',pmGroupSub:'Cada persona paga su propia cama',
     groupTitle:'Links para cada huésped',groupSub:'Compartí cada link con tus compañeros de viaje por WhatsApp',
@@ -220,6 +223,7 @@ export const T = {
     errCPF:'Invalid CPF',errDocForeign:'Invalid document (min. 5 characters)',
     phCPF:'000.000.000-00',phPassport:'Passport number',
     fbCPFok:'✓ Valid CPF',fbCPFerr:'✗ Invalid CPF',fbDocOk:'✓ Document accepted',
+    lblDocPhoto:'Document photo (ID / Passport)',docPhotoBtn:'Tap to take a photo or upload an image',changeDocPhoto:'Change photo',errDocPhoto:'Document photo is required',
     lblArrival:'Arrival time',errArrival:'Arrival time required',
     arrivalPlaceholder:'Select (2 pm–10 pm)',
     lblRequests:'Special requests',optional:'(optional)',
@@ -241,13 +245,12 @@ export const T = {
     cardInstruction:'You will receive the payment link by email.',
     timerLabel:'Expires in',pixKey:'PIX key: lapalandiarj@gmail.com',
     restNote:'The remaining 70% is due at check-in, in cash or by card.',
-    btnNewBooking:'New booking',
+    btnNewBooking:'New booking',btnBookOwnBed:'Book my bed →',
     expiredTitle:'Booking not completed',expiredSub:'Time expired. The beds have been released.',
     btnTryAgain:'Try again',
     priceBase:'Base per night',btnBack:'Back',btnNext:'Next',
-    discountActive:'Group discount active!',
     flexibleNotice:'Room 6 — Women Only: female dorm by default. Converts to mixed 48h before check-in if needed.',
-    tNights:'Nights',tTotalBeds:'Total beds',tGroupDisc:'Group discount',
+    tNights:'Nights',tTotalBeds:'Total beds',
     tTotal:'Total',tDepositNow:'Deposit now (PIX/Card)',tAtCheckin:'at check-in',
     tNight:'night',tNights2:'nights',tBed:'bed',tBeds:'beds',
     tSelectCheckout:'Select check-out',tClickCheckout:'Click a check-out date',
@@ -276,7 +279,7 @@ export const T = {
     gpLoading:'Generating link...',
     gpCopy:'Copy link',gpCopied:'Copied',
     gpShareWa:'Share via WhatsApp',
-    gpExpire:'The link expires in 30 minutes. All members must pay within this time.',
+    gpExpire:'The link expires in 10 minutes. All members must pay within this time.',
     gpErrGeneric:'Error generating link. Please try again.',
     pmGroup:'Group payment',pmGroupSub:'Each guest pays for their own bed',
     groupTitle:'Links for each guest',groupSub:'Share each link with your travel companions via WhatsApp',
@@ -303,6 +306,7 @@ export const T = {
     errCPF:'CPF invalide',errDocForeign:'Document invalide (min. 5 caractères)',
     phCPF:'000.000.000-00',phPassport:'Numéro de passeport',
     fbCPFok:'✓ CPF valide',fbCPFerr:'✗ CPF invalide',fbDocOk:'✓ Document accepté',
+    lblDocPhoto:'Photo du document (pièce d\'identité / passeport)',docPhotoBtn:'Touchez pour prendre une photo ou envoyer une image',changeDocPhoto:'Changer la photo',errDocPhoto:'La photo du document est obligatoire',
     lblArrival:'Heure d\'arrivée',errArrival:'Heure d\'arrivée obligatoire',
     arrivalPlaceholder:'Sélectionner (14h–22h)',
     lblRequests:'Demandes spéciales',optional:'(facultatif)',
@@ -324,13 +328,12 @@ export const T = {
     cardInstruction:'Vous recevrez le lien de paiement par e-mail.',
     timerLabel:'Expire dans',pixKey:'Clé PIX: lapalandiarj@gmail.com',
     restNote:'Les 70% restants sont payables au check-in, en espèces ou par carte.',
-    btnNewBooking:'Nouvelle réservation',
+    btnNewBooking:'Nouvelle réservation',btnBookOwnBed:'Réserver mon lit →',
     expiredTitle:'Réservation non finalisée',expiredSub:'Le délai est expiré. Les lits ont été libérés.',
     btnTryAgain:'Réessayer',
     priceBase:'Base par nuit',btnBack:'Retour',btnNext:'Suivant',
-    discountActive:'Réduction de groupe active!',
     flexibleNotice:'Chambre 6 — Femmes uniquement: dortoir féminin par défaut. Converti en mixte 48h avant le check-in si nécessaire.',
-    tNights:'Nuits',tTotalBeds:'Total des lits',tGroupDisc:'Réduction de groupe',
+    tNights:'Nuits',tTotalBeds:'Total des lits',
     tTotal:'Total',tDepositNow:'Acompte (PIX/Carte)',tAtCheckin:'au check-in',
     tNight:'nuit',tNights2:'nuits',tBed:'lit',tBeds:'lits',
     tSelectCheckout:'Sélectionner le départ',tClickCheckout:'Cliquez sur une date de départ',
@@ -359,7 +362,7 @@ export const T = {
     gpLoading:'Génération en cours...',
     gpCopy:'Copier le lien',gpCopied:'Copié',
     gpShareWa:'Partager via WhatsApp',
-    gpExpire:'Le lien expire dans 30 minutes. Tous les membres doivent payer dans ce délai.',
+    gpExpire:'Le lien expire dans 10 minutes. Tous les membres doivent payer dans ce délai.',
     gpErrGeneric:'Erreur lors de la génération du lien. Réessayez.',
     pmGroup:'Paiement groupé',pmGroupSub:'Chaque personne paie son propre lit',
     groupTitle:'Liens pour chaque voyageur',groupSub:'Partagez chaque lien avec vos compagnons de voyage via WhatsApp',
@@ -386,6 +389,7 @@ export const T = {
     errCPF:'Ungültige CPF',errDocForeign:'Ungültiges Dokument (mind. 5 Zeichen)',
     phCPF:'000.000.000-00',phPassport:'Reisepassnummer',
     fbCPFok:'✓ CPF gültig',fbCPFerr:'✗ CPF ungültig',fbDocOk:'✓ Dokument akzeptiert',
+    lblDocPhoto:'Ausweisfoto (Ausweis / Reisepass)',docPhotoBtn:'Tippen, um ein Foto aufzunehmen oder hochzuladen',changeDocPhoto:'Foto ändern',errDocPhoto:'Ausweisfoto ist erforderlich',
     lblArrival:'Ankunftszeit',errArrival:'Ankunftszeit erforderlich',
     arrivalPlaceholder:'Auswählen (14–22 Uhr)',
     lblRequests:'Sonderwünsche',optional:'(optional)',
@@ -407,13 +411,12 @@ export const T = {
     cardInstruction:'Sie erhalten den Zahlungslink per E-Mail.',
     timerLabel:'Läuft ab in',pixKey:'PIX-Schlüssel: lapalandiarj@gmail.com',
     restNote:'Die verbleibenden 70% werden beim Check-in bar oder per Karte bezahlt.',
-    btnNewBooking:'Neue Buchung',
+    btnNewBooking:'Neue Buchung',btnBookOwnBed:'Mein Bett buchen →',
     expiredTitle:'Buchung nicht abgeschlossen',expiredSub:'Zeit abgelaufen. Die Betten wurden freigegeben.',
     btnTryAgain:'Erneut versuchen',
     priceBase:'Grundpreis pro Nacht',btnBack:'Zurück',btnNext:'Weiter',
-    discountActive:'Gruppenrabatt aktiv!',
     flexibleNotice:'Zimmer 6 — Nur Frauen: standardmäßig Frauenschlafraum. Wird 48h vor dem Check-in bei Bedarf gemischt.',
-    tNights:'Nächte',tTotalBeds:'Betten gesamt',tGroupDisc:'Gruppenrabatt',
+    tNights:'Nächte',tTotalBeds:'Betten gesamt',
     tTotal:'Gesamt',tDepositNow:'Anzahlung (PIX/Karte)',tAtCheckin:'beim Check-in',
     tNight:'Nacht',tNights2:'Nächte',tBed:'Bett',tBeds:'Betten',
     tSelectCheckout:'Abreise auswählen',tClickCheckout:'Klicken Sie auf ein Abreisedatum',
@@ -442,7 +445,7 @@ export const T = {
     gpLoading:'Link wird erstellt...',
     gpCopy:'Link kopieren',gpCopied:'Kopiert',
     gpShareWa:'Per WhatsApp teilen',
-    gpExpire:'Der Link läuft in 30 Minuten ab. Alle Mitglieder müssen innerhalb dieser Zeit zahlen.',
+    gpExpire:'Der Link läuft in 10 Minuten ab. Alle Mitglieder müssen innerhalb dieser Zeit zahlen.',
     gpErrGeneric:'Fehler beim Erstellen des Links. Erneut versuchen.',
     pmGroup:'Gruppenzahlung',pmGroupSub:'Jeder Gast zahlt sein eigenes Bett',
     groupTitle:'Links für jeden Gast',groupSub:'Teilen Sie jeden Link per WhatsApp mit Ihren Mitreisenden',
@@ -469,6 +472,7 @@ export const T = {
     errCPF:'CPF non valido',errDocForeign:'Documento non valido (min. 5 caratteri)',
     phCPF:'000.000.000-00',phPassport:'Numero di passaporto',
     fbCPFok:'✓ CPF valido',fbCPFerr:'✗ CPF non valido',fbDocOk:'✓ Documento accettato',
+    lblDocPhoto:'Foto del documento (carta d\'identità / passaporto)',docPhotoBtn:'Tocca per scattare una foto o caricare un\'immagine',changeDocPhoto:'Cambia foto',errDocPhoto:'La foto del documento è obbligatoria',
     lblArrival:'Orario di arrivo',errArrival:'Orario di arrivo obbligatorio',
     arrivalPlaceholder:'Seleziona (14h–22h)',
     lblRequests:'Richieste speciali',optional:'(facoltativo)',
@@ -490,13 +494,12 @@ export const T = {
     cardInstruction:'Riceverai il link di pagamento via e-mail.',
     timerLabel:'Scade tra',pixKey:'Chiave PIX: lapalandiarj@gmail.com',
     restNote:'Il restante 70% è dovuto al check-in, in contanti o con carta.',
-    btnNewBooking:'Nuova prenotazione',
+    btnNewBooking:'Nuova prenotazione',btnBookOwnBed:'Prenota il mio letto →',
     expiredTitle:'Prenotazione non completata',expiredSub:'Il tempo è scaduto. I posti sono stati liberati.',
     btnTryAgain:'Riprova',
     priceBase:'Base per notte',btnBack:'Indietro',btnNext:'Avanti',
-    discountActive:'Sconto di gruppo attivo!',
     flexibleNotice:'Camera 6 — Solo Donne: dormitorio femminile per impostazione predefinita. Diventa misto 48h prima del check-in se necessario.',
-    tNights:'Notti',tTotalBeds:'Letti totali',tGroupDisc:'Sconto di gruppo',
+    tNights:'Notti',tTotalBeds:'Letti totali',
     tTotal:'Totale',tDepositNow:'Acconto (PIX/Carta)',tAtCheckin:'al check-in',
     tNight:'notte',tNights2:'notti',tBed:'letto',tBeds:'letti',
     tSelectCheckout:'Seleziona check-out',tClickCheckout:'Clicca su una data di partenza',
@@ -525,7 +528,7 @@ export const T = {
     gpLoading:'Generazione in corso...',
     gpCopy:'Copia link',gpCopied:'Copiato',
     gpShareWa:'Condividi via WhatsApp',
-    gpExpire:'Il link scade in 30 minuti. Tutti i membri devono pagare entro questo termine.',
+    gpExpire:'Il link scade in 10 minuti. Tutti i membri devono pagare entro questo termine.',
     gpErrGeneric:'Errore durante la generazione del link. Riprova.',
     pmGroup:'Pagamento di gruppo',pmGroupSub:'Ogni ospite paga il proprio letto',
     groupTitle:'Link per ogni ospite',groupSub:'Condividi ogni link con i tuoi compagni di viaggio via WhatsApp',
