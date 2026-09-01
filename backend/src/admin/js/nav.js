@@ -2,10 +2,13 @@
 // Barra de navegación compartida entre las páginas del panel.
 //
 // Bloqueos, Ofertas y Precios dinámicos dejaron de ser pestañas propias
-// acá -- ahora viven embebidos (vía iframe) dentro de Habitaciones y de
-// Apartamentos, cada uno filtrado a su tipo de propiedad. Sus páginas
-// siguen existiendo (blocking.html, offers.html, dynamic-pricing.html)
-// para poder embeberse, pero no aparecen en esta barra.
+// acá -- ahora viven embebidos (vía iframe) dentro de Hostel y de
+// Apartamentos, cada uno filtrado a su tipo de propiedad. Precios
+// (temporadas, descuento por grupo, guardavolumes, tarjeta, PIX) también
+// se movió adentro de Hostel completo -- son todos conceptos por cama,
+// no aplican a apartamentos. Sus páginas siguen existiendo
+// (blocking.html, offers.html, dynamic-pricing.html, pricing.html) para
+// poder embeberse, pero no aparecen en esta barra.
 //
 // ?embed=1 en la URL oculta esta barra por completo -- es la señal que
 // usan esas páginas cuando se cargan dentro de un <iframe>, para no
@@ -24,9 +27,8 @@ function renderNav(activePage) {
   const links = [
     { href: '/admin/index.html', label: 'Dashboard', page: 'dashboard' },
     { href: '/admin/bookings.html', label: 'Reservas', page: 'bookings' },
-    { href: '/admin/rooms.html', label: 'Habitaciones', page: 'rooms' },
+    { href: '/admin/rooms.html', label: 'Hostel', page: 'rooms' },
     { href: '/admin/apartments.html', label: 'Apartamentos', page: 'apartments' },
-    { href: '/admin/pricing.html', label: 'Precios', page: 'pricing' },
     { href: '/admin/conflicts.html', label: 'Conflictos', page: 'conflicts' },
     { href: '/admin/photos.html', label: 'Fotos huésp.', page: 'photos' },
     { href: '/admin/gallery.html', label: 'Galería', page: 'gallery' },
