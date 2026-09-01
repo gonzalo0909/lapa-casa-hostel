@@ -43,6 +43,12 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
             >
               Parceiros
             </a>
+            <a
+              href={`/${locale}/guardavolumes`}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+            >
+              Malas/Guardavolumes
+            </a>
           </nav>
         </div>
       </header>

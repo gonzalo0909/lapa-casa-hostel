@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apartamentos — Admin Lapa Casa Hostel</title>
+<title>Apartamentos — Admin Lapa Casa</title>
 <link rel="stylesheet" href="/admin/css/admin.css">
 <style>
   .layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
@@ -74,11 +74,30 @@
   .aggregate-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   @media(max-width:500px){ .aggregate-grid { grid-template-columns: 1fr; } }
   .unpublished { opacity: .55; }
+
+  .outer-tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .outer-tab-btn { padding: 7px 14px; border: none; background: none; cursor: pointer; font-size: 13px;
+                   color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+                   font-weight: 500; }
+  .outer-tab-btn:hover { color: var(--text); }
+  .outer-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .outer-panel { display: none; }
+  .outer-panel.active { display: block; }
+  .embed-frame { width: 100%; min-height: 900px; border: none; }
 </style>
 </head>
 <body>
 <div id="nav-root"></div>
 <main>
+
+<div class="outer-tab-bar">
+  <button class="outer-tab-btn active" data-otab="apartamentos">Apartamentos</button>
+  <button class="outer-tab-btn" data-otab="bloqueos">Bloqueos</button>
+  <button class="outer-tab-btn" data-otab="ofertas">Ofertas</button>
+  <button class="outer-tab-btn" data-otab="precios">Precios dinámicos</button>
+</div>
+
+<div class="outer-panel active" id="opanel-apartamentos">
 
 <div id="page-msg"></div>
 
@@ -215,6 +234,21 @@
   </div>
 
 </div>
+
+</div><!-- /opanel-apartamentos -->
+
+<div class="outer-panel" id="opanel-bloqueos">
+  <iframe class="embed-frame" src="/admin/blocking.html?type=apartment&embed=1"></iframe>
+</div>
+
+<div class="outer-panel" id="opanel-ofertas">
+  <iframe class="embed-frame" src="/admin/offers.html?type=apartment&embed=1"></iframe>
+</div>
+
+<div class="outer-panel" id="opanel-precios">
+  <iframe class="embed-frame" src="/admin/dynamic-pricing.html?type=apartment&embed=1"></iframe>
+</div>
+
 </main>
 
 <script src="/admin/js/api.js"></script>

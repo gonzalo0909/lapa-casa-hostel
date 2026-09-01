@@ -28,6 +28,20 @@
     });
   }
 
+  // ?type=hostel|apartment -- esta página se embebe (vía iframe) tanto
+  // dentro de Habitaciones (?type=hostel) como dentro de Apartamentos
+  // (?type=apartment). En ese caso se oculta el toggle Hostel/Apartamentos
+  // (queda implícito por dónde está embebida) y arranca en la pestaña
+  // correspondiente. Sin el parámetro, se comporta como siempre (ambos
+  // toggles visibles, uso directo de la página).
+  var propertyType = new URLSearchParams(window.location.search).get('type');
+  if (propertyType === 'hostel' || propertyType === 'apartment') {
+    var hiddenUnitTab = propertyType === 'hostel' ? 'apartments' : 'hostel';
+    var hiddenBtn = document.getElementById('tbtn-' + hiddenUnitTab);
+    if (hiddenBtn) hiddenBtn.style.display = 'none';
+    switchTab(propertyType === 'hostel' ? 'hostel' : 'apartments');
+  }
+
   // ── Bot ───────────────────────────────────────────────────────────────────
   ['run-btn', 'run-btn-apt'].forEach(function (id) {
     var btn = document.getElementById(id);

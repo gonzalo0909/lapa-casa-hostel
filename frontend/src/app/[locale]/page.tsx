@@ -3,7 +3,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PropertyExperience } from '@/components/booking/property-experience';
-import { PropertyManagementBanner } from '@/components/booking/property-management-banner';
 import { StructuredData, SpeakableSchema, WebSiteSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
@@ -50,7 +49,6 @@ export default async function HomePage({ params }: { params: { locale: string } 
       <StructuredData data={WebSiteSchema} />
       <StructuredData data={LocalBusinessSchema} />
       <StructuredData data={SpeakableSchema} />
-      <PropertyManagementBanner locale={locale} />
       <PropertyExperience locale={locale} />
     </main>
   );
