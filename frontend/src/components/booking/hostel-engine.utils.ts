@@ -11,11 +11,6 @@ export function getSeason(date: Date) {
   return { mult:1.0, label:'Média Temporada', minNights:1 };
 }
 
-// ─── Descuento de grupo ───────────────────────────────────
-export function groupDisc(beds: number): number {
-  return beds >= 13 ? 0.15 : beds >= 3 ? 0.10 : 0;
-}
-
 // ─── Cálculo de precio ────────────────────────────────────
 export function calcPrice(
   ci: Date | null,
@@ -29,9 +24,8 @@ export function calcPrice(
   const season  = getSeason(ci);
   const pbn     = 85 * season.mult;
   const subtotal = pbn * totalB * nights;
-  const disc    = groupDisc(totalB);
-  const total   = subtotal * (1 - disc);
-  return { nights, beds: totalB, season, pbn, subtotal, disc, discAmt: subtotal * disc, total, deposit: total * 0.3 };
+  const total   = subtotal;
+  return { nights, beds: totalB, season, pbn, subtotal, total, deposit: total * 0.3 };
 }
 
 // ─── Validación y formateo CPF ─────────────────────────────

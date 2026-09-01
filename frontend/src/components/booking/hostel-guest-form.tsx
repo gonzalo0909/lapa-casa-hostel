@@ -4,9 +4,32 @@
 // Incluye formateo CPF/phone inline, validación por campo y política de cancelación.
 
 import React from 'react';
-import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, AlertTriangle, ChevronDown } from 'lucide-react';
+import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, AlertTriangle, ChevronDown, Camera } from 'lucide-react';
 import { Lang, FormState, FormErrors, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
+
+// Redimensiona la foto del documento a max 900px de ancho antes de mandarla
+// -- evita subir la foto de un celular a resolución completa.
+function resizeDocPhoto(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 900 / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // ─── Props ────────────────────────────────────────────────
 interface HostelGuestFormProps {
@@ -204,6 +227,48 @@ export function HostelGuestForm({
           </select>
           {formErrors.arrival && <div className="he-ferr">{formErrors.arrival}</div>}
         </div>
+      </div>
+
+      {/* Foto del documento — obligatoria */}
+      <div className="he-form-row">
+        <label className="he-label" htmlFor="he-f-doc-photo">
+          <span>{t.lblDocPhoto}</span> <span className="he-req">*</span>
+        </label>
+        <div style={{ position: 'relative' }}>
+          <input
+            id="he-f-doc-photo"
+            type="file"
+            accept="image/*"
+            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const dataUrl = await resizeDocPhoto(file);
+                onFormChange({ docPhotoBase64: dataUrl });
+                onFormErrors({ docPhoto: undefined });
+              } catch {
+                onFormErrors({ docPhoto: t.errDocPhoto });
+              }
+            }}
+          />
+          <div
+            className={`he-inp${formErrors.docPhoto ? ' err' : form.docPhotoBase64 ? ' ok' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.5rem', cursor: 'pointer', textAlign: 'center' }}
+          >
+            <Camera size={15} aria-hidden />
+            {form.docPhotoBase64 ? t.changeDocPhoto : t.docPhotoBtn}
+          </div>
+        </div>
+        {form.docPhotoBase64 && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.docPhotoBase64}
+            alt=""
+            style={{ marginTop: '.5rem', width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8 }}
+          />
+        )}
+        {formErrors.docPhoto && <div className="he-ferr">{formErrors.docPhoto}</div>}
       </div>
 
       {/* Solicitudes especiales */}

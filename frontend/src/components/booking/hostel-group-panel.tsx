@@ -18,11 +18,12 @@ interface HostelGroupPanelProps {
   onCopyLink: () => void;
   groupAmountPerBed: number;
   onNewBooking: () => void;
+  onBookOwnBed: () => void;
 }
 
 export function HostelGroupPanel({
   t, totalBeds, groupResNum, groupLink, groupWaUrl, groupLinkCopied, onCopyLink,
-  groupAmountPerBed, onNewBooking,
+  groupAmountPerBed, onNewBooking, onBookOwnBed,
 }: HostelGroupPanelProps) {
   return (
     <div className="he-card">
@@ -55,6 +56,13 @@ export function HostelGroupPanel({
         <button
           className="he-btn-confirm"
           style={{ marginTop: '1.25rem' }}
+          onClick={onBookOwnBed}
+        >
+          {t.btnBookOwnBed}
+        </button>
+        <button
+          className="he-btn-wa"
+          style={{ marginTop: '.6rem' }}
           onClick={onNewBooking}
         >
           {t.btnNewBooking}

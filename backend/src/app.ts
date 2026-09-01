@@ -99,27 +99,14 @@ app.use(metricsMiddleware);
 // real vive en las rutas de la API (authenticateToken + requireRole).
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
-// Feature 2 v2: páginas públicas de pago grupal.
+// Feature 2 v3: página pública de pago grupal — un solo link compartido,
+// cada invitado que lo abre reclama su propia cama.
 // Protección real: token de 64 bytes hex (~255 bits de entropía) + checks internos.
-// Assets JS externos para las páginas públicas (evita scripts inline bloqueados por CSP).
+// Assets JS externos para la página pública (evita scripts inline bloqueados por CSP).
 app.use('/assets', express.static(path.join(__dirname, 'public'), { index: false }));
-// Página de reserva grupal (titular crea la sesión y obtiene los links).
-app.get('/book-group', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'book-group.html'));
-});
-// Página de prueba interna (solo para testing).
-app.get('/test-group', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'test-group.html'));
-});
 app.use('/group-payment', express.static(path.join(__dirname, 'public'), { index: false }));
 app.get('/group-payment/:token', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'group-payment.html'));
-});
-
-// Página individual del invitado (token único por persona)
-app.use('/group-payment-member', express.static(path.join(__dirname, 'public'), { index: false }));
-app.get('/group-payment-member/:memberToken', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'group-payment-member.html'));
 });
 
 app.get('/health', async (req: Request, res: Response) => {

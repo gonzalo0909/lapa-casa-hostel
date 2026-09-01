@@ -11,6 +11,11 @@ import type { BookingWithGuest } from '../../services/email-service';
 import { query } from '../../config/database';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
+import { GuestRepository } from '../../database/repositories/guest-repository';
+import { uploadDocumentPhoto } from '../../lib/cloudinary/cloudinary-client';
+import { decodeBase64Image } from '../../utils/decode-base64-image';
+
+const guestRepo = new GuestRepository();
 
 const bookingService = new BookingService();
 const availabilityService = new AvailabilityService();
@@ -32,6 +37,8 @@ interface CreateBookingRequest {
     phone: string;
     country: string;
     document?: string;
+    /** Foto del DNI/pasaporte (data URL base64) -- obligatoria en el motor del hostel. */
+    documentPhotoBase64?: string;
   };
   /**
    * Acompañantes declarados por el titular en el checkout (tabla booking_guests).
@@ -282,6 +289,23 @@ export const createBookingHandler = async (
       bookingId: booking.id,
       totalPrice: pricingDetails.totalPrice
     });
+
+    // ── Foto del documento (obligatoria en el motor del hostel) ──────────────
+    // Opcional a nivel de este endpoint compartido -- el motor de apartamentos
+    // reusa la misma ruta y todavía no pide esta foto. El motor del hostel la
+    // exige del lado del cliente antes de llegar acá.
+    if (bookingData.guest.documentPhotoBase64) {
+      try {
+        const photoBuffer = decodeBase64Image(bookingData.guest.documentPhotoBase64);
+        const photo = await uploadDocumentPhoto(photoBuffer);
+        await guestRepo.setDocumentPhoto(booking.guest_id, photo);
+      } catch (err) {
+        logger.error('No se pudo guardar la foto del documento', {
+          bookingId: booking.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
 
     // ── Registro de hóspedes declarados (booking_guests) ─────────────────────
     // Fire-and-forget: si falla, la reserva ya quedó guardada correctamente.
