@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
-  Lang, Phase, PayMethod, RoomDef, FormState, FormErrors,
+  Lang, Phase, PayMethod, RoomDef, FormState, FormErrors, FieldFeedback,
   T, DEFAULT_ROOMS,
 } from './hostel-engine.types';
 import {
@@ -78,9 +78,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Estado del formulario ─
   const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'', docPhotoBase64:'', restrictionAccepted:false });
   const [formErrors, setFormErrors]   = useState<FormErrors>({});
-  const [docFeedback, setDocFeedback] = useState('');
-  const [emailFb, setEmailFb]         = useState('');
-  const [phoneFb, setPhoneFb]         = useState('');
+  const [docFeedback, setDocFeedback] = useState<FieldFeedback | null>(null);
+  const [emailFb, setEmailFb]         = useState<FieldFeedback | null>(null);
+  const [phoneFb, setPhoneFb]         = useState<FieldFeedback | null>(null);
 
   // ─ Fetch cuartos reales cuando hay fechas ─
   useEffect(() => {
