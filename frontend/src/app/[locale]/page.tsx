@@ -8,23 +8,6 @@ import { StructuredData, SpeakableSchema, WebSiteSchema, LocalBusinessSchema } f
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-
-const DEFAULT_LUGGAGE_STORAGE = { price: 30, startTime: '08:00', endTime: '22:00' };
-
-/** Precio/horario del guarda-equipaje -- editable desde /admin/pricing.html (system_config.luggage_storage). */
-async function getLuggageStorage(): Promise<typeof DEFAULT_LUGGAGE_STORAGE> {
-  try {
-    const res = await fetch(`${API_URL}/rooms`, { next: { revalidate: 300 } });
-    if (!res.ok) {return DEFAULT_LUGGAGE_STORAGE;}
-    const json = await res.json();
-    const ls = json?.data?.policies?.luggageStorage;
-    if (!ls || typeof ls.price !== 'number' || !ls.startTime || !ls.endTime) {return DEFAULT_LUGGAGE_STORAGE;}
-    return { price: ls.price, startTime: ls.startTime, endTime: ls.endTime };
-  } catch {
-    return DEFAULT_LUGGAGE_STORAGE;
-  }
-}
 
 export async function generateMetadata({
   params: { locale },
@@ -60,7 +43,6 @@ export async function generateMetadata({
 export default async function HomePage({ params }: { params: { locale: string } }) {
   const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
   setRequestLocale(locale);
-  const luggageStorage = await getLuggageStorage();
 
   return (
     <main className="min-h-screen bg-background">
@@ -69,7 +51,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
       <StructuredData data={LocalBusinessSchema} />
       <StructuredData data={SpeakableSchema} />
       <PropertyManagementBanner locale={locale} />
-      <PropertyExperience locale={locale} luggageStorage={luggageStorage} />
+      <PropertyExperience locale={locale} />
     </main>
   );
 }

@@ -15,21 +15,6 @@ import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 import { roomService } from '../../services/room-service';
-import { query } from '../../config/database';
-
-interface LuggageStorageConfig {
-  price: number;
-  currency: string;
-  start_time: string;
-  end_time: string;
-}
-
-const DEFAULT_LUGGAGE_STORAGE: LuggageStorageConfig = {
-  price: 30,
-  currency: 'BRL',
-  start_time: '08:00',
-  end_time: '22:00'
-};
 
 export const listRoomsHandler = async (
   req: Request,
@@ -39,13 +24,7 @@ export const listRoomsHandler = async (
   try {
     logger.info('Listing all rooms');
 
-    const [ROOMS, luggageStorageConfig] = await Promise.all([
-      roomService.getRooms(),
-      query<{ value: LuggageStorageConfig }>(
-        `SELECT value FROM system_config WHERE key = 'luggage_storage'`
-      )
-    ]);
-    const luggageStorage = luggageStorageConfig.rows[0]?.value ?? DEFAULT_LUGGAGE_STORAGE;
+    const ROOMS = await roomService.getRooms();
 
     const totalCapacity = ROOMS.reduce((sum, room) => sum + room.capacity, 0);
     const totalRooms = ROOMS.length;
@@ -116,13 +95,6 @@ export const listRoomsHandler = async (
           minimumStay: {
             standard: 1,
             carnival: 5
-          },
-          // Editable desde /admin/pricing.html (system_config.luggage_storage)
-          luggageStorage: {
-            price: luggageStorage.price,
-            currency: luggageStorage.currency,
-            startTime: luggageStorage.start_time,
-            endTime: luggageStorage.end_time
           }
         }
       }, 'Rooms retrieved successfully')

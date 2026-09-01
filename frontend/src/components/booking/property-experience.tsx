@@ -9,8 +9,6 @@ import type { Locale } from '@/i18n';
 
 interface PropertyExperienceProps {
   locale: Locale;
-  /** Precio/horario del guarda-equipaje -- editable desde /admin/pricing.html. */
-  luggageStorage?: { price: number; startTime: string; endTime: string };
 }
 
 /**
@@ -19,7 +17,7 @@ interface PropertyExperienceProps {
  * Home: hero selector (Hostel/Apartamentos).
  * Hostel → /hostel (BookingEngine), Apartamentos → /apartamentos (ApartmentEngine).
  */
-export const PropertyExperience: React.FC<PropertyExperienceProps> = ({ locale, luggageStorage }) => {
+export const PropertyExperience: React.FC<PropertyExperienceProps> = ({ locale }) => {
   const router = useRouter();
 
   const handleSelectHostel = () => {
@@ -34,7 +32,6 @@ export const PropertyExperience: React.FC<PropertyExperienceProps> = ({ locale, 
     <PropertySelectorHero
       onSelectHostel={handleSelectHostel}
       onSelectApartments={handleSelectApartments}
-      luggageStorage={luggageStorage}
     />
   );
 };
