@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { usePathname } from "next/navigation"
-import { BedDouble, Home, MapPin, ArrowRight } from "lucide-react"
+import { BedDouble, Home, MapPin, ArrowRight, Wifi, UtensilsCrossed, Lock, Luggage } from "lucide-react"
 
 interface PropertySelectorHeroProps {
   onSelectHostel: () => void
@@ -87,7 +87,44 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
         <p className="mt-8 text-sm text-cream/50">
           Reserva directa · Mejor precio garantizado · Sin comisiones de plataformas
         </p>
+
+        {/* Comodidades */}
+        <div className="mx-auto mt-16 max-w-4xl">
+          <h2 className="mb-6 font-serif text-2xl text-cream">Comodidades</h2>
+          <div className="grid gap-4 text-left sm:grid-cols-2">
+            <AmenityItem icon={<Wifi className="h-5 w-5" />} title="Wi-Fi gratis" description="Alta velocidad en todo el hostel." />
+            <AmenityItem icon={<UtensilsCrossed className="h-5 w-5" />} title="Cocina compartida" description="Disponible para huéspedes durante la estadía." />
+            <AmenityItem icon={<Lock className="h-5 w-5" />} title="Casilleros con candado" description="Para guardar tus objetos de valor." />
+            <AmenityItem
+              icon={<Luggage className="h-5 w-5" />}
+              title="Guarda-equipaje"
+              description="Recibimos tu equipaje de 8:00 a 22:00. Diaria: R$ 30 (franja 8:00–22:00)."
+            />
+          </div>
+        </div>
       </main>
+    </div>
+  )
+}
+
+function AmenityItem({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cream/10 text-gold">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-sm font-semibold text-cream">{title}</span>
+        <span className="block text-sm text-cream/60">{description}</span>
+      </span>
     </div>
   )
 }
