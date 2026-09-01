@@ -132,145 +132,6 @@
       font-weight: 700;
     }
 
-    /* Card de pago */
-    .pay-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 28px 24px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.08);
-    }
-    .pay-card h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-    .form-group { margin-bottom: 14px; }
-    .form-group label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 5px;
-    }
-    .form-group input, .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #ddd;
-      border-radius: 7px;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-      background: #fff;
-    }
-    .form-group input:focus, .form-group select:focus { border-color: #1a1a1a; }
-
-    /* Selector de método de pago */
-    .payment-methods {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .method-btn {
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 14px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #fff;
-    }
-    .method-btn.selected {
-      border-color: #1a1a1a;
-      background: #f8f8f8;
-    }
-    .method-btn .method-name {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-    .method-btn .method-note {
-      display: block;
-      font-size: 0.72rem;
-      color: #888;
-    }
-
-    /* Resumen de precio */
-    .price-summary {
-      background: #f8f8f8;
-      border-radius: 8px;
-      padding: 14px 16px;
-      margin-bottom: 18px;
-    }
-    .price-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      margin-bottom: 6px;
-      color: #555;
-    }
-    .price-row.total {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #ddd;
-      margin-bottom: 0;
-    }
-
-    /* Botón de pago */
-    .btn-pay {
-      width: 100%;
-      background: #1a1a1a;
-      color: #fff;
-      font-size: 0.95rem;
-      font-weight: 700;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-      letter-spacing: 0.2px;
-    }
-    .btn-pay:hover { background: #333; }
-    .btn-pay:disabled { background: #aaa; cursor: not-allowed; }
-
-    /* PIX block */
-    .pix-block {
-      display: none;
-      text-align: center;
-      padding: 20px 0;
-    }
-    .pix-block img {
-      width: 200px;
-      height: 200px;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-    .pix-code {
-      font-family: monospace;
-      font-size: 0.78rem;
-      word-break: break-all;
-      background: #f5f5f5;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-      color: #333;
-    }
-    .btn-copy {
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 8px 16px;
-      border: 1.5px solid #1a1a1a;
-      border-radius: 6px;
-      background: #fff;
-      cursor: pointer;
-    }
-    .btn-copy:hover { background: #f0f0f0; }
-
     /* Estados */
     .state-msg {
       text-align: center;
@@ -281,79 +142,26 @@
     .state-confirmed h2 { color: #27ae60; }
     .state-expired h2 { color: #c0392b; }
 
-    .error-msg {
-      color: #c0392b;
-      font-size: 0.82rem;
-      margin-top: 10px;
-      text-align: center;
-    }
     .loading { text-align: center; padding: 40px; color: #888; }
-
-    /* Foto del documento — obligatoria */
-    .doc-upload-wrap { position: relative; }
-    .doc-upload-input {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer;
-      width: 100%; height: 100%;
-    }
-    .doc-upload-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      border: 2px dashed #ccc; border-radius: 8px; padding: 16px 12px;
-      font-size: 0.85rem; color: #888; background: #fafafa;
-      cursor: pointer; transition: border-color .2s, background .2s;
-      text-align: center; line-height: 1.4;
-    }
-    .doc-upload-btn.has-file { border-color: #27ae60; background: #f0faf4; color: #27ae60; }
-    .doc-preview { margin-top: 8px; display: none; }
-    .doc-preview img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 7px; border: 1px solid #eee; }
-    .btn-change-doc {
-      margin-top: 6px; background: none; border: none; color: #999;
-      font-size: 0.73rem; cursor: pointer; text-decoration: underline; padding: 0;
-    }
-
-    /* Restricción de edad/movilidad — obligatoria */
-    .restriction-box {
-      background: #fff8e8;
-      border: 1.5px solid #f5c842;
-      border-radius: 9px;
-      padding: 13px 14px;
-      margin-bottom: 14px;
-    }
-    .restriction-label {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      cursor: pointer;
-      font-size: 0.82rem;
-      color: #444;
-      line-height: 1.5;
-    }
-    .restriction-input {
-      margin-top: 3px;
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: #1a1a1a;
-    }
   </style>
 </head>
 <body>
 
 <!-- Banner -->
 <div class="banner" id="banner" style="display:none">
-  <h2>Tu cama en el grupo</h2>
-  <p>Cualquier integrante del grupo puede abrir este mismo link. Completá tus datos, subí tu documento y pagá tu propia cama.</p>
+  <h2>Progreso del pago grupal</h2>
+  <p>Esta página es solo para que vos, el titular, veas cómo va el pago de cada invitado. Ellos pagan desde el link individual que les mandaste.</p>
 </div>
 
 <div class="main">
   <div id="loading" class="loading">Cargando...</div>
   <div id="expired-state" class="state-msg state-expired" style="display:none">
     <h2>Tiempo expirado</h2>
-    <p>El tiempo para completar el pago grupal expiró. Los pagos parciales fueron reembolsados.</p>
+    <p>El tiempo para completar el pago grupal expiró. Las camas que se pagaron quedan confirmadas; el resto se liberó.</p>
   </div>
   <div id="confirmed-state" class="state-msg state-confirmed" style="display:none">
     <h2>Reserva confirmada</h2>
-    <p>Todos los miembros del grupo pagaron. Recibirás un email de confirmación a la brevedad.</p>
+    <p>Todos los invitados pagaron. Recibirás un email de confirmación a la brevedad.</p>
   </div>
 
   <!-- Estado del grupo -->
@@ -377,92 +185,6 @@
     <div id="members-section" style="display:none">
       <div class="members-title">Ya pagaron</div>
       <div id="members-list"></div>
-    </div>
-  </div>
-
-  <!-- Formulario de pago por miembro -->
-  <div id="pay-card" class="pay-card" style="display:none">
-    <h3>Completá tus datos y pagá tu cama</h3>
-    <form id="pay-form" autocomplete="on">
-      <div class="form-group">
-        <label>Nombre completo *</label>
-        <input type="text" id="f-name" required autocomplete="name" placeholder="Tu nombre completo">
-      </div>
-      <div class="form-group">
-        <label>Email *</label>
-        <input type="email" id="f-email" required autocomplete="email" placeholder="tu@email.com">
-      </div>
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="tel" id="f-phone" autocomplete="tel" placeholder="+55 11 99999-9999">
-      </div>
-      <div class="form-group">
-        <label>País</label>
-        <input type="text" id="f-country" autocomplete="country-name" placeholder="Brasil">
-      </div>
-
-      <!-- Foto del documento — obligatoria -->
-      <div class="form-group">
-        <label>Foto del documento (DNI / Pasaporte) *</label>
-        <div class="doc-upload-wrap">
-          <input type="file" id="f-doc-photo" class="doc-upload-input" accept="image/*" required>
-          <div class="doc-upload-btn" id="doc-upload-btn">
-            📷 Tocá para sacar foto o subir imagen
-          </div>
-        </div>
-        <div class="doc-preview" id="doc-preview">
-          <img id="doc-img" src="" alt="">
-          <button type="button" class="btn-change-doc" id="btn-change-doc">Cambiar foto</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:6px; font-size:0.8rem; font-weight:600; color:#555;">
-        Forma de pago *
-      </div>
-      <div class="payment-methods">
-        <div class="method-btn selected" id="btn-pix">
-          <span class="method-name">PIX</span>
-          <span class="method-note">Sin recargo</span>
-        </div>
-        <div class="method-btn" id="btn-card">
-          <span class="method-name">Tarjeta</span>
-          <span class="method-note">+<span id="surcharge-label">10</span>% recargo</span>
-        </div>
-      </div>
-
-      <div class="price-summary">
-        <div class="price-row">
-          <span>Precio por cama</span>
-          <span id="price-base">R$ —</span>
-        </div>
-        <div class="price-row" id="surcharge-row" style="display:none">
-          <span>Recargo tarjeta</span>
-          <span id="price-surcharge">R$ —</span>
-        </div>
-        <div class="price-row total">
-          <span>Total a pagar</span>
-          <span id="price-total">R$ —</span>
-        </div>
-      </div>
-
-      <!-- Restricción de edad y movilidad — obligatoria -->
-      <div class="restriction-box">
-        <label class="restriction-label">
-          <input type="checkbox" id="restriction-check" class="restriction-input" required>
-          <span>Confirmo que tengo menos de 50 años y he leído y acepto las restricciones: las camas son literas de tres pisos, no aptas para personas con movilidad reducida.</span>
-        </label>
-      </div>
-
-      <button type="submit" class="btn-pay" id="btn-pay">Continuar con el pago</button>
-      <div id="pay-error" class="error-msg" style="display:none"></div>
-    </form>
-
-    <!-- QR de PIX (se muestra tras iniciar el pago PIX) -->
-    <div class="pix-block" id="pix-block">
-      <img id="pix-qr" src="" alt="QR PIX">
-      <div class="pix-code" id="pix-code"></div>
-      <button class="btn-copy" id="btn-copy-pix">Copiar código PIX</button>
-      <p style="margin-top:12px; font-size:0.8rem; color:#888;">Abrí tu app bancaria y escaneá el QR o pegá el código</p>
     </div>
   </div>
 </div>
