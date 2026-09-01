@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ofertas de Apartamentos — Admin Lapa Casa Hostel</title>
+<title>Ofertas de Apartamentos — Admin Lapa Casa</title>
 <link rel="stylesheet" href="/admin/css/admin.css">
 <style>
   table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -37,9 +37,9 @@
 <main>
 
   <div class="card">
-    <h2>🏷️ Ofertas de Apartamentos</h2>
+    <h2 id="page-heading">🏷️ Ofertas</h2>
     <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px;">
-      Códigos de descuento para apartamentos. Se aplican en el motor de reservas al elegir fechas.
+      Códigos de descuento. Se aplican en el motor de reservas al elegir fechas.
     </p>
 
     <div class="offer-form">
@@ -68,7 +68,7 @@
       </div>
 
       <div style="margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Apartamentos incluidos</div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;" id="units-label">Unidades incluidas</div>
         <div class="apt-checks" id="apt-checks">Cargando…</div>
       </div>
 
@@ -104,22 +104,29 @@
 <script src="/admin/js/api.js"></script>
 <script src="/admin/js/nav.js"></script>
 <script>
-let offersData = [];
-let aptList = [];
+// ?type=hostel|apartment -- esta página se embebe (vía iframe) tanto
+// dentro de Habitaciones (?type=hostel) como dentro de Apartamentos
+// (?type=apartment). Sin el parámetro, apartment por default (uso
+// directo de la página, como era originalmente).
+const PROPERTY_TYPE = new URLSearchParams(window.location.search).get('type') === 'hostel' ? 'hostel' : 'apartment';
 
-// Apartamentos conocidos (igual que en el motor de reservas)
-const KNOWN_APTS = [
-  { id:'apt-1', label:'Apt. 1' }, { id:'apt-2', label:'Apt. 2' },
-  { id:'apt-3', label:'Apt. 3' }, { id:'apt-4', label:'Apt. 4' },
-  { id:'apt-5', label:'Apt. 5' }, { id:'apt-6', label:'Apt. 6' },
-  { id:'apt-7', label:'Apt. 7' }, { id:'apt-8', label:'Apt. 8' },
-  { id:'apt-9', label:'Apt. 9' }, { id:'apt-10', label:'Apt. 10' },
-];
+let offersData = [];
+let unitList = [];
+
+async function loadUnits() {
+  // /rooms (público) ya devuelve solo hostel; /admin/room-types ya devuelve solo apartamentos.
+  unitList = PROPERTY_TYPE === 'hostel'
+    ? (await apiFetch('/rooms')).rooms
+    : (await apiFetch('/admin/room-types')).apartments;
+}
 
 (async () => {
   await requireAuth();
   renderNav('offers');
-  renderAptChecks(KNOWN_APTS);
+  document.getElementById('page-heading').textContent = PROPERTY_TYPE === 'hostel' ? '🏷️ Ofertas de Habitaciones' : '🏷️ Ofertas de Apartamentos';
+  document.getElementById('units-label').textContent = PROPERTY_TYPE === 'hostel' ? 'Cuartos incluidos' : 'Apartamentos incluidos';
+  await loadUnits();
+  renderAptChecks(unitList.map(u => ({ id: u.id, label: u.name })));
   await loadOffers();
 })();
 
@@ -131,7 +138,11 @@ function renderAptChecks(apts) {
 
 async function loadOffers() {
   try {
-    offersData = await apiFetch('/admin/offers') || [];
+    const all = await apiFetch('/admin/offers') || [];
+    const unitIds = new Set(unitList.map(u => u.id));
+    // Solo ofertas que incluyen al menos una unidad de este tipo de propiedad
+    // (o sin unidades específicas -- huérfanas de antes de este cambio, no aplican a nada real).
+    offersData = all.filter(o => (o.apartment_ids || []).some(id => unitIds.has(id)));
     renderTable();
   } catch(e) {
     showMsg(document.getElementById('list-msg'), e.message, 'err');
@@ -195,16 +206,20 @@ async function saveOffer() {
   const msg = document.getElementById('form-msg');
   const editId = document.getElementById('of-editing-id').value;
   const aptIds = Array.from(document.querySelectorAll('.apt-cb:checked')).map(cb => cb.value);
+  // Campos en camelCase -- el backend (CreateOfferSchema/UpdateOfferSchema
+  // en admin.routes.ts) los espera así. Antes se mandaban en snake_case y
+  // la validación Zod los rechazaba siempre (discountPercent llegaba
+  // undefined): crear una oferta nunca funcionó.
   const body = {
-    code:             document.getElementById('of-code').value.toUpperCase(),
-    label:            document.getElementById('of-label').value,
-    discount_percent: +document.getElementById('of-discount').value,
-    valid_from:       document.getElementById('of-from').value || null,
-    valid_to:         document.getElementById('of-to').value   || null,
-    apartment_ids:    aptIds,
-    is_active:        document.getElementById('of-active').checked,
+    code:            document.getElementById('of-code').value.toUpperCase(),
+    label:           document.getElementById('of-label').value,
+    discountPercent: +document.getElementById('of-discount').value,
+    validFrom:       document.getElementById('of-from').value || null,
+    validTo:         document.getElementById('of-to').value   || null,
+    apartmentIds:    aptIds,
+    isActive:        document.getElementById('of-active').checked,
   };
-  if (!body.code || !body.discount_percent) {
+  if (!body.code || !body.discountPercent) {
     return showMsg(msg, 'Código y descuento son obligatorios', 'err');
   }
   try {

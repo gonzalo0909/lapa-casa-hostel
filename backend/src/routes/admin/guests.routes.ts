@@ -75,6 +75,52 @@ router.get('/', async (req, res, next) => {
 });
 
 /**
+ * GET /admin/guests/document-photos
+ * Fotos de documento (DNI/pasaporte) subidas automáticamente por los
+ * huéspedes al reservar (guests.document_photo_url, ver migración
+ * 0029_guest_document_photo.sql) -- reemplaza el flujo manual que existía
+ * antes acá, en el que el admin subía fotos a mano. El admin solo mira,
+ * nunca sube nada en esta pantalla.
+ * Query params: page, limit
+ */
+router.get('/document-photos', async (req, res, next) => {
+  try {
+    const { page, limit } = req.query as Record<string, string>;
+    const pageNum  = Math.max(1, parseInt(page  || '1',  10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit || '50', 10) || 50));
+    const offset   = (pageNum - 1) * limitNum;
+
+    const [dataResult, countResult] = await Promise.all([
+      query(
+        `SELECT g.id, g.full_name, g.email, g.country,
+                g.document_photo_url, g.document_photo_uploaded_at,
+                r.reservation_number, r.check_in_date, r.check_out_date
+         FROM guests g
+         LEFT JOIN LATERAL (
+           SELECT reservation_number, check_in_date, check_out_date
+           FROM reservations
+           WHERE guest_id = g.id
+           ORDER BY created_at DESC
+           LIMIT 1
+         ) r ON true
+         WHERE g.document_photo_url IS NOT NULL
+         ORDER BY g.document_photo_uploaded_at DESC NULLS LAST
+         LIMIT $1 OFFSET $2`,
+        [limitNum, offset]
+      ),
+      query(
+        `SELECT COUNT(*)::int AS total FROM guests WHERE document_photo_url IS NOT NULL`
+      ),
+    ]);
+
+    res.json(ApiResponse.success({
+      guests: dataResult.rows,
+      pagination: { page: pageNum, limit: limitNum, total: countResult.rows[0]!.total },
+    }));
+  } catch (err) { next(err); }
+});
+
+/**
  * PATCH /admin/guests/:id/block
  * Body: { reason, notes }
  */
