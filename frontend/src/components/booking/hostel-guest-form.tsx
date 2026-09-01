@@ -304,7 +304,7 @@ export function HostelGuestForm({
       </div>
 
       {/* Restricción de edad y movilidad — obligatoria */}
-      <div style={{ background: 'rgba(245,200,66,.12)', border: '1.5px solid rgba(245,200,66,.55)', borderRadius: 9, padding: '.85rem .9rem', margin: '.9rem 0' }}>
+      <div style={{ background: 'rgba(255,255,255,.05)', border: '1.5px solid rgba(255,255,255,.14)', borderRadius: 9, padding: '.85rem .9rem', margin: '.9rem 0' }}>
         <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', cursor: 'pointer', fontSize: '.82rem', lineHeight: 1.5 }}>
           <input
             type="checkbox"

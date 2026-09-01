@@ -66,13 +66,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Estado del pago grupal ─
   const [isGroupLoading, setIsGroupLoading]       = useState(false);
   const [groupError, setGroupError]               = useState('');
-  const [groupLink, setGroupLink]                 = useState('');
   const [groupWaUrl, setGroupWaUrl]               = useState('');
   const [groupResNum, setGroupResNum]             = useState('');
   const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
   // N-1: invitados que tienen que pagar (no incluye la cama del titular)
   const [groupTotalBeds, setGroupTotalBeds]       = useState(0);
-  const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
   // Datos mínimos del titular para el flujo grupal desde Step 2
   const [gpName, setGpName]   = useState('');
   const [gpEmail, setGpEmail] = useState('');
@@ -424,7 +422,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         specialRequests: form.requests || undefined,
       });
       const payload = result.data?.data ?? result.data;
-      setGroupLink(payload.groupPaymentUrl ?? '');
       setGroupWaUrl(payload.waShareUrl ?? '');
       setGroupResNum(payload.reservationNumber ?? '');
       setGroupAmountPerBed(payload.amountPerBed ?? 0);
@@ -445,12 +442,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     setPixCopied(true);
     setTimeout(() => setPixCopied(false), 3000);
   }, [pixData]);
-
-  const handleGroupLinkCopy = useCallback(() => {
-    navigator.clipboard.writeText(groupLink).catch(() => {});
-    setGroupLinkCopied(true);
-    setTimeout(() => setGroupLinkCopied(false), 3000);
-  }, [groupLink]);
 
   const handleNewBooking = useCallback(() => { window.location.reload(); }, []);
 
@@ -670,12 +661,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             t={t}
             totalBeds={groupTotalBeds}
             groupResNum={groupResNum}
-            groupLink={groupLink}
             groupWaUrl={groupWaUrl}
-            groupLinkCopied={groupLinkCopied}
-            onCopyLink={handleGroupLinkCopy}
             groupAmountPerBed={groupAmountPerBed}
-            onNewBooking={handleNewBooking}
             onBookOwnBed={handleBookOwnBed}
           />
         )}
