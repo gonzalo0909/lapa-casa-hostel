@@ -49,7 +49,7 @@ const GroupSessionSchema = z.object({
   appBaseUrl: z.string().trim().url().optional(),
 });
 
-const GroupMemberPaySchema = z.object({
+const GroupClaimPaySchema = z.object({
   guest: z.object({
     full_name: z.string().trim().min(1),
     email: z.string().trim().email(),
@@ -157,44 +157,30 @@ router.get('/group/:token', async (req, res, next) => {
   }
 });
 
-// GET /payments/group-member/:memberToken — estado del slot individual del invitado
-router.get('/group-member/:memberToken', async (req, res, next) => {
+// POST /payments/group/:token/pay — un invitado reclama el próximo cupo
+// libre de la sesión (mismo link para todos) y paga su cama. Requiere foto
+// del documento.
+router.post('/group/:token/pay', validate(GroupClaimPaySchema), async (req, res, next) => {
   try {
-    const { memberToken } = req.params;
-    const status = await groupPaymentService.getMemberStatus(memberToken);
-    if (!status.found) {
-      res.status(404).json(ApiResponse.error('Link de pago no encontrado'));
-      return;
-    }
-    res.status(200).json(ApiResponse.success(status, 'Estado del slot de invitado'));
-  } catch (error) {
-    next(error);
-  }
-});
+    const { token } = req.params;
+    const { guest, paymentMethod, documentPhotoBase64 } = req.body as z.infer<typeof GroupClaimPaySchema>;
 
-// POST /payments/group-member/:memberToken/pay — el invitado paga con SU
-// link individual (de un solo uso). Requiere foto del documento.
-router.post('/group-member/:memberToken/pay', validate(GroupMemberPaySchema), async (req, res, next) => {
-  try {
-    const { memberToken } = req.params;
-    const { guest, paymentMethod, documentPhotoBase64 } = req.body as z.infer<typeof GroupMemberPaySchema>;
-
-    const result = await groupPaymentService.initiateMemberPayment({
-      memberToken, guest, paymentMethod, documentPhotoBase64,
+    const result = await groupPaymentService.claimAndPaySlot({
+      sessionToken: token, guest, paymentMethod, documentPhotoBase64,
     });
-    // Sección 10 auditoría 17 secciones: memberToken es una credencial
-    // bearer -- quien lo tiene puede pagar/ver ese slot sin ningún otro
-    // login. Se trunca a un prefijo en el log, suficiente para
-    // trazabilidad sin que el log sea, en sí mismo, un vector de robo.
+    // Sección 10 auditoría 17 secciones: token es una credencial bearer --
+    // quien lo tiene puede pagar en esta sesión sin ningún otro login. Se
+    // trunca a un prefijo en el log, suficiente para trazabilidad sin que
+    // el log sea, en sí mismo, un vector de robo.
     logger.info('Pago de invitado grupal iniciado', {
-      memberTokenPrefix: memberToken.slice(0, 8),
+      tokenPrefix: token.slice(0, 8),
       memberId: result.memberId,
       paymentMethod,
     });
     res.status(200).json(ApiResponse.success(result, 'Pago iniciado'));
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    if (msg.includes('expiró') || msg.includes('cerrada') || msg.includes('ya fue pagada') || msg.includes('ya fue reclamada')) {
+    if (msg.includes('expiró') || msg.includes('cerrada') || msg.includes('no quedan camas')) {
       res.status(409).json(ApiResponse.error(msg));
       return;
     }
