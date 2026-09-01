@@ -1,9 +1,15 @@
 // lapa-casa-hostel/backend/src/admin/js/blocking.js
+//
+// ?type=hostel|apartment filtra qué unidades aparecen en el selector --
+// esta misma página se embebe (vía iframe) tanto dentro de Habitaciones
+// (?type=hostel) como dentro de Apartamentos (?type=apartment). Sin el
+// parámetro, muestra hostel por default (uso directo de la página).
 
 requireAuth();
 renderNav('blocking');
 
 const REASON_LABELS = { maintenance: 'Mantenimiento', owner: 'Reserva del propietario', seasonal: 'Sazonalidade', other: 'Otro' };
+const PROPERTY_TYPE = new URLSearchParams(window.location.search).get('type') === 'apartment' ? 'apartment' : 'hostel';
 
 function showMsg(elId, text, type) {
   document.getElementById(elId).innerHTML = text ? `<div class="msg ${type}">${text}</div>` : '';
@@ -14,9 +20,12 @@ function fmtDate(value) {
 }
 
 async function loadRoomOptions() {
-  const data = await apiFetch('/rooms');
+  // /rooms (público) ya devuelve solo hostel; /admin/room-types ya devuelve solo apartamentos.
+  const units = PROPERTY_TYPE === 'apartment'
+    ? (await apiFetch('/admin/room-types')).apartments
+    : (await apiFetch('/rooms')).rooms;
   const select = document.getElementById('block-room');
-  select.innerHTML = data.rooms.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+  select.innerHTML = units.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
 }
 
 async function loadBlocks() {
