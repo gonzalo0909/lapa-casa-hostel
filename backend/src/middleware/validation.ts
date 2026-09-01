@@ -38,8 +38,17 @@ export const validate = (schema: ZodSchema) => (
  * aplica en el body/query antes de que llegue a cualquier ruta, asi el
  * dato que se persiste en la base ya viene limpio.
  */
+// Data URLs (fotos en base64: documento de identidad, etc.) no se
+// renderizan nunca como HTML -- van a decodeBase64Image()/Cloudinary, no
+// al panel admin -- así que sanitizarlas no aporta nada y sí sale caro:
+// son strings de cientos de miles de caracteres y la regex on\w+=... de
+// abajo es propensa a backtracking catastrófico en textos así de largos,
+// al punto de colgar el pedido. Se dejan pasar tal cual.
+const DATA_URL = /^data:[\w/+.-]+;base64,/;
+
 function sanitizeValue<T>(value: T): T {
   if (typeof value === 'string') {
+    if (DATA_URL.test(value)) {return value;}
     return value
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<[^>]*>/g, '')

@@ -310,28 +310,52 @@
       font-size: 0.73rem; cursor: pointer; text-decoration: underline; padding: 0;
     }
 
-    /* Restricción de edad/movilidad — obligatoria */
-    .restriction-box {
+    /* Normas de la casa (incluye la restricción de edad/movilidad y su checkbox) */
+    .house-rules {
       background: #f7f6f3;
-      border: 1.5px solid #ddd8ce;
+      border: 1.5px solid #e5e1d8;
       border-radius: 9px;
-      padding: 13px 14px;
+      padding: 14px 15px;
       margin-bottom: 14px;
     }
+    .house-rules-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6a6058;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .house-rule {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #444;
+      line-height: 1.5;
+      padding: 3px 0;
+    }
+    .house-rule svg { flex-shrink: 0; margin-top: 2px; color: #6a6058; }
     .restriction-label {
       display: flex;
       gap: 10px;
       align-items: flex-start;
       cursor: pointer;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       color: #444;
       line-height: 1.5;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e1d8;
     }
     .restriction-input {
-      margin-top: 3px;
+      margin-top: 2px;
       flex-shrink: 0;
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       cursor: pointer;
       accent-color: #1a1a1a;
     }
@@ -446,11 +470,20 @@
         </div>
       </div>
 
-      <!-- Restricción de edad y movilidad — obligatoria -->
-      <div class="restriction-box">
+      <!-- Normas de la casa (incluye la restricción de edad/movilidad y su confirmación) -->
+      <div class="house-rules">
+        <div class="house-rules-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          Normas de la casa
+        </div>
+        <div class="house-rule">Check-in: 14h–22h. Check-out: hasta las 12h.</div>
+        <div class="house-rule">Documento de identidad obligatorio en el check-in.</div>
+        <div class="house-rule">Hospedaje permitido a partir de 18 años.</div>
+        <div class="house-rule">Prohibido fumar dentro del hostel.</div>
+        <div class="house-rule">Camas literas de tres pisos: no aptas para mayores de 50 años ni personas con movilidad reducida.</div>
         <label class="restriction-label">
           <input type="checkbox" id="restriction-check" class="restriction-input" required>
-          <span>Confirmo que tengo menos de 50 años y he leído y acepto las restricciones: las camas son literas de tres pisos, no aptas para personas con movilidad reducida.</span>
+          <span>Confirmo que leí y acepto las normas de la casa de arriba.</span>
         </label>
       </div>
 
