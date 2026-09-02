@@ -20,10 +20,12 @@ import { offersRouter } from './offers/offers.routes';
 import { partnersRouter } from './partners/partners.routes';
 import { adminRouter } from './admin/admin.routes';
 import { adminAuthRouter } from './admin/admin-auth.routes';
+import { ownerAuthRouter } from './owner/owner-auth.routes';
+import { ownerRouter } from './owner/owner.routes';
 import icalRouter from './ical/ical.routes';
 import otaWebhooksRouter from './webhooks/ota.routes';
 import { rateLimiter } from '../middleware/rate-limiter';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { authenticateToken, requireRole, authenticateOwnerToken } from '../middleware/auth';
 import { logger } from '../utils/logger';
 import { ApiResponse } from '../utils/responses';
 
@@ -133,6 +135,26 @@ router.use(
   authenticateToken,
   requireRole(['admin']),
   adminRouter
+);
+
+/**
+ * Owner Login (0031_apartment_owner_login.sql) — login propio de cada
+ * administrador de apartamento, separado del admin único de arriba.
+ * Público, montado antes de authenticateOwnerToken por la misma razón
+ * que /admin/login.
+ */
+router.use('/owner/login', rateLimiter({ max: 10, windowMs: 60000 }), ownerAuthRouter);
+
+/**
+ * Owner Routes (Authentication + rol owner requeridos) — cada
+ * administrador ve solo lo suyo, filtrado por ownerId dentro de cada
+ * endpoint (ver owner.routes.ts).
+ */
+router.use(
+  '/owner',
+  rateLimiter({ max: 30, windowMs: 1000 }),
+  authenticateOwnerToken,
+  ownerRouter
 );
 
 /**
