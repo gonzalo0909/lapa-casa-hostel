@@ -4,9 +4,10 @@
   "description": "Backend API for Lapa Casa Hostel",
   "main": "dist/server.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "tsx watch src/server.ts",
     "worker:dev": "tsx watch src/workers/index.ts",
-    "build": "tsc && tsc-alias && npm run copy-assets",
+    "build": "prisma generate && tsc && tsc-alias && npm run copy-assets",
     "type-check": "tsc --noEmit",
     "copy-assets": "mkdir -p dist/templates/emails dist/admin dist/public && cp -r src/templates/emails/. dist/templates/emails/ && cp -r src/admin/. dist/admin/ && cp -r src/public/. dist/public/",
     "migrate": "node database/scripts/migrate.js",
@@ -27,6 +28,8 @@
   "author": "Lapa Casa Hostel",
   "license": "MIT",
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
     "@types/multer": "^2.2.0",
     "@types/pg": "^8.20.3",
     "axios": "^1.7.9",
@@ -55,7 +58,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
@@ -70,6 +72,8 @@
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "prisma": "7.10.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "tsc-alias": "^1.8.8",

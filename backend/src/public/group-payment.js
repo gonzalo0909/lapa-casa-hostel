@@ -6,10 +6,31 @@ let sessionData = null;
 let selectedMethod = 'pix';
 let countdownInterval = null;
 let pollInterval = null;
+let docPhotoBase64 = null; // foto del documento (base64 JPEG)
 
 function esc(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Redimensiona la imagen a max maxW px de ancho, calidad JPEG 0..1
+function resizeImage(file, maxW, quality) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var scale  = Math.min(1, maxW / img.width);
+        var canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 async function init() {
@@ -146,11 +167,49 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-card').addEventListener('click', () => selectMethod('card'));
   document.getElementById('btn-copy-pix').addEventListener('click', copyPix);
 
+  // ── Foto del documento ──────────────────────────────────────
+  const docInput  = document.getElementById('f-doc-photo');
+  const docBtn    = document.getElementById('doc-upload-btn');
+  const docPrev   = document.getElementById('doc-preview');
+  const docImg    = document.getElementById('doc-img');
+  const changeBtn = document.getElementById('btn-change-doc');
+
+  docInput.addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    const docText = document.getElementById('doc-upload-text');
+    try {
+      docPhotoBase64 = await resizeImage(file, 900, 0.82);
+      docImg.src = docPhotoBase64;
+      docText.textContent = file.name;
+      docBtn.classList.add('has-file');
+      docPrev.style.display = 'block';
+    } catch {
+      docText.textContent = 'Error al procesar la imagen';
+    }
+  });
+
+  changeBtn.addEventListener('click', function() {
+    docInput.click();
+  });
+
   document.getElementById('pay-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn   = document.getElementById('btn-pay');
     const errEl = document.getElementById('pay-error');
     errEl.style.display = 'none';
+
+    if (!docPhotoBase64) {
+      errEl.textContent = 'La foto del documento es obligatoria.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!document.getElementById('restriction-check').checked) {
+      errEl.textContent = 'Debés confirmar que leíste y aceptás las restricciones antes de pagar.';
+      errEl.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'Procesando...';
 
@@ -166,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             country:   document.getElementById('f-country').value.trim() || undefined,
           },
           paymentMethod: selectedMethod,
+          documentPhotoBase64: docPhotoBase64,
         }),
       });
       const data = await r.json();

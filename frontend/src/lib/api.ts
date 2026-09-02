@@ -218,6 +218,8 @@ export const bookingAPI = {
       phone: string;
       country: string;
       document?: string;
+      /** Foto del DNI/pasaporte (data URL base64) -- obligatoria en el motor del hostel. */
+      documentPhotoBase64?: string;
     };
     /** Acompañantes declarados en el checkout (tabla booking_guests). */
     additionalGuests?: Array<{

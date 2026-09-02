@@ -4,29 +4,63 @@
 // Incluye formateo CPF/phone inline, validación por campo y política de cancelación.
 
 import React from 'react';
-import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, AlertTriangle, ChevronDown } from 'lucide-react';
-import { Lang, FormState, FormErrors, T } from './hostel-engine.types';
+import { KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility, AlertTriangle, ChevronDown, Camera, Check, X } from 'lucide-react';
+import { Lang, FormState, FormErrors, FieldFeedback, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
+
+function FieldFb({ fb }: { fb: FieldFeedback | null }) {
+  if (!fb) return null;
+  const Icon = fb.ok ? Check : X;
+  return (
+    <div className={`he-ffb ${fb.ok ? 'ok' : 'err'}`}>
+      <Icon size={12} aria-hidden style={{ display: 'inline', verticalAlign: '-1px', marginRight: '.3em' }} />
+      {fb.text}
+    </div>
+  );
+}
+
+// Redimensiona la foto del documento a max 900px de ancho antes de mandarla
+// -- evita subir la foto de un celular a resolución completa.
+function resizeDocPhoto(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 900 / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // ─── Props ────────────────────────────────────────────────
 interface HostelGuestFormProps {
   lang: Lang;
   form: FormState;
   formErrors: FormErrors;
-  docFeedback: string;
-  emailFb: string;
-  phoneFb: string;
+  docFeedback: FieldFeedback | null;
+  emailFb: FieldFeedback | null;
+  phoneFb: FieldFeedback | null;
   cancelOpen: boolean;
   onFormChange: (patch: Partial<FormState>) => void;
   onFormErrors: (patch: Partial<FormErrors>) => void;
-  onDocFeedback: (v: string) => void;
-  onEmailFb: (v: string) => void;
-  onPhoneFb: (v: string) => void;
+  onDocFeedback: (v: FieldFeedback | null) => void;
+  onEmailFb: (v: FieldFeedback | null) => void;
+  onPhoneFb: (v: FieldFeedback | null) => void;
   onCancelToggle: () => void;
 }
 
 // ─── Iconos de reglas de la casa (Lucide) ────────────────
-const RULE_ICONS = [KeyRound, DoorOpen, FileText, Ban, CigaretteOff] as const;
+const RULE_ICONS = [KeyRound, DoorOpen, FileText, Ban, CigaretteOff, Accessibility] as const;
 
 // ─── Component ────────────────────────────────────────────
 export function HostelGuestForm({
@@ -72,12 +106,12 @@ export function HostelGuestForm({
           onChange={e => onFormChange({ email: e.target.value })}
           onBlur={() => {
             const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-            onEmailFb(form.email ? (ok ? '✓ E-mail válido' : '✗ E-mail inválido') : '');
+            onEmailFb(form.email ? { text: ok ? 'E-mail válido' : 'E-mail inválido', ok } : null);
             onFormErrors({ email: !ok ? t.errEmail : undefined });
           }}
         />
         {formErrors.email && <div className="he-ferr">{formErrors.email}</div>}
-        {emailFb && <div className={`he-ffb ${emailFb.startsWith('✓') ? 'ok' : 'err'}`}>{emailFb}</div>}
+        <FieldFb fb={emailFb} />
       </div>
 
       {/* Confirmar e-mail */}
@@ -117,12 +151,12 @@ export function HostelGuestForm({
             onChange={e => onFormChange({ phone: formatPhone(e.target.value) })}
             onBlur={() => {
               const ok = form.phone.replace(/\D/g, '').length >= 10;
-              onPhoneFb(form.phone ? (ok ? '✓ Telefone válido' : '✗ Mínimo 10 dígitos') : '');
+              onPhoneFb(form.phone ? { text: ok ? 'Telefone válido' : 'Mínimo 10 dígitos', ok } : null);
               onFormErrors({ phone: !ok ? t.errPhone : undefined });
             }}
           />
           {formErrors.phone && <div className="he-ferr">{formErrors.phone}</div>}
-          {phoneFb && <div className={`he-ffb ${phoneFb.startsWith('✓') ? 'ok' : 'err'}`}>{phoneFb}</div>}
+          <FieldFb fb={phoneFb} />
         </div>
         <div>
           <label className="he-label" htmlFor="he-f-country">
@@ -160,7 +194,7 @@ export function HostelGuestForm({
           </label>
           <input
             id="he-f-doc"
-            className={`he-inp${formErrors.doc ? ' err' : docFeedback.startsWith('✓') ? ' ok' : ''}`}
+            className={`he-inp${formErrors.doc ? ' err' : docFeedback?.ok ? ' ok' : ''}`}
             value={form.doc}
             placeholder={form.country === 'BR' ? t.phCPF : t.phPassport}
             maxLength={form.country === 'BR' ? 14 : 30}
@@ -174,17 +208,17 @@ export function HostelGuestForm({
               const digits = form.doc.replace(/\D/g, '');
               if (isBR) {
                 const ok = digits.length === 11 && validateCPF(digits);
-                onDocFeedback(digits.length === 11 ? (ok ? t.fbCPFok : t.fbCPFerr) : '');
+                onDocFeedback(digits.length === 11 ? { text: ok ? t.fbCPFok : t.fbCPFerr, ok } : null);
                 onFormErrors({ doc: !ok ? t.errCPF : undefined });
               } else {
                 const ok = form.doc.trim().length > 4;
-                onDocFeedback(ok ? t.fbDocOk : '');
+                onDocFeedback(ok ? { text: t.fbDocOk, ok: true } : null);
                 onFormErrors({ doc: !ok ? t.errDocForeign : undefined });
               }
             }}
           />
           {formErrors.doc && <div className="he-ferr">{formErrors.doc}</div>}
-          {docFeedback && <div className={`he-ffb ${docFeedback.startsWith('✓') ? 'ok' : 'err'}`}>{docFeedback}</div>}
+          <FieldFb fb={docFeedback} />
         </div>
         <div>
           <label className="he-label" htmlFor="he-f-arrival">
@@ -206,6 +240,48 @@ export function HostelGuestForm({
         </div>
       </div>
 
+      {/* Foto del documento — obligatoria */}
+      <div className="he-form-row">
+        <label className="he-label" htmlFor="he-f-doc-photo">
+          <span>{t.lblDocPhoto}</span> <span className="he-req">*</span>
+        </label>
+        <div style={{ position: 'relative' }}>
+          <input
+            id="he-f-doc-photo"
+            type="file"
+            accept="image/*"
+            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const dataUrl = await resizeDocPhoto(file);
+                onFormChange({ docPhotoBase64: dataUrl });
+                onFormErrors({ docPhoto: undefined });
+              } catch {
+                onFormErrors({ docPhoto: t.errDocPhoto });
+              }
+            }}
+          />
+          <div
+            className={`he-inp${formErrors.docPhoto ? ' err' : form.docPhotoBase64 ? ' ok' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.5rem', cursor: 'pointer', textAlign: 'center' }}
+          >
+            <Camera size={15} aria-hidden />
+            {form.docPhotoBase64 ? t.changeDocPhoto : t.docPhotoBtn}
+          </div>
+        </div>
+        {form.docPhotoBase64 && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.docPhotoBase64}
+            alt=""
+            style={{ marginTop: '.5rem', width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 8 }}
+          />
+        )}
+        {formErrors.docPhoto && <div className="he-ferr">{formErrors.docPhoto}</div>}
+      </div>
+
       {/* Solicitudes especiales */}
       <div className="he-form-row">
         <label className="he-label" htmlFor="he-f-req">
@@ -221,13 +297,13 @@ export function HostelGuestForm({
         />
       </div>
 
-      {/* Reglas de la casa */}
+      {/* Reglas de la casa (incluye la restricción de edad/movilidad y su confirmación) */}
       <div className="he-rules">
         <div className="he-rules-title">
           <AlertTriangle size={14} color="#6A6058" aria-hidden />
           {t.rulesTitle}
         </div>
-        {([t.rule1, t.rule2, t.rule3, t.rule4, t.rule5] as string[]).map((rule, i) => {
+        {([t.rule1, t.rule2, t.rule3, t.rule4, t.rule5, t.rule6] as string[]).map((rule, i) => {
           const Icon = RULE_ICONS[i];
           return (
             <div key={i} className="he-rule">
@@ -236,6 +312,20 @@ export function HostelGuestForm({
             </div>
           );
         })}
+        <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', cursor: 'pointer', fontSize: '.75rem', lineHeight: 1.5, marginTop: '.6rem', paddingTop: '.6rem', borderTop: '1px solid rgba(255,255,255,.1)', color: '#F0EDE0' }}>
+          <input
+            type="checkbox"
+            id="he-f-restriction"
+            checked={form.restrictionAccepted}
+            onChange={e => {
+              onFormChange({ restrictionAccepted: e.target.checked });
+              onFormErrors({ restriction: undefined });
+            }}
+            style={{ marginTop: 2, flexShrink: 0, width: 15, height: 15, cursor: 'pointer' }}
+          />
+          <span>{t.restrictionText}</span>
+        </label>
+        {formErrors.restriction && <div className="he-ferr">{formErrors.restriction}</div>}
       </div>
 
       {/* Política de cancelación */}

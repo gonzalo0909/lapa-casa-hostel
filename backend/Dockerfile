@@ -21,6 +21,7 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
+COPY prisma.config.ts ./
 COPY prisma ./prisma/
 
 # ===========================================
@@ -31,10 +32,7 @@ FROM base AS development
 ENV NODE_ENV=development
 
 # Install all dependencies including dev
-RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -57,10 +55,7 @@ FROM base AS dependencies
 ENV NODE_ENV=production
 
 # Install production dependencies only
-RUN npm ci --only=production --ignore-scripts
-
-# Generate Prisma Client
-RUN npx prisma generate
+RUN npm install --omit=dev --ignore-scripts
 
 # ===========================================
 # BUILD STAGE
@@ -70,10 +65,9 @@ FROM base AS build
 ENV NODE_ENV=production
 
 # Install all dependencies for build
-RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
+# --include=dev: NODE_ENV=production hace que npm salte devDependencies por
+# defecto (typescript, tsc-alias, @types/*), y npm run build las necesita.
+RUN npm install --include=dev
 
 # Copy source code
 COPY . .
@@ -110,7 +104,6 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nodejs:nodejs /app/package*.json ./
-COPY --from=build --chown=nodejs:nodejs /app/prisma ./prisma
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
@@ -139,10 +132,7 @@ FROM base AS test
 ENV NODE_ENV=test
 
 # Install all dependencies
-RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
+RUN npm install
 
 # Copy source code
 COPY . .

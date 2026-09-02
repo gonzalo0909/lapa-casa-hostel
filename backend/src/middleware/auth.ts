@@ -10,7 +10,8 @@ const REVOKED_PREFIX = 'revoked_token:';
 export interface AuthPayload {
   userId: string;
   email: string;
-  role: 'admin' | 'staff' | 'guest';
+  role: 'admin' | 'staff' | 'guest' | 'owner';
+  ownerId?: string;
 }
 
 declare global {
@@ -61,6 +62,94 @@ export const authenticateToken = async (
     }) as AuthPayload;
 
     // M-03: rechazar tokens revocados (logout explícito)
+    const isRevoked = await redisCache.get(`${REVOKED_PREFIX}${token}`);
+    if (isRevoked) {
+      res.status(401).json({
+        success: false,
+        error: 'Token revocado',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      res.status(401).json({
+        success: false,
+        error: 'Token expired',
+        expiredAt: (err as any).expiredAt,
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+    if (err instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid token',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+    res.status(500).json({
+      success: false,
+      error: 'Token verification failed',
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+// authenticateOwnerToken: mismo mecanismo que authenticateToken de arriba,
+// pero para la cookie separada del login de administradores de apartamento
+// (lch_owner, ver owner-auth.routes.ts) -- cookie propia a propósito, para
+// que una sesión de admin de plataforma y una de administrador de
+// apartamento puedan convivir sin pisarse en el mismo navegador.
+export const authenticateOwnerToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const authHeader = req.headers['authorization'];
+  const token =
+    (authHeader && authHeader.split(' ')[1]) ||
+    (req.cookies as Record<string, string> | undefined)?.['lch_owner'];
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      error: 'Access token required',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    logger.error('JWT_SECRET not configured');
+    res.status(500).json({
+      success: false,
+      error: 'Server configuration error',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, secret, {
+      issuer: 'lapa-casa-hostel',
+      audience: 'lapa-casa-hostel-api',
+    }) as AuthPayload;
+
+    if (decoded.role !== 'owner' || !decoded.ownerId) {
+      res.status(403).json({
+        success: false,
+        error: 'Insufficient permissions',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
     const isRevoked = await redisCache.get(`${REVOKED_PREFIX}${token}`);
     if (isRevoked) {
       res.status(401).json({

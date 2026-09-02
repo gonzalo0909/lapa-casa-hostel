@@ -2,21 +2,36 @@
 
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from 'pg';
 import { logger } from '../utils/logger';
+import { SUPABASE_CA_CERT } from './supabase-ca';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required (see backend/.env)');
 }
+
+// rejectUnauthorized:true (auditoría 2026-08-30) asumía que el certificado de
+// Supabase valida contra una CA pública ya confiable para Node -- en la
+// práctica no fue así (SELF_SIGNED_CERT_IN_CHAIN en producción real, caída
+// confirmada). Se había revertido a rejectUnauthorized:false como parche de
+// emergencia, pero eso vuelve a dejar la conexión sin verificar el
+// certificado del servidor (vulnerable a MITM). En vez de eso, se fija
+// explícitamente la CA real de Supabase y se mantiene rejectUnauthorized:true.
+//
+// El certificado NO es un secreto -- es la CA pública de Supabase (cualquiera
+// la baja del dashboard), así que va commiteada como código en
+// ./supabase-ca.ts en vez de depender de pegarla a mano en cada plataforma
+// de hosting (eso fallaba en la práctica: paneles web mutilando saltos de
+// línea al pegar un PEM multilínea). DATABASE_CA_CERT sigue existiendo como
+// override opcional por si Supabase rota la CA antes de actualizar el repo.
+const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n') || SUPABASE_CA_CERT;
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: parseInt(process.env.DB_MAX_CONNECTIONS || '10', 10),
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '5000', 10),
   idleTimeoutMillis: 30000,
-  // FIX (auditoría 2026-08-30): rejectUnauthorized:false reducía la conexión
-  // TLS a cifrado oportunista sin verificar el certificado del servidor
-  // (vulnerable a MITM). El certificado de Supabase está firmado por una CA
-  // pública ya confiable para Node, así que verificarlo no requiere CA propia.
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: true, ca: databaseCaCert }
+    : false
 });
 
 pool.on('error', (err) => {
