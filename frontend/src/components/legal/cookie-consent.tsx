@@ -8,7 +8,7 @@
 // (localStorage, por dispositivo) y expone el estado vía contexto para
 // que AnalyticsProvider decida si cargar los scripts de tracking.
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -79,9 +79,30 @@ export function useCookieConsent(): CookieConsentContextValue {
 function CookieConsentBanner({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) {
   const t = useTranslations('cookieConsent');
   const locale = useLocale();
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  // El banner es fixed/bottom con z-index alto: mientras está visible, tapa
+  // cualquier CTA que caiga en esa franja de la pantalla al hacer scroll
+  // (ej. los botones PIX/Tarjeta y "Confirmar reserva" del paso 4 del
+  // wizard del hostel, que NO tienen su propio footer fijo). Reservamos ese
+  // mismo alto como padding-bottom del body para que siempre haya margen
+  // de scroll suficiente para despejar el banner de cualquier botón.
+  useEffect(() => {
+    const el = bannerRef.current;
+    if (!el) return;
+    const applyPadding = () => { document.body.style.paddingBottom = `${el.offsetHeight}px`; };
+    applyPadding();
+    const ro = new ResizeObserver(applyPadding);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.body.style.paddingBottom = '';
+    };
+  }, []);
 
   return (
     <div
+      ref={bannerRef}
       role="dialog"
       aria-live="polite"
       aria-label={t('title')}
