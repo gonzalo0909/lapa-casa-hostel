@@ -45,6 +45,11 @@ model ApartmentOwner {
   payoutFeeRate          Decimal                 @default(0.0099) @map("payout_fee_rate") @db.Decimal(5, 4)
   isActive               Boolean                 @default(true) @map("is_active")
   notes                  String?
+  // 0031_apartment_owner_login.sql -- login propio del administrador,
+  // separado de la contraseña única de la plataforma (ADMIN_PASSWORD_HASH).
+  passwordHash           String?                 @map("password_hash")
+  mustChangePassword     Boolean                 @default(true) @map("must_change_password")
+  lastLoginAt            DateTime?               @map("last_login_at")
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @default(now()) @map("updated_at")
 

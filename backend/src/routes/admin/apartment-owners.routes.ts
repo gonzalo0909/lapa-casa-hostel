@@ -5,12 +5,15 @@
 //   GET    /admin/apartment-owners          — lista todos los administradores
 //   GET    /admin/apartment-owners/:id      — detalle de uno
 //   POST   /admin/apartment-owners          — crea un nuevo administrador
-//                                             (genera cuenta Express de Stripe + link de onboarding)
+//                                             (cuenta Express de Stripe + link de onboarding +
+//                                              contraseña temporal para su propio login)
 //   PUT    /admin/apartment-owners/:id      — edita datos (nombre, teléfono, comisión, etc.)
 //   DELETE /admin/apartment-owners/:id      — desactiva (soft delete)
 //
 //   POST   /admin/apartment-owners/:id/onboarding-link
 //          — regenera el link de onboarding (expira en 24h, puede necesitar renovarse)
+//   POST   /admin/apartment-owners/:id/reset-password
+//          — genera una contraseña temporal nueva (ej: el administrador la perdió)
 //
 //   GET    /admin/apartment-owners/:id/status
 //          — consulta el estado actual en Stripe (onboarding completo, payouts habilitados, etc.)
@@ -22,12 +25,19 @@
 //
 // Seguridad: authenticateToken + requireRole(['admin']) aplicados en index.ts
 //            para todo /admin — estos endpoints los heredan automáticamente.
+//
+// apartment_owners vía Prisma (dominio admin, ver prisma/schema.prisma);
+// room_types vía SQL crudo (tabla del núcleo, sin cambios) -- mismo split
+// que el resto del backend.
 
 import { Router } from 'express';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../../config/prisma';
 import { query } from '../../config/database';
 import { stripeConnectHandler } from '../../lib/payments/stripe-connect';
 import { auditLogService } from '../../services/audit-log-service';
+import { hashPassword, generateTempPassword } from '../../utils/encryption';
 import { ApiResponse } from '../../utils/responses';
 import { logger } from '../../utils/logger';
 import { validate } from '../../middleware/validation';
@@ -52,37 +62,29 @@ const UpdateOwnerSchema = z.object({
   notes: z.string().optional(),
 });
 
+// junta la lista de owners (Prisma) con sus apartamentos asignados
+// (room_types, SQL crudo) en una sola pasada -- evita el N+1 de una
+// query por owner.
+async function attachApartments<T extends { id: string }>(owners: T[]) {
+  if (owners.length === 0) {return owners.map(o => ({ ...o, apartments: [] as unknown[] }));}
+  const { rows } = await query(
+    `SELECT id, code, name, owner_id FROM room_types WHERE owner_id = ANY($1)`,
+    [owners.map(o => o.id)]
+  );
+  return owners.map(owner => ({
+    ...owner,
+    apartments: rows
+      .filter((r: any) => r.owner_id === owner.id)
+      .map((r: any) => ({ id: r.id, code: r.code, name: r.name })),
+  }));
+}
+
 // ─── GET /apartment-owners ───────────────────────────────────────────────────
 
 router.get('/', async (_req, res, next) => {
   try {
-    const { rows } = await query(
-      `SELECT
-         ao.id,
-         ao.full_name,
-         ao.email,
-         ao.phone,
-         ao.stripe_account_id,
-         ao.onboarding_status,
-         ao.commission_rate,
-         ao.payout_fee_rate,
-         ao.is_active,
-         ao.notes,
-         ao.created_at,
-         ao.updated_at,
-         -- apartamentos asignados
-         COALESCE(
-           json_agg(
-             json_build_object('id', rt.id, 'code', rt.code, 'name', rt.name)
-           ) FILTER (WHERE rt.id IS NOT NULL),
-           '[]'
-         ) AS apartments
-       FROM apartment_owners ao
-       LEFT JOIN room_types rt ON rt.owner_id = ao.id
-       GROUP BY ao.id
-       ORDER BY ao.full_name ASC`
-    );
-    res.status(200).json(ApiResponse.success(rows));
+    const owners = await prisma.apartmentOwner.findMany({ orderBy: { fullName: 'asc' } });
+    res.status(200).json(ApiResponse.success(await attachApartments(owners)));
   } catch (error) {
     next(error);
   }
@@ -93,32 +95,19 @@ router.get('/', async (_req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { rows } = await query(
-      `SELECT
-         ao.*,
-         COALESCE(
-           json_agg(
-             json_build_object('id', rt.id, 'code', rt.code, 'name', rt.name)
-           ) FILTER (WHERE rt.id IS NOT NULL),
-           '[]'
-         ) AS apartments
-       FROM apartment_owners ao
-       LEFT JOIN room_types rt ON rt.owner_id = ao.id
-       WHERE ao.id = $1
-       GROUP BY ao.id`,
-      [id]
-    );
-    if (rows.length === 0) {
+    const owner = await prisma.apartmentOwner.findUnique({ where: { id } });
+    if (!owner) {
       res.status(404).json(ApiResponse.error('Administrador no encontrado'));
       return;
     }
-    res.status(200).json(ApiResponse.success(rows[0]));
+    const [withApartments] = await attachApartments([owner]);
+    res.status(200).json(ApiResponse.success(withApartments));
   } catch (error) {
     next(error);
   }
 });
 
-// ─── POST /apartment-owners — crea admin + cuenta Stripe Express ─────────────
+// ─── POST /apartment-owners — crea admin + cuenta Stripe Express + login ─────
 
 router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
   try {
@@ -133,7 +122,6 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
     try {
       stripeAccountId = await stripeConnectHandler.createExpressAccount(email);
 
-      // Generar el primer link de onboarding
       const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasario.com';
       const linkResult = await stripeConnectHandler.createOnboardingLink({
         stripeAccountId,
@@ -152,28 +140,27 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
       });
     }
 
-    // 2. Guardar en la DB
-    const { rows } = await query(
-      `INSERT INTO apartment_owners
-         (full_name, email, phone, stripe_account_id, onboarding_status,
-          onboarding_url, onboarding_url_expires_at, commission_rate, payout_fee_rate, notes)
-       VALUES ($1, $2, $3, $4, 'pending'::connect_onboarding_status,
-               $5, $6, $7, $8, $9)
-       RETURNING *`,
-      [
-        fullName.trim(),
-        email.trim().toLowerCase(),
-        phone ?? null,
+    // 2. Generar contraseña temporal para su propio login (owner-auth.routes.ts)
+    const tempPassword = generateTempPassword();
+    const passwordHash = await hashPassword(tempPassword);
+
+    // 3. Guardar en la DB
+    const owner = await prisma.apartmentOwner.create({
+      data: {
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone ?? null,
         stripeAccountId,
+        onboardingStatus: 'pending',
         onboardingUrl,
         onboardingUrlExpiresAt,
-        commissionRate ?? 0.0500,
-        payoutFeeRate ?? 0.0099,
-        notes ?? null,
-      ]
-    );
-
-    const owner = rows[0];
+        commissionRate: commissionRate ?? 0.05,
+        payoutFeeRate: payoutFeeRate ?? 0.0099,
+        notes: notes ?? null,
+        passwordHash,
+        mustChangePassword: true,
+      },
+    });
 
     await auditLogService.log({
       entity_type: 'apartment_owner',
@@ -184,12 +171,16 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
 
     logger.info('Administrador de apartamento creado', { ownerId: owner.id, email, stripeAccountId });
 
-    res.status(201).json(ApiResponse.success(owner, 'Administrador creado. ' +
+    res.status(201).json(ApiResponse.success(
+      { ...owner, tempPassword },
+      'Administrador creado. Compartile la contraseña temporal (tempPassword) y el link de ' +
+      'onboarding de Stripe por fuera (WhatsApp/email) -- no vuelven a mostrarse. ' +
       (onboardingUrl
-        ? 'Se generó el link de onboarding de Stripe. Compártelo con el administrador para que registre su cuenta bancaria.'
-        : 'Aún no se pudo generar el link de Stripe. Use el endpoint /onboarding-link cuando Stripe esté disponible.')));
+        ? ''
+        : 'Aún no se pudo generar el link de Stripe; use el endpoint /onboarding-link cuando esté disponible.')
+    ));
   } catch (error: any) {
-    if (error?.code === '23505') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       res.status(409).json(ApiResponse.error('Ya existe un administrador con ese email'));
       return;
     }
@@ -202,34 +193,34 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
 router.put('/:id', validate(UpdateOwnerSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { fullName, phone, commissionRate, payoutFeeRate, isActive, notes } =
-      req.body as z.infer<typeof UpdateOwnerSchema>;
+    const data = req.body as z.infer<typeof UpdateOwnerSchema>;
 
-    const sets: string[] = [];
-    const params: any[] = [];
-
-    if (fullName !== undefined) { params.push(fullName.trim()); sets.push(`full_name = $${params.length}`); }
-    if (phone !== undefined) { params.push(phone); sets.push(`phone = $${params.length}`); }
-    if (commissionRate !== undefined) { params.push(commissionRate); sets.push(`commission_rate = $${params.length}`); }
-    if (payoutFeeRate !== undefined) { params.push(payoutFeeRate); sets.push(`payout_fee_rate = $${params.length}`); }
-    if (isActive !== undefined) { params.push(isActive); sets.push(`is_active = $${params.length}`); }
-    if (notes !== undefined) { params.push(notes); sets.push(`notes = $${params.length}`); }
-
-    if (sets.length === 0) {
+    if (Object.keys(data).length === 0) {
       res.status(400).json(ApiResponse.error('Nada para actualizar'));
       return;
     }
 
-    params.push(id);
-    const { rows } = await query(
-      `UPDATE apartment_owners SET ${sets.join(', ')}, updated_at = now()
-       WHERE id = $${params.length} RETURNING *`,
-      params
-    );
+    const { fullName, phone, commissionRate, payoutFeeRate, isActive, notes } = data;
 
-    if (rows.length === 0) {
-      res.status(404).json(ApiResponse.error('Administrador no encontrado'));
-      return;
+    let owner;
+    try {
+      owner = await prisma.apartmentOwner.update({
+        where: { id },
+        data: {
+          ...(fullName !== undefined && { fullName: fullName.trim() }),
+          ...(phone !== undefined && { phone }),
+          ...(commissionRate !== undefined && { commissionRate }),
+          ...(payoutFeeRate !== undefined && { payoutFeeRate }),
+          ...(isActive !== undefined && { isActive }),
+          ...(notes !== undefined && { notes }),
+        },
+      });
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        res.status(404).json(ApiResponse.error('Administrador no encontrado'));
+        return;
+      }
+      throw error;
     }
 
     await auditLogService.log({
@@ -239,7 +230,7 @@ router.put('/:id', validate(UpdateOwnerSchema), async (req, res, next) => {
       new_data: req.body,
     });
 
-    res.status(200).json(ApiResponse.success(rows[0], 'Administrador actualizado'));
+    res.status(200).json(ApiResponse.success(owner, 'Administrador actualizado'));
   } catch (error) {
     next(error);
   }
@@ -250,22 +241,27 @@ router.put('/:id', validate(UpdateOwnerSchema), async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { rows } = await query(
-      `UPDATE apartment_owners SET is_active = false, updated_at = now()
-       WHERE id = $1 RETURNING id, full_name, email`,
-      [id]
-    );
-    if (rows.length === 0) {
-      res.status(404).json(ApiResponse.error('Administrador no encontrado'));
-      return;
+    let owner;
+    try {
+      owner = await prisma.apartmentOwner.update({
+        where: { id },
+        data: { isActive: false },
+        select: { id: true, fullName: true, email: true },
+      });
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        res.status(404).json(ApiResponse.error('Administrador no encontrado'));
+        return;
+      }
+      throw error;
     }
     await auditLogService.log({
       entity_type: 'apartment_owner',
       entity_id: id,
       operation: 'ADMIN_DEACTIVATE_OWNER',
-      old_data: rows[0],
+      old_data: owner,
     });
-    res.status(200).json(ApiResponse.success({ deactivated: rows[0] }, 'Administrador desactivado'));
+    res.status(200).json(ApiResponse.success({ deactivated: owner }, 'Administrador desactivado'));
   } catch (error) {
     next(error);
   }
@@ -280,32 +276,27 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const { rows } = await query(
-      `SELECT id, stripe_account_id, email, onboarding_status FROM apartment_owners WHERE id = $1`,
-      [id]
-    );
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id },
+      select: { id: true, stripeAccountId: true, email: true, onboardingStatus: true },
+    });
 
-    if (rows.length === 0) {
+    if (!owner) {
       res.status(404).json(ApiResponse.error('Administrador no encontrado'));
       return;
     }
 
-    const owner = rows[0];
-
-    if (owner.onboarding_status === 'active') {
+    if (owner.onboardingStatus === 'active') {
       res.status(400).json(ApiResponse.error('Este administrador ya completó el onboarding de Stripe'));
       return;
     }
 
-    // Si no tiene stripe_account_id todavía (Stripe no estaba disponible al crear),
+    // Si no tiene stripeAccountId todavía (Stripe no estaba disponible al crear),
     // lo generamos ahora
-    let stripeAccountId = owner.stripe_account_id;
+    let stripeAccountId = owner.stripeAccountId;
     if (!stripeAccountId) {
       stripeAccountId = await stripeConnectHandler.createExpressAccount(owner.email);
-      await query(
-        `UPDATE apartment_owners SET stripe_account_id = $1, updated_at = now() WHERE id = $2`,
-        [stripeAccountId, id]
-      );
+      await prisma.apartmentOwner.update({ where: { id }, data: { stripeAccountId } });
     }
 
     const baseUrl = process.env.FRONTEND_URL ?? 'https://lapacasario.com';
@@ -315,16 +306,14 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
       returnUrl: `${baseUrl}/admin/owners/${stripeAccountId}/onboarding/complete`,
     });
 
-    // Actualizar link en DB
-    await query(
-      `UPDATE apartment_owners
-       SET onboarding_url = $1,
-           onboarding_url_expires_at = $2,
-           onboarding_status = 'in_progress',
-           updated_at = now()
-       WHERE id = $3`,
-      [linkResult.url, linkResult.expiresAt, id]
-    );
+    await prisma.apartmentOwner.update({
+      where: { id },
+      data: {
+        onboardingUrl: linkResult.url,
+        onboardingUrlExpiresAt: linkResult.expiresAt,
+        onboardingStatus: 'in_progress',
+      },
+    });
 
     await auditLogService.log({
       entity_type: 'apartment_owner',
@@ -343,6 +332,51 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
   }
 });
 
+// ─── POST /apartment-owners/:id/reset-password ───────────────────────────────
+// Genera una contraseña temporal nueva (ej: el administrador la perdió).
+// Mismo patrón que la creación: viaja en texto plano una sola vez en la
+// respuesta, la plataforma se la pasa por fuera.
+
+router.post('/:id/reset-password', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const tempPassword = generateTempPassword();
+    const passwordHash = await hashPassword(tempPassword);
+
+    let owner;
+    try {
+      owner = await prisma.apartmentOwner.update({
+        where: { id },
+        data: { passwordHash, mustChangePassword: true },
+        select: { id: true, fullName: true, email: true },
+      });
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        res.status(404).json(ApiResponse.error('Administrador no encontrado'));
+        return;
+      }
+      throw error;
+    }
+
+    await auditLogService.log({
+      entity_type: 'apartment_owner',
+      entity_id: id,
+      operation: 'ADMIN_RESET_OWNER_PASSWORD',
+      new_data: { email: owner.email },
+    });
+
+    logger.info('Contraseña de administrador reseteada', { ownerId: id });
+
+    res.status(200).json(ApiResponse.success(
+      { ...owner, tempPassword },
+      'Contraseña temporal generada. Compartila con el administrador por fuera -- no vuelve a mostrarse.'
+    ));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ─── GET /apartment-owners/:id/status ────────────────────────────────────────
 // Consulta el estado real en Stripe y actualiza el campo en la DB si cambió
 
@@ -350,43 +384,38 @@ router.get('/:id/status', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const { rows } = await query(
-      `SELECT id, stripe_account_id, onboarding_status FROM apartment_owners WHERE id = $1`,
-      [id]
-    );
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id },
+      select: { id: true, stripeAccountId: true, onboardingStatus: true },
+    });
 
-    if (rows.length === 0) {
+    if (!owner) {
       res.status(404).json(ApiResponse.error('Administrador no encontrado'));
       return;
     }
 
-    const owner = rows[0];
-
-    if (!owner.stripe_account_id) {
+    if (!owner.stripeAccountId) {
       res.status(200).json(ApiResponse.success({
-        onboardingStatus: owner.onboarding_status,
+        onboardingStatus: owner.onboardingStatus,
         stripeStatus: null,
         message: 'Aún no tiene cuenta Stripe asociada',
       }));
       return;
     }
 
-    const stripeStatus = await stripeConnectHandler.getAccountStatus(owner.stripe_account_id);
+    const stripeStatus = await stripeConnectHandler.getAccountStatus(owner.stripeAccountId);
 
     // Sincronizar el estado en la DB si cambió
-    let newStatus = owner.onboarding_status;
+    let newStatus = owner.onboardingStatus;
     if (stripeStatus.detailsSubmitted && stripeStatus.payoutsEnabled) {
       newStatus = 'active';
     } else if (stripeStatus.detailsSubmitted && !stripeStatus.payoutsEnabled) {
       newStatus = 'restricted';
     }
 
-    if (newStatus !== owner.onboarding_status) {
-      await query(
-        `UPDATE apartment_owners SET onboarding_status = $1::connect_onboarding_status, updated_at = now() WHERE id = $2`,
-        [newStatus, id]
-      );
-      logger.info('Estado Stripe Connect actualizado', { ownerId: id, from: owner.onboarding_status, to: newStatus });
+    if (newStatus !== owner.onboardingStatus) {
+      await prisma.apartmentOwner.update({ where: { id }, data: { onboardingStatus: newStatus } });
+      logger.info('Estado Stripe Connect actualizado', { ownerId: id, from: owner.onboardingStatus, to: newStatus });
     }
 
     res.status(200).json(ApiResponse.success({
@@ -404,16 +433,15 @@ router.put('/:id/assign-room/:roomId', async (req, res, next) => {
   try {
     const { id, roomId } = req.params;
 
-    // Verificar que el owner existe y está activo
-    const ownerCheck = await query(
-      `SELECT id, is_active FROM apartment_owners WHERE id = $1`,
-      [id]
-    );
-    if (ownerCheck.rows.length === 0) {
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id },
+      select: { id: true, isActive: true },
+    });
+    if (!owner) {
       res.status(404).json(ApiResponse.error('Administrador no encontrado'));
       return;
     }
-    if (!ownerCheck.rows[0].is_active) {
+    if (!owner.isActive) {
       res.status(400).json(ApiResponse.error('No se puede asignar un administrador desactivado'));
       return;
     }
