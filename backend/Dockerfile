@@ -65,7 +65,9 @@ FROM base AS build
 ENV NODE_ENV=production
 
 # Install all dependencies for build
-RUN npm install
+# --include=dev: NODE_ENV=production hace que npm salte devDependencies por
+# defecto (typescript, tsc-alias, @types/*), y npm run build las necesita.
+RUN npm install --include=dev
 
 # Copy source code
 COPY . .
