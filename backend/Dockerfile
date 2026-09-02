@@ -21,7 +21,6 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
-COPY prisma ./prisma/
 
 # ===========================================
 # DEVELOPMENT STAGE
@@ -32,9 +31,6 @@ ENV NODE_ENV=development
 
 # Install all dependencies including dev
 RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
@@ -59,9 +55,6 @@ ENV NODE_ENV=production
 # Install production dependencies only
 RUN npm ci --only=production --ignore-scripts
 
-# Generate Prisma Client
-RUN npx prisma generate
-
 # ===========================================
 # BUILD STAGE
 # ===========================================
@@ -71,9 +64,6 @@ ENV NODE_ENV=production
 
 # Install all dependencies for build
 RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
@@ -110,7 +100,6 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nodejs:nodejs /app/package*.json ./
-COPY --from=build --chown=nodejs:nodejs /app/prisma ./prisma
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
@@ -140,9 +129,6 @@ ENV NODE_ENV=test
 
 # Install all dependencies
 RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
