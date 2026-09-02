@@ -16,8 +16,11 @@ import { Router } from 'express';
 import { prisma } from '../../config/prisma';
 import { query } from '../../config/database';
 import { ApiResponse } from '../../utils/responses';
+import { ownerApartmentsRouter } from './owner-apartments.routes';
 
 const router = Router();
+
+router.use('/apartments', ownerApartmentsRouter);
 
 // ─── GET /owner/me ────────────────────────────────────────────────────────────
 
