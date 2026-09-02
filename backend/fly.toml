@@ -1,60 +1,51 @@
-# lapa-casa-hostel/backend/fly.toml
+# fly.toml app configuration file generated for lapa-casa-hostel on 2026-09-02T13:35:23Z
 #
-# Corre dos procesos sobre la MISMA imagen (mismo Dockerfile, mismo build):
-#   - "app"    -> npm run start  (API HTTP, recibe trafico web)
-#   - "worker" -> npm run worker (BullMQ: sync OTAs, emails, cobros a 7 dias,
-#                 liberacion de holds vencidos -- ver render.yaml para el
-#                 detalle de por que este proceso es obligatorio)
-# `fly deploy` crea/actualiza UNA maquina por proceso (2 en total). Los
-# secretos (DATABASE_URL, REDIS_URL, STRIPE_SECRET_KEY, etc.) NO van aca --
-# se cargan con `fly secrets set` (ver guia de deploy), igual que sync:false
-# en render.yaml.
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "lapa-casa-hostel-api"
-primary_region = "gru" # Sao Paulo -- la unica region de Fly en Sudamerica
+app = 'lapa-casa-hostel'
+primary_region = 'gru'
 
 [build]
-  dockerfile = "Dockerfile"
-  build-target = "production"
-
-[processes]
-  app = "npm run start"
-  worker = "npm run worker"
+  dockerfile = 'Dockerfile'
+  build-target = 'production'
 
 [env]
-  NODE_ENV = "production"
-  PORT = "5000"
-  API_VERSION = "v1"
-  JWT_EXPIRES_IN = "7d"
-  TIMEZONE = "America/Sao_Paulo"
-  FROM_EMAIL = "lapalandiarj@gmail.com"
-  EMAIL_FROM = "lapalandiarj@gmail.com"
-  EMAIL_FROM_NAME = "Lapa Casa"
-  GOOGLE_SHEETS_SHEET_NAME = "Hoja 1"
+  API_VERSION = 'v1'
+  EMAIL_FROM = 'lapalandiarj@gmail.com'
+  EMAIL_FROM_NAME = 'Lapa Casa'
+  FROM_EMAIL = 'lapalandiarj@gmail.com'
+  GOOGLE_SHEETS_SHEET_NAME = 'Hoja 1'
+  JWT_EXPIRES_IN = '7d'
+  NODE_ENV = 'production'
+  PORT = '5000'
+  TIMEZONE = 'America/Sao_Paulo'
 
-# Solo el proceso "app" recibe trafico HTTP -- "worker" no expone puerto,
-# corre en el fondo (igual que type: worker en render.yaml).
+[processes]
+  app = 'npm run start'
+  worker = 'npm run worker'
+
 [http_service]
   internal_port = 5000
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["app"]
+  processes = ['app']
 
   [[http_service.checks]]
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "20s"
-    method = "GET"
-    path = "/health"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '20s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
-  processes = ["app"]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'
+  processes = ['app']
 
 [[vm]]
-  processes = ["worker"]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'
+  processes = ['worker']
