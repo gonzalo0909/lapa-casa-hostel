@@ -26,7 +26,7 @@ export const HOSTEL_ENGINE_CSS = `
 .he-lang-btn{font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.18em .5em;border-radius:4px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.95);cursor:pointer;transition:all .2s ease}
 .he-lang-btn.active{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.6)}
 @keyframes he-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.he-card{background:rgba(14,24,16,.90);border-radius:16px;box-shadow:0 2px 4px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.38),0 28px 72px rgba(0,0,0,.28);width:100%;max-width:500px;overflow:hidden;backdrop-filter:blur(9px);animation:he-rise .32s ease-out}
+.he-card{position:relative;z-index:51;background:rgba(14,24,16,.90);border-radius:16px;box-shadow:0 2px 4px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.38),0 28px 72px rgba(0,0,0,.28);width:100%;max-width:500px;overflow:hidden;backdrop-filter:blur(9px);animation:he-rise .32s ease-out}
 .he-steps{display:flex;align-items:flex-start;padding:1rem 1.25rem;background:#1A2E1E;gap:0}
 .he-step-item{display:flex;flex-direction:column;align-items:center;gap:.3rem;flex-shrink:0}
 .he-step-item.active .he-step-lbl{color:#fff}
