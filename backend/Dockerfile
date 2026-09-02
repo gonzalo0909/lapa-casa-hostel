@@ -30,7 +30,7 @@ FROM base AS development
 ENV NODE_ENV=development
 
 # Install all dependencies including dev
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -53,7 +53,7 @@ FROM base AS dependencies
 ENV NODE_ENV=production
 
 # Install production dependencies only
-RUN npm ci --only=production --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # ===========================================
 # BUILD STAGE
@@ -63,7 +63,7 @@ FROM base AS build
 ENV NODE_ENV=production
 
 # Install all dependencies for build
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -128,7 +128,7 @@ FROM base AS test
 ENV NODE_ENV=test
 
 # Install all dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
