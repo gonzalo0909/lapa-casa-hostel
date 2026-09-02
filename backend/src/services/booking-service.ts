@@ -134,7 +134,7 @@ export class BookingService {
         phone: data.guest.phone ?? null,
         country: data.guest.country ?? null,
         language: data.guest.language ?? null
-      });
+      }, client);
 
       const { rows: channelRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
       if (channelRows.length === 0) {throw new Error('Canal "direct" no encontrado en la tabla channels');}

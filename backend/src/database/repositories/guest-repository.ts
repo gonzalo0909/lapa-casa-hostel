@@ -11,18 +11,37 @@
 // callers reales en toda la base de código -- vestigios de una capa
 // CRUD+analytics genérica que nadie llegó a usar.
 
+import type { PoolClient } from 'pg';
 import { query } from '../../config/database';
 import type { Guest } from '../../types/database';
 
 export class GuestRepository {
-  async upsert(data: {
-    full_name: string;
-    email: string;
-    phone?: string | null;
-    country?: string | null;
-    language?: string | null;
-  }): Promise<Guest> {
-    const { rows } = await query<Guest>(
+  /**
+   * FIX (2026-09-02): booking-service.ts llama a upsert() desde DENTRO de
+   * la transacción de createBooking() (withTransaction), pero sin este
+   * parámetro corría sobre el pool compartido vía query() -- una conexión
+   * DISTINTA a la del `client` que tiene tomado el resto de la
+   * transacción. Con el pool bajo presión (varias reservas concurrentes,
+   * cada una reteniendo su propia conexión de transacción) eso podía
+   * agotar el pool y tirar un timeout de conexión random en pleno
+   * checkout ("An unexpected error occurred" genérico). Pasando `client`
+   * se reusa la misma conexión: sin conexión extra y, de yapa, el upsert
+   * queda atado al COMMIT/ROLLBACK real de la reserva.
+   */
+  async upsert(
+    data: {
+      full_name: string;
+      email: string;
+      phone?: string | null;
+      country?: string | null;
+      language?: string | null;
+    },
+    client?: PoolClient
+  ): Promise<Guest> {
+    const run = client
+      ? (text: string, params: unknown[]) => client.query<Guest>(text, params)
+      : (text: string, params: unknown[]) => query<Guest>(text, params);
+    const { rows } = await run(
       `INSERT INTO guests (full_name, email, phone, country, language)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (email) DO UPDATE SET
