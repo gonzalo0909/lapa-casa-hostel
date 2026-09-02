@@ -17,6 +17,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { logger } from '../utils/logger';
+import { SUPABASE_CA_CERT } from './supabase-ca';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required (see backend/.env)');
@@ -24,14 +25,7 @@ if (!process.env.DATABASE_URL) {
 
 // mismo manejo de certificado que config/database.ts -- ver ese archivo
 // para el detalle de por qué rejectUnauthorized:true + CA explícita.
-const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n');
-
-if (process.env.NODE_ENV === 'production' && !databaseCaCert) {
-  throw new Error(
-    'DATABASE_CA_CERT environment variable is required in production ' +
-    '(descargar desde Supabase dashboard: Project Settings -> Database -> SSL Configuration)'
-  );
-}
+const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n') || SUPABASE_CA_CERT;
 
 const prismaPool = new Pool({
   connectionString: process.env.DATABASE_URL,
