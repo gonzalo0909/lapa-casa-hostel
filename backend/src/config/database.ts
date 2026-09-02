@@ -2,6 +2,7 @@
 
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from 'pg';
 import { logger } from '../utils/logger';
+import { SUPABASE_CA_CERT } from './supabase-ca';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required (see backend/.env)');
@@ -13,20 +14,15 @@ if (!process.env.DATABASE_URL) {
 // confirmada). Se había revertido a rejectUnauthorized:false como parche de
 // emergencia, pero eso vuelve a dejar la conexión sin verificar el
 // certificado del servidor (vulnerable a MITM). En vez de eso, se fija
-// explícitamente la CA real de Supabase vía DATABASE_CA_CERT y se mantiene
-// rejectUnauthorized:true. Sacar el certificado desde el dashboard de
-// Supabase: Project Settings -> Database -> SSL Configuration -> "Download
-// certificate", y cargar su contenido (PEM) como variable de entorno en
-// Render (con los \n literales, mismo patrón que
-// GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY).
-const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n');
-
-if (process.env.NODE_ENV === 'production' && !databaseCaCert) {
-  throw new Error(
-    'DATABASE_CA_CERT environment variable is required in production ' +
-    '(descargar desde Supabase dashboard: Project Settings -> Database -> SSL Configuration)'
-  );
-}
+// explícitamente la CA real de Supabase y se mantiene rejectUnauthorized:true.
+//
+// El certificado NO es un secreto -- es la CA pública de Supabase (cualquiera
+// la baja del dashboard), así que va commiteada como código en
+// ./supabase-ca.ts en vez de depender de pegarla a mano en cada plataforma
+// de hosting (eso fallaba en la práctica: paneles web mutilando saltos de
+// línea al pegar un PEM multilínea). DATABASE_CA_CERT sigue existiendo como
+// override opcional por si Supabase rota la CA antes de actualizar el repo.
+const databaseCaCert = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n') || SUPABASE_CA_CERT;
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
