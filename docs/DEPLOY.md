@@ -4,6 +4,12 @@ Guía paso a paso para desplegar el sistema en producción. Apunta al Supabase r
 migrado (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — **no crear un proyecto
 Supabase nuevo**.
 
+> **Backend + worker en Fly.io, no en Render** (mudado 2026-09-02, latencia São Paulo
+> vs. la región más cercana que ofrecía Render, Oregon). Las secciones 1-2 de abajo
+> describen el deploy en Render que ya no aplica al backend — ver `backend/fly.toml`
+> y `docs/DEPLOY-RECORDATORIO.md` para el flujo real (dashboard de Fly, sin `flyctl`
+> local). Landing y frontend siguen en Render tal como está documentado acá.
+
 > Antes de seguir esta guía: Ventanas 3 (pagos), 4 (colas/emails/Sheets/admin) y 5
 > (iCal/OTAs) deben estar verificadas de punta a punta, no solo escritas (ver
 > `prompts/combo-VENTANA-6-completa.md`, sección "CONTEXTO PREVIO"). Desplegar pagos
@@ -11,43 +17,41 @@ Supabase nuevo**.
 
 ## 1. Servicios
 
-`render.yaml` (raíz del repo) define cuatro servicios Render:
+`render.yaml` (raíz del repo) define los servicios que siguen en Render:
 
 | Servicio | Tipo | Sirve |
 |---|---|---|
-| `lapa-casa-hostel-api` | `web` (Node) | Backend — API + panel admin en `/admin` |
 | `lapa-casa-hostel-landing` | `web` (static) | Landing estática de `public/landing/` en el dominio raíz |
 | `lapa-casa-hostel-frontend` | `web` (Node, Next.js) | Motor de reservas real (Hostel + Apartamentos vía `PropertyTabs`), conectado a la API con `NEXT_PUBLIC_API_URL` |
-| `lapa-casa-hostel-worker` | `worker` (Node) | Procesa las colas BullMQ (`npm run worker`): cobro de saldo a 7 días, emails programados, liberación de holds vencidos, sync iCal con OTAs |
+
+Backend (API + panel admin en `/admin`) y worker (BullMQ: cobro de saldo a 7 días,
+emails programados, liberación de holds vencidos, sync iCal con OTAs) corren en
+**Fly.io**, no en `render.yaml` — ver `backend/fly.toml` (dos process groups, `app`
+y `worker`, misma imagen Docker) y `docs/DEPLOY-RECORDATORIO.md`.
 
 El frontend de reservas en Next.js (`frontend/`) ya tiene `app/` (App Router,
 rutas `/[locale]/...`), compila y está en `render.yaml` como servicio propio
-(`autoDeploy: true`, igual que los otros tres).
+(`autoDeploy: true`, igual que la landing).
 
-## 2. Primer deploy — backend
+## 2. Primer deploy — backend (Fly.io)
 
-1. En el dashboard de Render: **New → Blueprint**, apuntar al repo, rama de deploy.
-   Render lee `render.yaml` y crea ambos servicios.
-2. En `lapa-casa-hostel-api` → **Environment**, cargar a mano las variables marcadas
-   `sync: false` en `render.yaml` (no están en el archivo a propósito, ver comentario
-   sobre el incidente de la contraseña expuesta):
-   - `DATABASE_URL`: connection string real de Supabase (`rpowardrcwnhbkzjsiok`).
-     Supabase → Project Settings → Database → Connection string → URI.
-   - `REDIS_URL`: instancia de Upstash u otro proveedor Redis (ver sección 5).
-   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-   - `MP_ACCESS_TOKEN`
-   - `RESEND_API_KEY`
-   - `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` (generar con
-     `node -e "require('bcryptjs').hash('tu-contraseña', 12).then(console.log)"`)
-   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`,
-     `GOOGLE_SHEETS_SPREADSHEET_ID` (opcional — sin esto, la exportación a Sheets
-     queda deshabilitada sin romper el resto)
-   - Webhooks OTA (opcionales, sin esto ese canal rechaza con 401):
-     `BOOKING_WEBHOOK_SECRET`, `BOOKING_WEBHOOK_API_KEY`, `BOOKING_WEBHOOK_IPS`,
-     `EXPEDIA_WEBHOOK_SECRET`, `EXPEDIA_WEBHOOK_API_KEY`, `EXPEDIA_WEBHOOK_IPS`
-3. Deploy manual desde el dashboard, o push a la rama conectada (`autoDeploy: true`).
-4. Verificar: `GET https://<servicio>.onrender.com/health` → `{"status":"healthy"}`.
-   Si falla, ver `docs/TROUBLESHOOTING.md`.
+Ver `docs/DEPLOY-RECORDATORIO.md` para el flujo real, paso a paso desde el
+dashboard web de Fly (sin `flyctl` local). Resumen:
+
+1. Conectar el repo a Fly desde el dashboard ("Launch an App" → GitHub), apuntando
+   a `backend/` como working directory y config path (ahí vive `fly.toml` y el
+   `Dockerfile`).
+2. Cargar los secretos en Fly → Secrets (equivalente a las variables `sync: false`
+   de Render): `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`,
+   `CORS_ORIGINS`, `APP_URL`, `FRONTEND_URL`, `STRIPE_SECRET_KEY`,
+   `STRIPE_WEBHOOK_SECRET`, `MP_ACCESS_TOKEN`, `RESEND_API_KEY`, `ADMIN_EMAIL`,
+   `ADMIN_PASSWORD_HASH`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
+   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`.
+   `DATABASE_CA_CERT` ya **no** hace falta cargarla — va commiteada como código en
+   `backend/src/config/supabase-ca.ts` (no es un secreto, es la CA pública de
+   Supabase).
+3. Auto-deploy activado: cada push a la rama conectada dispara un build+deploy solo.
+4. Verificar: `GET https://api.lapacasario.com/health` → `{"status":"healthy"}`.
 5. El schema y el seed **ya están aplicados** en el Supabase real (Ventana 1) — no
    correr `migrate.js`/`seed.js` contra producción salvo que se agregue una migración
    `0009+` nueva.
@@ -63,15 +67,14 @@ sobre `public/landing/`). Antes de publicar, completar los `TODO` de
 
 ## 4. Dominios custom
 
-Render no asigna dominios custom desde `render.yaml`. Por servicio, en el dashboard:
+- `lapacasario.com` (+ `www`) → **Render**, servicio `lapa-casa-hostel-frontend` →
+  Settings → Custom Domains. Registros DNS (`ALIAS`/`CNAME`) en el proveedor real
+  del dominio.
+- `api.lapacasario.com` → **Fly.io**, app del backend → Certificates → agregar el
+  hostname, cargar los registros `A`/`AAAA`/`CNAME` que muestra ahí en el DNS.
 
-- `lapa-casa-hostel-landing` → Settings → Custom Domains → `lapacasario.com` (+ `www`)
-- `lapa-casa-hostel-api` → Settings → Custom Domains → `api.lapacasario.com`
-
-Seguir las instrucciones de Render para los registros DNS (`CNAME`/`A`) en el
-proveedor real del dominio. Hasta que el DNS propague, usar las URLs
-`*.onrender.com` (`APP_URL` en `render.yaml` debe actualizarse si el dominio final
-cambia, ya que se usa para links en emails transaccionales).
+`APP_URL` en los Secrets de Fly debe apuntar a `https://api.lapacasario.com` (no a
+`*.fly.dev`), ya que se usa para links en emails transaccionales.
 
 ## 5. Redis (Upstash u otro proveedor)
 
@@ -81,10 +84,9 @@ proceso, colas BullMQ quedan deshabilitadas — ver `src/cache/redis-client.ts` 
 sin compartir estado entre instancias. Obligatorio antes de recibir pagos reales:
 
 1. Crear una instancia (Upstash Redis, plan gratuito tiene persistencia).
-2. Copiar el connection string (`rediss://...`) a `REDIS_URL` en Render.
-3. Levantar el proceso de workers como **segundo servicio Render** (`background
-   worker`, `startCommand: npm run worker`) — hoy no está en `render.yaml`, agregarlo
-   antes de depender de colas en producción.
+2. Copiar el connection string (`rediss://...`) a `REDIS_URL` en los Secrets de Fly.
+3. El worker (`npm run worker`) ya corre como process group `worker` en Fly —
+   `backend/fly.toml`, no hace falta un servicio aparte.
 
 ## 6. Webhooks externos
 
@@ -111,25 +113,31 @@ Airbnb y Hostelworld son iCal-only (no tienen webhook, ver
 
 ## 8. Deploy sin downtime
 
-Render hace rolling deploy en el plan `starter` (nueva instancia arriba y pasando
-`healthCheckPath` antes de recibir tráfico, la vieja se apaga después) — no requiere
-configuración adicional. Riesgo real, documentado en el Maestro: el plan gratuito
-tiene cold-starts tras inactividad, lo que puede perder un webhook si llega mientras
-la instancia está arrancando. Evaluar upgrade a un plan pago antes de operar con
-pagos reales de producción (ver checklist).
+**Frontend/landing (Render)**: rolling deploy en el plan `starter` (nueva instancia
+arriba y pasando `healthCheckPath` antes de recibir tráfico, la vieja se apaga
+después) — no requiere configuración adicional. El plan gratuito tiene cold-starts
+tras inactividad.
+
+**Backend/worker (Fly.io)**: `fly.toml` tiene `min_machines_running = 1` y healthcheck
+en `/health` antes de que el proxy le mande tráfico a una máquina nueva — mismo
+efecto, sin plan pago.
 
 ## 9. Rollback
 
-`./scripts/rollback.sh` (requiere `RENDER_API_KEY` y `RENDER_SERVICE_ID`, ver el
-script). Alternativa manual: dashboard de Render → servicio → pestaña **Events** →
-elegir un deploy anterior → **Rollback to this deploy**.
+**Frontend/landing (Render)**: `./scripts/rollback.sh` (requiere `RENDER_API_KEY` y
+`RENDER_SERVICE_ID`, ver el script) o manualmente: dashboard de Render → servicio →
+pestaña **Events** → elegir un deploy anterior → **Rollback to this deploy**.
+
+**Backend/worker (Fly.io)**: `git revert` del commit problemático + push (dispara un
+nuevo deploy vía el Auto-Deploy conectado a GitHub), o desde el dashboard de Fly →
+Activity → elegir un release anterior → redeploy. `scripts/rollback.sh` no cubre Fly.
 
 ## 10. Scripts de operaciones
 
-Ver `scripts/` en la raíz del repo:
+Ver `scripts/` en la raíz del repo (backend/worker en Fly no usan estos dos):
 
-- `deploy.sh <backend|landing|frontend>` — dispara un deploy vía Deploy Hook
-- `rollback.sh` — vuelve al deploy anterior vía API de Render
+- `deploy.sh <landing|frontend>` — dispara un deploy vía Deploy Hook de Render
+- `rollback.sh` — vuelve al deploy anterior vía API de Render (frontend/landing)
 - `backup-db.sh` — `pg_dump` contra el Supabase real
 - `restore-db.sh` — restaura un backup (destructivo, pide confirmación)
 - `health-check.sh` — verifica que todos los endpoints públicos respondan

@@ -2,7 +2,9 @@
 # lapa-casa-hostel/scripts/rollback.sh
 # ventana6
 #
-# Vuelve un servicio de Render al deploy anterior exitoso, via la API
+# Vuelve un servicio de Render (landing o frontend -- backend/worker ya
+# no estan en Render, se mudaron a Fly.io, ver docs/DEPLOY.md seccion 9
+# para el rollback de esos dos) al deploy anterior exitoso, via la API
 # REST de Render (no via Deploy Hook -- rollback requiere listar deploys
 # y necesita un API key con permiso de lectura/escritura sobre el
 # servicio, no solo el hook de un solo uso).
