@@ -10,6 +10,15 @@ function showMsg(elId, text, type) {
   document.getElementById(elId).innerHTML = text ? `<div class="msg ${type}">${text}</div>` : '';
 }
 
+// Hostel y apartamentos comparten esta misma tabla (property_type +
+// unit_names vienen del join agregado en GET /admin/bookings) -- sin
+// esto no había forma de saber, mirando la lista, de cuál se trataba.
+function propertyTypeCell(b) {
+  const label = b.property_type === 'apartment' ? 'Apartamento' : b.property_type === 'hostel' ? 'Hostel' : '—';
+  const names = b.unit_names ? escapeHtml(b.unit_names) : '';
+  return names ? `${label}<br><small style="color:#888;">${names}</small>` : label;
+}
+
 function currentFilters() {
   return {
     status: document.getElementById('filter-status').value,
@@ -50,6 +59,7 @@ function renderTable() {
   tbody.innerHTML = rows.map(b => `
     <tr>
       <td>${escapeHtml(b.reservation_number)}</td>
+      <td>${propertyTypeCell(b)}</td>
       <td>${escapeHtml(b.guest_name)}<br><small style="color:#888;">${escapeHtml(b.guest_email)}</small></td>
       <td>${fmtDate(b.check_in_date)}</td>
       <td>${fmtDate(b.check_out_date)}</td>
@@ -61,7 +71,7 @@ function renderTable() {
         <button data-action="resend" data-id="${b.id}">Reenviar email</button>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="8" style="color:#888;">Sin reservas para estos filtros</td></tr>';
+  `).join('') || '<tr><td colspan="9" style="color:#888;">Sin reservas para estos filtros</td></tr>';
 
   tbody.querySelectorAll('button[data-action="edit"]').forEach(btn =>
     btn.addEventListener('click', () => openEdit(btn.dataset.id))

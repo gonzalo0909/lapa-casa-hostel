@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { Lang, RoomDef, T } from './hostel-engine.types';
-import { groupDisc } from './hostel-engine.utils';
 
 // ─── Props ────────────────────────────────────────────────
 interface HostelRoomSelectorProps {
@@ -15,16 +14,14 @@ interface HostelRoomSelectorProps {
   beds: Record<string, number>;
   revealed: { cuarto3: boolean; cuarto5: boolean };
   season: { mult: number; label: string; minNights: number };
-  totalBeds: number;
   onChangeBeds: (id: string, delta: number) => void;
 }
 
 // ─── Component ────────────────────────────────────────────
 export function HostelRoomSelector({
-  lang, rooms, beds, revealed, season, totalBeds, onChangeBeds,
+  lang, rooms, beds, revealed, season, onChangeBeds,
 }: HostelRoomSelectorProps) {
   const t = T[lang];
-  const disc = groupDisc(totalBeds);
 
   return (
     <div className="he-panel">
@@ -77,16 +74,6 @@ export function HostelRoomSelector({
       {/* Aviso cuarto flexible (Solo Mujeres) */}
       {(beds['cuarto6'] ?? 0) > 0 && (
         <div className="he-flex-notice">{t.flexibleNotice}</div>
-      )}
-
-      {/* Strip de descuento de grupo */}
-      {totalBeds > 0 && disc > 0 && (
-        <div className="he-disc-strip">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          {disc * 100}% {t.discountActive} — {totalBeds} {t.tBeds}
-        </div>
       )}
     </div>
   );

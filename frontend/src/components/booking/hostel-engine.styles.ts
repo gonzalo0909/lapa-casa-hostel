@@ -200,10 +200,7 @@ export const HOSTEL_ENGINE_CSS = `
 .he-glink-title{font-family:var(--font-cormorant),Georgia,serif;font-size:1.15rem;font-weight:600;color:#7BC47F;margin-bottom:.35rem}
 .he-glink-desc{font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.58;margin-bottom:1.25rem}
 .he-glink-code{font-family:ui-monospace,'Cascadia Code',monospace;font-size:1rem;font-weight:700;letter-spacing:.1em;color:#A7DFB8;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:.5rem 1rem;display:inline-block;margin-bottom:.85rem}
-.he-glink-url{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:8px;padding:.6rem .85rem;font-size:.72rem;color:#A7DFB8;font-family:ui-monospace,monospace;word-break:break-all;margin-bottom:.85rem;text-align:left;line-height:1.4}
 .he-glink-btns{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem}
-.he-glink-copy{padding:.62rem 1rem;border-radius:8px;font-size:.9rem;font-weight:700;background:#2A5234;color:#fff;border:none;cursor:pointer;font-family:inherit;transition:background .15s}
-.he-glink-copy:hover{background:#3A6844}
 .he-glink-wa{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.62rem 1rem;border-radius:8px;font-size:.9rem;font-weight:600;color:#fff;background:#25D366;text-decoration:none;transition:background .15s}
 .he-glink-wa:hover{background:#1DAE55}
 .he-glink-meta{font-size:.72rem;color:rgba(255,255,255,.58);line-height:1.55}

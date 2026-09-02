@@ -373,3 +373,15 @@
   loadList();
 
 })();
+
+// ── Pestañas externas (Apartamentos / Bloqueos / Ofertas / Precios dinámicos) ──
+// Fuera del IIFE de arriba porque no necesita nada de su estado interno.
+// Como archivo externo: la CSP del backend (scriptSrc: 'self', sin
+// unsafe-inline) bloquea silenciosamente cualquier <script> inline.
+document.querySelectorAll('.outer-tab-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var tab = btn.dataset.otab;
+    document.querySelectorAll('.outer-tab-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.outer-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'opanel-' + tab); });
+  });
+});

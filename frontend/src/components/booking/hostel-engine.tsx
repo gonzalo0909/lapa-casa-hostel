@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
-  Lang, Phase, PayMethod, RoomDef, FormState, FormErrors,
+  Lang, Phase, PayMethod, RoomDef, FormState, FormErrors, FieldFeedback,
   T, DEFAULT_ROOMS,
 } from './hostel-engine.types';
 import {
@@ -66,21 +66,21 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Estado del pago grupal ─
   const [isGroupLoading, setIsGroupLoading]       = useState(false);
   const [groupError, setGroupError]               = useState('');
-  const [groupLink, setGroupLink]                 = useState('');
   const [groupWaUrl, setGroupWaUrl]               = useState('');
   const [groupResNum, setGroupResNum]             = useState('');
   const [groupAmountPerBed, setGroupAmountPerBed] = useState(0);
-  const [groupLinkCopied, setGroupLinkCopied]     = useState(false);
+  // N-1: invitados que tienen que pagar (no incluye la cama del titular)
+  const [groupTotalBeds, setGroupTotalBeds]       = useState(0);
   // Datos mínimos del titular para el flujo grupal desde Step 2
   const [gpName, setGpName]   = useState('');
   const [gpEmail, setGpEmail] = useState('');
 
   // ─ Estado del formulario ─
-  const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'' });
+  const [form, setForm]               = useState<FormState>({ name:'', email:'', email2:'', phone:'', country:'BR', doc:'', arrival:'', requests:'', docPhotoBase64:'', restrictionAccepted:false });
   const [formErrors, setFormErrors]   = useState<FormErrors>({});
-  const [docFeedback, setDocFeedback] = useState('');
-  const [emailFb, setEmailFb]         = useState('');
-  const [phoneFb, setPhoneFb]         = useState('');
+  const [docFeedback, setDocFeedback] = useState<FieldFeedback | null>(null);
+  const [emailFb, setEmailFb]         = useState<FieldFeedback | null>(null);
+  const [phoneFb, setPhoneFb]         = useState<FieldFeedback | null>(null);
 
   // ─ Fetch cuartos reales cuando hay fechas ─
   useEffect(() => {
@@ -193,6 +193,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     if (!form.country)                                 errs.country = t.errCountry;
     if (!docOk)                                        errs.doc     = isBR ? t.errCPF : t.errDocForeign;
     if (!form.arrival)                                 errs.arrival = t.errArrival;
+    if (!form.docPhotoBase64)                          errs.docPhoto = t.errDocPhoto;
+    if (!form.restrictionAccepted)                     errs.restriction = t.errRestriction;
 
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) {
@@ -200,6 +202,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const fieldMap: Record<string, string> = {
         name:'he-f-name', email:'he-f-email', email2:'he-f-email2',
         phone:'he-f-phone', country:'he-f-country', doc:'he-f-doc', arrival:'he-f-arrival',
+        docPhoto:'he-f-doc-photo', restriction:'he-f-restriction',
       };
       const el = document.getElementById(fieldMap[firstKey] ?? '');
       if (el) {
@@ -253,7 +256,10 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         checkIn:  checkIn!.toISOString().slice(0, 10),
         checkOut: checkOut!.toISOString().slice(0, 10),
         rooms: selectedRooms.map(r => ({ roomId: r.realId || r.id, bedsCount: beds[r.id] ?? 0 })),
-        guest: { firstName, lastName, email: form.email, phone: form.phone, country: form.country, document: form.doc },
+        guest: {
+          firstName, lastName, email: form.email, phone: form.phone, country: form.country,
+          document: form.doc, documentPhotoBase64: form.docPhotoBase64,
+        },
         specialRequests: form.requests,
         arrivalTime: form.arrival,
         // El backend (email-service.ts) solo soporta pt/en/es -- de/fr/it
@@ -329,10 +335,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ Precio en footer ─
   const footerPrice = (() => {
     if (price) {
-      const disc = price.disc > 0 ? ` (${price.disc * 100}% desc.)` : '';
       return {
         main: fmtMoney(price.total),
-        sub:  `${price.beds} ${price.beds === 1 ? t.tBed : t.tBeds} · ${price.nights} ${price.nights === 1 ? t.tNight : t.tNights2}${disc}`,
+        sub:  `${price.beds} ${price.beds === 1 ? t.tBed : t.tBeds} · ${price.nights} ${price.nights === 1 ? t.tNight : t.tNights2}`,
       };
     }
     if (checkIn && !checkOut) return { main: t.tSelectCheckout, sub: t.tClickCheckout };
@@ -417,10 +422,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         specialRequests: form.requests || undefined,
       });
       const payload = result.data?.data ?? result.data;
-      setGroupLink(payload.groupPaymentUrl ?? '');
       setGroupWaUrl(payload.waShareUrl ?? '');
       setGroupResNum(payload.reservationNumber ?? '');
       setGroupAmountPerBed(payload.amountPerBed ?? 0);
+      // El backend ya descuenta la cama del titular (N-1 invitados)
+      setGroupTotalBeds(payload.totalBeds ?? Math.max(0, totalBeds - 1));
       setPhase('group');
     } catch (err: any) {
       setGroupError(err?.response?.data?.error || err?.message || t.gpErrGeneric);
@@ -437,13 +443,14 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     setTimeout(() => setPixCopied(false), 3000);
   }, [pixData]);
 
-  const handleGroupLinkCopy = useCallback(() => {
-    navigator.clipboard.writeText(groupLink).catch(() => {});
-    setGroupLinkCopied(true);
-    setTimeout(() => setGroupLinkCopied(false), 3000);
-  }, [groupLink]);
-
   const handleNewBooking = useCallback(() => { window.location.reload(); }, []);
+
+  // ─ El titular reserva su propia cama, aparte de la sesión grupal ─
+  const handleBookOwnBed = useCallback(() => {
+    setForm(f => ({ ...f, name: f.name || gpName, email: f.email || gpEmail }));
+    setPhase('wizard');
+    setStep(3);
+  }, [gpName, gpEmail]);
 
   // ─── JSX ────────────────────────────────────────────────
   return (
@@ -528,7 +535,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                   beds={beds}
                   revealed={revealed}
                   season={season}
-                  totalBeds={totalBeds}
                   onChangeBeds={changeBeds}
                 />
 
@@ -601,18 +607,14 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                 checkOut={checkOut}
                 rooms={rooms}
                 beds={beds}
-                totalBeds={totalBeds}
                 payMethod={payMethod}
                 onPayMethodChange={setPayMethod}
                 currency={currency}
                 convertBRL={convertBRL}
                 bookingError={bookingError}
-                groupError={groupError}
                 isProcessing={isProcessing}
-                isGroupLoading={isGroupLoading}
                 isWaLoading={isWaLoading}
                 onConfirm={handleConfirm}
-                onGroupSession={handleGroupSession}
                 onWaClick={handleWaClick}
               />
             )}
@@ -657,14 +659,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         {phase === 'group' && (
           <HostelGroupPanel
             t={t}
-            totalBeds={totalBeds}
+            totalBeds={groupTotalBeds}
             groupResNum={groupResNum}
-            groupLink={groupLink}
             groupWaUrl={groupWaUrl}
-            groupLinkCopied={groupLinkCopied}
-            onCopyLink={handleGroupLinkCopy}
             groupAmountPerBed={groupAmountPerBed}
-            onNewBooking={handleNewBooking}
+            onBookOwnBed={handleBookOwnBed}
           />
         )}
 

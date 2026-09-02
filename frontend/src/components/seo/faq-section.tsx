@@ -230,7 +230,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Tem cozinha nos apartamentos?',
-      answer:   'Sim, os apartamentos têm acesso à cozinha compartilhada disponível das 8h às 22h.',
+      answer:   'Sim, cada apartamento possui sua própria cozinha privativa e equipada.',
     },
     {
       question: 'Qual é a política de cancelamento?',
@@ -242,7 +242,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Tem estacionamento?',
-      answer:   'Não temos estacionamento próprio, mas há vagas na rua em Santa Teresa.',
+      answer:   'Nenhum dos apartamentos possui estacionamento próprio. Cada um fica em um endereço diferente no Rio de Janeiro, então as opções de estacionamento variam conforme a região.',
     },
   ],
   es: [
@@ -260,7 +260,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: '¿Hay cocina en los apartamentos?',
-      answer:   'Sí, los apartamentos tienen acceso a la cocina compartida disponible de 8:00 a 22:00.',
+      answer:   'Sí, cada apartamento cuenta con su propia cocina privada y equipada.',
     },
     {
       question: '¿Cuál es la política de cancelación?',
@@ -272,7 +272,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: '¿Hay estacionamiento?',
-      answer:   'No tenemos estacionamiento propio, pero hay lugares en la calle en Santa Teresa.',
+      answer:   'Ninguno de los apartamentos cuenta con estacionamiento propio. Cada uno está en una dirección distinta dentro de Río de Janeiro, por lo que las opciones de estacionamiento varían según la zona.',
     },
   ],
   en: [
@@ -290,7 +290,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Is there a kitchen in the apartments?',
-      answer:   'Yes, apartments have access to the shared kitchen available from 8:00 AM to 10:00 PM.',
+      answer:   'Yes, each apartment has its own private, fully equipped kitchen.',
     },
     {
       question: 'What is the cancellation policy?',
@@ -302,7 +302,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Is there parking?',
-      answer:   'We do not have our own parking, but there is street parking in Santa Teresa.',
+      answer:   'None of the apartments have their own parking. Each one is at a different address in Rio de Janeiro, so parking options vary by area.',
     },
   ],
   de: [
@@ -320,7 +320,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Gibt es eine Küche in den Apartments?',
-      answer:   'Ja, die Apartments haben Zugang zur Gemeinschaftsküche, die von 8:00 bis 22:00 Uhr geöffnet ist.',
+      answer:   'Ja, jedes Apartment verfügt über eine eigene, voll ausgestattete Küche.',
     },
     {
       question: 'Wie lautet die Stornierungsrichtlinie?',
@@ -332,7 +332,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Gibt es Parkplätze?',
-      answer:   'Wir haben keinen eigenen Parkplatz, aber es gibt Straßenparkplätze in Santa Teresa.',
+      answer:   'Keines der Apartments verfügt über einen eigenen Parkplatz. Jedes befindet sich an einer anderen Adresse in Rio de Janeiro, daher variieren die Parkmöglichkeiten je nach Lage.',
     },
   ],
   fr: [
@@ -350,7 +350,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Y a-t-il une cuisine dans les appartements ?',
-      answer:   "Oui, les appartements ont accès à la cuisine commune disponible de 8h00 à 22h00.",
+      answer:   "Oui, chaque appartement dispose de sa propre cuisine privée entièrement équipée.",
     },
     {
       question: "Quelle est la politique d'annulation ?",
@@ -362,7 +362,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: 'Y a-t-il un parking ?',
-      answer:   "Nous n'avons pas de parking propre, mais il y a des places dans la rue à Santa Teresa.",
+      answer:   "Aucun appartement ne dispose de parking propre. Chacun se trouve à une adresse différente à Rio de Janeiro, les options de stationnement varient donc selon le quartier.",
     },
   ],
   it: [
@@ -380,7 +380,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: "C'è una cucina negli appartamenti?",
-      answer:   'Sì, gli appartamenti hanno accesso alla cucina condivisa disponibile dalle 8:00 alle 22:00.',
+      answer:   'Sì, ogni appartamento dispone di una propria cucina privata completamente attrezzata.',
     },
     {
       question: 'Qual è la politica di cancellazione?',
@@ -392,7 +392,7 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     },
     {
       question: "C'è un parcheggio?",
-      answer:   "Non abbiamo un parcheggio proprio, ma ci sono posti in strada a Santa Teresa.",
+      answer:   "Nessuno degli appartamenti dispone di parcheggio proprio. Ognuno si trova in un indirizzo diverso a Rio de Janeiro, quindi le opzioni di parcheggio variano in base alla zona.",
     },
   ],
 };

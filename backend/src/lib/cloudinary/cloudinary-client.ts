@@ -95,3 +95,34 @@ export async function deleteGuestPhoto(publicId: string): Promise<void> {
   }
   await cloudinary.uploader.destroy(publicId);
 }
+
+/**
+ * Sube la foto del documento de identidad (DNI/pasaporte) de un huésped a
+ * la carpeta privada guest-documents -- separada de guest-photos, que es
+ * la galería pública de marketing. type: 'authenticated' evita que la URL
+ * quede indexable/pública como las fotos de la galería.
+ */
+export async function uploadDocumentPhoto(buffer: Buffer): Promise<UploadedPhoto> {
+  if (!ensureConfigured()) {
+    throw new Error('Cloudinary no está configurado');
+  }
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'guest-documents',
+        type: 'authenticated',
+        transformation: [{ width: 1600, crop: 'limit' }, { quality: 'auto' }, { fetch_format: 'auto' }],
+      },
+      (error, result) => {
+        if (error || !result) {
+          logger.error('Error subiendo foto de documento a Cloudinary', { error: error?.message });
+          reject(error ?? new Error('Upload failed'));
+          return;
+        }
+        resolve({ url: result.secure_url, publicId: result.public_id });
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}

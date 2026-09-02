@@ -4,7 +4,7 @@
 // selector de método de pago y botones de confirmación.
 
 import React from 'react';
-import { CreditCard, MessageCircle, Users, Zap } from 'lucide-react';
+import { CreditCard, MessageCircle, Zap } from 'lucide-react';
 import { FormState, PayMethod, RoomDef, Translations } from './hostel-engine.types';
 import { calcPrice, fmtDate, fmtMoney } from './hostel-engine.utils';
 import type { CurrencyInfo } from '@/hooks/use-currency';
@@ -19,26 +19,22 @@ interface HostelStep4SummaryProps {
   checkOut: Date;
   rooms: RoomDef[];
   beds: Record<string, number>;
-  totalBeds: number;
   payMethod: PayMethod;
   onPayMethodChange: (m: PayMethod) => void;
   currency: CurrencyInfo | null;
   convertBRL: (v: number, currency: CurrencyInfo) => string;
   bookingError: string;
-  groupError: string;
   isProcessing: boolean;
-  isGroupLoading: boolean;
   isWaLoading: boolean;
   onConfirm: () => void;
-  onGroupSession: () => void;
   onWaClick: () => void;
 }
 
 export function HostelStep4Summary({
-  t, form, price, checkIn, checkOut, rooms, beds, totalBeds, payMethod, onPayMethodChange,
-  currency, convertBRL, bookingError, groupError,
-  isProcessing, isGroupLoading, isWaLoading,
-  onConfirm, onGroupSession, onWaClick,
+  t, form, price, checkIn, checkOut, rooms, beds, payMethod, onPayMethodChange,
+  currency, convertBRL, bookingError,
+  isProcessing, isWaLoading,
+  onConfirm, onWaClick,
 }: HostelStep4SummaryProps) {
   const selR = rooms.filter(r => (beds[r.id] ?? 0) > 0);
   const mult       = payMethod === 'card' ? 1.10 : 1;
@@ -79,12 +75,6 @@ export function HostelStep4Summary({
             <span>Subtotal ({price.beds} {t.tBeds} × {price.nights} {t.tNights2})</span>
             <span>{fmtMoney(price.subtotal)}</span>
           </div>
-          {price.disc > 0 && (
-            <div className="he-sum-row disc">
-              <span>{t.tGroupDisc} ({price.disc * 100}%)</span>
-              <span>− {fmtMoney(price.discAmt)}</span>
-            </div>
-          )}
           <div className="he-sum-row total">
             <span>{t.tTotal}</span>
             <span>
@@ -147,55 +137,18 @@ export function HostelStep4Summary({
             </div>
           </div>
         </button>
-        {/* ── Pago grupal — visible solo cuando hay ≥2 camas ── */}
-        {totalBeds >= 2 && (
-          <button type="button" className={`he-pay-m${payMethod === 'group' ? ' selected' : ''}`} onClick={() => onPayMethodChange('group')}>
-            <input type="radio" name="he-pay" value="group" checked={payMethod === 'group'} readOnly style={{ flexShrink: 0, accentColor: '#2A5234' }} />
-            <div className="he-pm-info">
-              <div className="he-pm-name">
-                <Users size={13} aria-hidden />{t.pmGroup}
-              </div>
-              <div className="he-pm-detail">{t.pmGroupSub}</div>
-            </div>
-          </button>
-        )}
       </div>
       <div className="he-pm-note">{t.pmNote}</div>
 
       {bookingError && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{bookingError}</div>}
-      {groupError   && <div className="he-toast" style={{ margin: '0 0 .75rem' }}>{groupError}</div>}
 
-      {payMethod === 'group' ? (
-        <button className="he-btn-confirm" onClick={onGroupSession} disabled={isGroupLoading}>
-          {isGroupLoading ? (t.groupCreating ?? 'Criando…') : t.pmGroup}
-        </button>
-      ) : (
-        <button className="he-btn-confirm" onClick={onConfirm} disabled={isProcessing}>
-          {isProcessing ? '...' : t.btnConfirm}
-        </button>
-      )}
+      <button className="he-btn-confirm" onClick={onConfirm} disabled={isProcessing}>
+        {isProcessing ? '...' : t.btnConfirm}
+      </button>
       <button className="he-btn-wa" onClick={onWaClick} disabled={isWaLoading}>
         <MessageCircle size={16} aria-hidden />
         {isWaLoading ? '...' : t.btnWhatsApp}
       </button>
-
-      {/* ── Pago grupal (solo si hay 2+ camas) ── */}
-      {totalBeds >= 2 && (
-        <>
-          <div className="he-or-divider">{t.gpOr}</div>
-          <div className="he-group-box">
-            <div className="he-group-title">{t.gpTitle}</div>
-            <div className="he-group-desc">{t.gpDesc}</div>
-            <div className="he-group-meta">
-              {totalBeds} {totalBeds === 1 ? t.tBed : t.tBeds} · {t.gpMetaEach} {price ? fmtMoney(Math.round(price.total / totalBeds)) : ''}
-            </div>
-            {groupError && <div className="he-group-err">{groupError}</div>}
-            <button className="he-btn-group" onClick={onGroupSession} disabled={isGroupLoading}>
-              {isGroupLoading ? t.gpLoading : t.gpBtn}
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }

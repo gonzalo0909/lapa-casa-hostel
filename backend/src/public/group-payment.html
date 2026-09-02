@@ -288,6 +288,77 @@
       text-align: center;
     }
     .loading { text-align: center; padding: 40px; color: #888; }
+
+    /* Foto del documento — obligatoria */
+    .doc-upload-wrap { position: relative; }
+    .doc-upload-input {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .doc-upload-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border: 2px dashed #ccc; border-radius: 8px; padding: 16px 12px;
+      font-size: 0.85rem; color: #888; background: #fafafa;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      text-align: center; line-height: 1.4;
+    }
+    .doc-upload-btn.has-file { border-color: #27ae60; background: #f0faf4; color: #27ae60; }
+    .doc-preview { margin-top: 8px; display: none; }
+    .doc-preview img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 7px; border: 1px solid #eee; }
+    .btn-change-doc {
+      margin-top: 6px; background: none; border: none; color: #999;
+      font-size: 0.73rem; cursor: pointer; text-decoration: underline; padding: 0;
+    }
+
+    /* Normas de la casa (incluye la restricción de edad/movilidad y su checkbox) */
+    .house-rules {
+      background: #f7f6f3;
+      border: 1.5px solid #e5e1d8;
+      border-radius: 9px;
+      padding: 14px 15px;
+      margin-bottom: 14px;
+    }
+    .house-rules-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6a6058;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .house-rule {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #444;
+      line-height: 1.5;
+      padding: 3px 0;
+    }
+    .house-rule svg { flex-shrink: 0; margin-top: 2px; color: #6a6058; }
+    .restriction-label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: #444;
+      line-height: 1.5;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e1d8;
+    }
+    .restriction-input {
+      margin-top: 2px;
+      flex-shrink: 0;
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+    }
   </style>
 </head>
 <body>
@@ -295,7 +366,7 @@
 <!-- Banner -->
 <div class="banner" id="banner" style="display:none">
   <h2>Tu cama en el grupo</h2>
-  <p>Completá tus datos y pagá tu cama. Cuando el último integrante pague, la reserva se confirma automáticamente.</p>
+  <p>Cualquier integrante del grupo puede abrir este mismo link. Completá tus datos, subí tu documento y pagá tu propia cama.</p>
 </div>
 
 <div class="main">
@@ -354,6 +425,22 @@
         <input type="text" id="f-country" autocomplete="country-name" placeholder="Brasil">
       </div>
 
+      <!-- Foto del documento — obligatoria -->
+      <div class="form-group">
+        <label>Foto del documento (DNI / Pasaporte) *</label>
+        <div class="doc-upload-wrap">
+          <input type="file" id="f-doc-photo" class="doc-upload-input" accept="image/*" required>
+          <div class="doc-upload-btn" id="doc-upload-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            <span id="doc-upload-text">Tocá para sacar foto o subir imagen</span>
+          </div>
+        </div>
+        <div class="doc-preview" id="doc-preview">
+          <img id="doc-img" src="" alt="">
+          <button type="button" class="btn-change-doc" id="btn-change-doc">Cambiar foto</button>
+        </div>
+      </div>
+
       <div style="margin-bottom:6px; font-size:0.8rem; font-weight:600; color:#555;">
         Forma de pago *
       </div>
@@ -381,6 +468,23 @@
           <span>Total a pagar</span>
           <span id="price-total">R$ —</span>
         </div>
+      </div>
+
+      <!-- Normas de la casa (incluye la restricción de edad/movilidad y su confirmación) -->
+      <div class="house-rules">
+        <div class="house-rules-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          Normas de la casa
+        </div>
+        <div class="house-rule">Check-in: 14h–22h. Check-out: hasta las 12h.</div>
+        <div class="house-rule">Documento de identidad obligatorio en el check-in.</div>
+        <div class="house-rule">Hospedaje permitido a partir de 18 años.</div>
+        <div class="house-rule">Prohibido fumar dentro del hostel.</div>
+        <div class="house-rule">Camas literas de tres pisos: no aptas para mayores de 50 años ni personas con movilidad reducida.</div>
+        <label class="restriction-label">
+          <input type="checkbox" id="restriction-check" class="restriction-input" required>
+          <span>Confirmo que leí y acepto las normas de la casa de arriba.</span>
+        </label>
       </div>
 
       <button type="submit" class="btn-pay" id="btn-pay">Continuar con el pago</button>

@@ -32,6 +32,9 @@ export interface Guest {
   document_number: string | null;
   country: string | null;
   language: string | null;
+  document_photo_url: string | null;
+  document_photo_public_id: string | null;
+  document_photo_uploaded_at: Date | null;
   metadata: Record<string, any> | null;
   created_at: Date;
   updated_at: Date;

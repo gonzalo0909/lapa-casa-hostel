@@ -13,6 +13,48 @@ interface Props {
   locale: string;
 }
 
+// Texto comercial que antes vivía en el banner de la home
+// (property-management-banner.tsx, sacado de ahí porque mezclaba
+// huéspedes con dueños de propiedad) -- acá sí es el público correcto.
+const PARTNER_INVITE: Record<string, { title: string; subtitle: string; cta: string; whatsappMessage: string }> = {
+  pt: {
+    title: 'Seu apartamento rendendo no Rio de Janeiro, sem você mexer um dedo.',
+    subtitle: 'Cuidamos de tudo: gestão do aluguel por temporada, hóspedes e limpeza. Você só recebe.',
+    cta: 'Quero saber mais',
+    whatsappMessage: 'Olá! Tenho um apartamento no Rio de Janeiro e quero saber mais sobre a gestão de aluguel por temporada.'
+  },
+  es: {
+    title: 'Tu apartamento generando ingresos en Río de Janeiro, sin mover un dedo.',
+    subtitle: 'Nos encargamos de todo: gestión del alquiler por temporada, huéspedes y limpieza. Vos solo cobrás.',
+    cta: 'Quiero saber más',
+    whatsappMessage: '¡Hola! Tengo un apartamento en Río de Janeiro y quiero saber más sobre la gestión de alquiler por temporada.'
+  },
+  en: {
+    title: 'Your apartment earning in Rio de Janeiro, without you lifting a finger.',
+    subtitle: 'We handle everything: short-term rental management, guests, and cleaning. You just collect.',
+    cta: 'Tell me more',
+    whatsappMessage: 'Hi! I have an apartment in Rio de Janeiro and I want to know more about your short-term rental management.'
+  },
+  fr: {
+    title: 'Votre appartement génère des revenus à Rio de Janeiro, sans que vous ayez à vous en occuper.',
+    subtitle: 'On s’occupe de tout : gestion de la location saisonnière, voyageurs et ménage. Vous n’avez qu’à encaisser.',
+    cta: 'En savoir plus',
+    whatsappMessage: 'Bonjour ! J’ai un appartement à Rio de Janeiro et je voudrais en savoir plus sur votre gestion de location saisonnière.'
+  },
+  de: {
+    title: 'Ihre Wohnung in Rio de Janeiro bringt Einnahmen, ohne dass Sie etwas tun müssen.',
+    subtitle: 'Wir kümmern uns um alles: Verwaltung der Ferienvermietung, Gäste und Reinigung. Sie kassieren einfach.',
+    cta: 'Mehr erfahren',
+    whatsappMessage: 'Hallo! Ich habe eine Wohnung in Rio de Janeiro und möchte mehr über Ihre Verwaltung von Ferienwohnungen erfahren.'
+  },
+  it: {
+    title: 'Il tuo appartamento genera reddito a Rio de Janeiro, senza che tu debba muovere un dito.',
+    subtitle: 'Pensiamo a tutto: gestione dell\'affitto breve, ospiti e pulizie. Tu incassi soltanto.',
+    cta: 'Voglio saperne di più',
+    whatsappMessage: 'Ciao! Ho un appartamento a Rio de Janeiro e vorrei saperne di più sulla gestione dell\'affitto breve.'
+  }
+};
+
 const CLAUSES = [
   {
     id: 1,
@@ -376,9 +418,38 @@ function ContactForm() {
   );
 }
 
-export function PartnerContractPage({ locale: _locale }: Props) {
+export function PartnerContractPage({ locale }: Props) {
+  const invite = PARTNER_INVITE[locale] ?? PARTNER_INVITE.pt!;
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530';
+
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '2.5rem 1.25rem 4rem', fontFamily: 'Georgia, serif' }}>
+      {/* Invitación comercial -- antes vivía como banner en la home */}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '.85rem',
+        marginBottom: '2rem', padding: '1rem 1.25rem', borderRadius: 10,
+        background: 'linear-gradient(to right, #fffbeb, #fff7ed)', border: '1px solid #fde68a',
+        fontFamily: 'system-ui, sans-serif',
+      }}>
+        <span style={{ fontSize: '1.75rem' }}>🔑</span>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <p style={{ margin: 0, fontWeight: 600, color: '#78350f', fontSize: '.95rem' }}>{invite.title}</p>
+          <p style={{ margin: 0, color: '#92400e', fontSize: '.82rem' }}>{invite.subtitle}</p>
+        </div>
+        <a
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(invite.whatsappMessage)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flexShrink: 0, padding: '.55rem 1.1rem', borderRadius: 8,
+            background: '#d97706', color: '#fff', fontSize: '.85rem', fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          {invite.cta}
+        </a>
+      </div>
+
       {/* Header */}
       <div style={{ marginBottom: '2.5rem' }}>
         <div style={{

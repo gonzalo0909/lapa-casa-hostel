@@ -1,22 +1,38 @@
 // lapa-casa-hostel/backend/src/admin/js/nav.js
-// ventana4 (bloque 2): barra de navegación compartida entre las 4 páginas del panel
+// Barra de navegación compartida entre las páginas del panel.
+//
+// Bloqueos, Ofertas y Precios dinámicos dejaron de ser pestañas propias
+// acá -- ahora viven embebidos (vía iframe) dentro de Hostel y de
+// Apartamentos, cada uno filtrado a su tipo de propiedad. Precios
+// (temporadas, descuento por grupo, guardavolumes, tarjeta, PIX) también
+// se movió adentro de Hostel completo -- son todos conceptos por cama,
+// no aplican a apartamentos. Sus páginas siguen existiendo
+// (blocking.html, offers.html, dynamic-pricing.html, pricing.html) para
+// poder embeberse, pero no aparecen en esta barra.
+//
+// ?embed=1 en la URL oculta esta barra por completo -- es la señal que
+// usan esas páginas cuando se cargan dentro de un <iframe>, para no
+// mostrar una segunda barra de navegación dentro de otra.
 
 function renderNav(activePage) {
   const root = document.getElementById('nav-root');
   if (!root) return;
 
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    root.remove();
+    return;
+  }
+
   const links = [
     { href: '/admin/index.html', label: 'Dashboard', page: 'dashboard' },
     { href: '/admin/bookings.html', label: 'Reservas', page: 'bookings' },
-    { href: '/admin/rooms.html', label: 'Habitaciones', page: 'rooms' },
-    { href: '/admin/pricing.html', label: 'Precios', page: 'pricing' },
+    { href: '/admin/rooms.html', label: 'Hostel', page: 'rooms' },
+    { href: '/admin/apartments.html', label: 'Apartamentos', page: 'apartments' },
     { href: '/admin/conflicts.html', label: 'Conflictos', page: 'conflicts' },
     { href: '/admin/photos.html', label: 'Fotos huésp.', page: 'photos' },
-    { href: '/admin/apartments.html', label: 'Apartamentos', page: 'apartments' },
-    { href: '/admin/blocking.html', label: 'Bloqueos', page: 'blocking' },
+    { href: '/admin/gallery.html', label: 'Galería', page: 'gallery' },
     { href: '/admin/ical.html', label: 'iCal / OTAs', page: 'ical' },
-    { href: '/admin/offers.html', label: 'Ofertas', page: 'offers' },
-    { href: '/admin/dynamic-pricing.html', label: 'Precios Din.', page: 'dynamic-pricing' },
     { href: '/admin/blacklist.html', label: 'Lista negra', page: 'blacklist' }
   ];
 
@@ -26,7 +42,7 @@ function renderNav(activePage) {
 
   root.innerHTML = `
     <header class="topbar">
-      <span class="brand">LAPA CASA HOSTEL — Admin</span>
+      <span class="brand">LAPA CASA — Admin</span>
       <nav class="tabs">${linksHtml}</nav>
       <button id="logout-btn">Salir</button>
     </header>

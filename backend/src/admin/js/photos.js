@@ -1,4 +1,10 @@
 // lapa-casa-hostel/backend/src/admin/js/photos.js
+//
+// Fotos de documento de identidad, subidas automáticamente por los
+// huéspedes al reservar (GET /admin/guests/document-photos). Solo
+// lectura -- reemplaza el uploader manual que había acá antes, que en
+// realidad era para la galería de marketing "bitácora de viajantes"
+// (esa funcionalidad se movió a gallery.html/gallery.js, sigue viva).
 
 requireAuth();
 renderNav('photos');
@@ -7,121 +13,33 @@ function showMsg(elId, text, type) {
   document.getElementById(elId).innerHTML = text ? `<div class="msg ${type}">${text}</div>` : '';
 }
 
-async function loadPhotos() {
+async function loadDocumentPhotos() {
   try {
-    const data = await apiFetch('/admin/photos');
-    renderGallery(data.photos);
+    const data = await apiFetch('/admin/guests/document-photos');
+    renderGrid(data.guests);
   } catch (err) {
     showMsg('gallery-msg', err.message, 'error');
   }
 }
 
-function renderGallery(photos) {
-  const grid = document.getElementById('photo-grid');
-  if (photos.length === 0) {
-    grid.innerHTML = '<p style="color:#888;">Todavía no subiste ninguna foto.</p>';
+function renderGrid(guests) {
+  const grid = document.getElementById('doc-grid');
+  if (guests.length === 0) {
+    grid.innerHTML = '<p style="color:#888;">Todavía ningún huésped subió su documento.</p>';
     return;
   }
 
-  grid.innerHTML = photos.map(p => `
-    <div class="photo-card ${p.is_published ? '' : 'unpublished'}" data-id="${p.id}">
-      <img src="${escapeHtml(p.image_url)}" alt="">
+  grid.innerHTML = guests.map(g => `
+    <div class="doc-card">
+      <img src="${escapeHtml(g.document_photo_url)}" alt="Documento de ${escapeHtml(g.full_name)}">
       <div class="body">
-        <input type="text" class="guest-name" value="${escapeHtml(p.guest_name || '')}" placeholder="Nombre">
-        <input type="text" class="guest-country" value="${escapeHtml(p.guest_country || '')}" placeholder="País (2 letras)" maxlength="2">
-        <input type="text" class="caption" value="${escapeHtml(p.caption || '')}" placeholder="Comentario">
-        <div class="actions">
-          <label style="font-size:12px;">
-            <input type="checkbox" class="is-published" ${p.is_published ? 'checked' : ''}> Publicada
-          </label>
-          <div>
-            <button data-action="save" style="font-size:12px;">Guardar</button>
-            <button data-action="delete" style="font-size:12px;color:#b00;">Borrar</button>
-          </div>
-        </div>
+        <div class="name">${escapeHtml(g.full_name)}</div>
+        <div class="meta">${escapeHtml(g.email || '')}</div>
+        ${g.reservation_number ? `<div class="meta">Reserva ${escapeHtml(g.reservation_number)} · ${fmtDate(g.check_in_date)} – ${fmtDate(g.check_out_date)}</div>` : ''}
+        <div class="meta">Subida: ${g.document_photo_uploaded_at ? fmtDate(g.document_photo_uploaded_at) : '—'}</div>
       </div>
     </div>
   `).join('');
-
-  grid.querySelectorAll('button[data-action="save"]').forEach(btn => {
-    btn.addEventListener('click', () => savePhoto(btn.closest('.photo-card')));
-  });
-  grid.querySelectorAll('button[data-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => deletePhoto(btn.closest('.photo-card')));
-  });
 }
 
-async function savePhoto(card) {
-  const id = card.dataset.id;
-  try {
-    await apiFetch(`/admin/photos/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        guestName: card.querySelector('.guest-name').value,
-        guestCountry: card.querySelector('.guest-country').value,
-        caption: card.querySelector('.caption').value,
-        isPublished: card.querySelector('.is-published').checked
-      })
-    });
-    showMsg('gallery-msg', 'Foto actualizada.', 'success');
-    loadPhotos();
-  } catch (err) {
-    showMsg('gallery-msg', err.message, 'error');
-  }
-}
-
-async function deletePhoto(card) {
-  if (!confirm('¿Borrar esta foto? No se puede deshacer.')) return;
-  const id = card.dataset.id;
-  try {
-    await apiFetch(`/admin/photos/${id}`, { method: 'DELETE' });
-    showMsg('gallery-msg', 'Foto borrada.', 'success');
-    loadPhotos();
-  } catch (err) {
-    showMsg('gallery-msg', err.message, 'error');
-  }
-}
-
-document.getElementById('upload-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const fileInput = document.getElementById('photo-file');
-  const file = fileInput.files[0];
-  if (!file) return;
-
-  const uploadBtn = document.getElementById('upload-btn');
-  uploadBtn.disabled = true;
-  uploadBtn.textContent = 'Subiendo...';
-
-  const formData = new FormData();
-  formData.append('photo', file);
-  formData.append('guestName', document.getElementById('guest-name').value);
-  formData.append('guestCountry', document.getElementById('guest-country').value);
-  formData.append('caption', document.getElementById('caption').value);
-
-  try {
-    // No usa apiFetch: esa función fuerza Content-Type: application/json,
-    // que rompe un multipart/form-data (el boundary lo tiene que poner
-    // el propio browser).
-    // M-02: credentials:'include' envía la cookie httpOnly — no se construye
-    // el header Authorization manualmente (getToken() ya no existe).
-    const res = await fetch('/api/v1/admin/photos', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok || body.success === false) {
-      throw new Error(body.error || `Error ${res.status}`);
-    }
-    showMsg('upload-msg', 'Foto subida.', 'success');
-    document.getElementById('upload-form').reset();
-    loadPhotos();
-  } catch (err) {
-    showMsg('upload-msg', err.message, 'error');
-  } finally {
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = 'Subir foto';
-  }
-});
-
-loadPhotos();
+loadDocumentPhotos();

@@ -8,7 +8,7 @@ ALTER TYPE booking_status ADD VALUE IF NOT EXISTS 'pending_group';
 
 -- ── 2) group_payment_sessions ─────────────────────────────────────────────────
 -- Una sesión por reserva grupal. El token es el identificador público del link.
--- expires_at = created_at + 30 min (seteado por el servicio).
+-- expires_at = created_at + 10 min (seteado por el servicio).
 -- pricing_strategy y season_type se guardan en el momento de crear la sesión
 -- para que el precio no cambie aunque la temporada cambie mientras el grupo paga.
 CREATE TABLE IF NOT EXISTS group_payment_sessions (
