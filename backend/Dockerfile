@@ -21,6 +21,8 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
+COPY prisma.config.ts ./
+COPY prisma ./prisma/
 
 # ===========================================
 # DEVELOPMENT STAGE
