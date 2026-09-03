@@ -364,26 +364,6 @@ export const paymentAPI = {
 };
 
 /**
- * Rooms API endpoints — alineados con backend/src/routes/rooms/
- */
-export const roomsAPI = {
-  /**
-   * List all rooms (las 5 reales) + info del hostel, precios base, descuentos, políticas
-   */
-  list: () => api.get('/rooms'),
-
-  /**
-   * Get room by real room_types.id UUID
-   */
-  getById: (roomId: string) => api.get(`/rooms/${roomId}`),
-
-  /**
-   * Flexible-7 conversion status/prediction for a date
-   */
-  getFlexibleStatus: (date: string) => api.get(`/rooms/flexible/status?date=${date}`)
-};
-
-/**
  * Photos API — galería pública de fotos de huéspedes ("bitácora de viajantes"),
  * alineada con backend/src/routes/photos/photos.routes.ts. Solo lectura:
  * la carga es exclusiva del admin (backend/src/admin/photos.html).
@@ -442,30 +422,7 @@ export function handleAPIError(error: unknown, locale: 'pt' | 'es' | 'en' | 'fr'
   return text.unexpected;
 }
 
-/**
- * Check if error is network error
- * 
- * @param error - Error object
- * @returns True if network error
- */
-export function isNetworkError(error: unknown): boolean {
-  if (error instanceof TypeError) {
-    return error.message.includes('fetch') || error.message.includes('network');
-  }
-  return false;
-}
-
-/**
- * Check if error is timeout error
- * 
- * @param error - Error object
- * @returns True if timeout error
- */
-export function isTimeoutError(error: unknown): boolean {
-  if (error instanceof Error) {
-    return error.name === 'AbortError';
-  }
-  return false;
-}
-
-export default api;
+// FIX (auditoría 17 secciones, sección 13): se eliminan roomsAPI,
+// isNetworkError, isTimeoutError y el `export default api` (duplicaba el
+// export nombrado `api` de arriba) -- sin ningún import externo, verificado
+// con knip + grep manual.
