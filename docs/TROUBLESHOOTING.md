@@ -4,9 +4,10 @@
 
 `config/database.ts` tira esto al importarse si `DATABASE_URL` no está seteada —
 es intencional (falla rápido en vez de arrancar en un estado inconsistente).
-Verificar la variable en Render (Environment) o en `backend/.env` local.
+Verificar la variable en Fly.io (`fly secrets list -a <app-backend>` — backend/worker
+viven ahí desde 2026-09-02, no en Render) o en `backend/.env` local.
 
-## `GET /health` devuelve 503 / Render marca el deploy como unhealthy
+## `GET /health` devuelve 503 / Fly.io marca el deploy como unhealthy
 
 `/health` solo depende de la base (`testConnection()`). Si falla:
 
@@ -51,7 +52,7 @@ por qué necesitan el body crudo"). Si esto sigue pasando después del fix:
    (`/api/v1/payments/webhook/stripe`) — Stripe genera un secret distinto por
    endpoint registrado.
 2. Confirmar que ningún proxy/CDN delante del backend esté re-serializando el body
-   (Render no lo hace por defecto).
+   (Fly.io no lo hace por defecto).
 3. Revisar logs: `stripeHandler no configurado` significa que `STRIPE_SECRET_KEY`
    falta en el entorno.
 
@@ -61,12 +62,12 @@ Capas de seguridad en `routes/webhooks/ota.routes.ts`, en orden — el log indic
 falló: API key (`X-Api-Key`), IP no autorizada (solo si `*_WEBHOOK_IPS` está
 configurada), firma HMAC (`X-Signature`). Confirmar que el secret/API key
 configurados en el dashboard de la OTA coincidan exactamente con
-`BOOKING_WEBHOOK_SECRET`/`EXPEDIA_WEBHOOK_SECRET` en Render.
+`BOOKING_WEBHOOK_SECRET`/`EXPEDIA_WEBHOOK_SECRET` en Fly.io.
 
 ## Emails no salen (confirmación de reserva, alertas admin)
 
 1. `RESEND_API_KEY` no configurada → `emailService` loguea y no manda nada (no
-   rompe el flujo de reserva). Confirmar la variable en Render.
+   rompe el flujo de reserva). Confirmar la variable en Fly.io.
 2. Si `REDIS_URL` no está configurada, los emails que dependen de la cola
    (`email-notifications.queue.ts`) nunca se procesan porque el proceso de workers
    no tiene nada corriendo (`queuesEnabled` en `false`) — los emails que se mandan
@@ -101,9 +102,9 @@ nada los resuelva. Confirmar `GET /api/health` → `services.queues.status`.
   UID al re-publicar el feed, esa detección puede fallar y crear una reserva
   duplicada. Confirmar en `booking_conflicts` / logs si esto ocurre.
 
-## `npm run build` falla localmente pero funciona en Render
+## `npm run build` falla localmente pero funciona en Fly.io
 
-`npm run build` es `tsc || true; tsc-alias && npm run copy-assets` — el `|| true`
+`npm run build` (backend) es `tsc || true; tsc-alias && npm run copy-assets` — el `|| true`
 hace que errores de `tsc` no aborten el build (deliberado, para no bloquear un
 deploy por un warning de tipos que no afecta el runtime). Si el comportamiento en
 runtime difiere de lo esperado, correr `npx tsc --noEmit` por separado para ver los

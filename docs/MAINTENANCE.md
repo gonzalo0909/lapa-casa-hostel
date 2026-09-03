@@ -7,9 +7,9 @@
   fallback cross-provider, ver `docs/ARCHITECTURE.md`), servicio caído.
 - **Panel admin** (`/admin`) → Dashboard: check-ins próximos, ocupación.
 - Si `REDIS_URL` está configurada: confirmar que el proceso de workers sigue vivo
-  (Render → servicio de workers → Logs). Sin workers corriendo, los reintentos de
-  pago y los emails encolados no se procesan (la creación de reservas en sí no se ve
-  afectada).
+  (`fly logs -a lapa-casa-hostel-worker` — worker y backend viven en Fly.io desde
+  2026-09-02, no en Render). Sin workers corriendo, los reintentos de pago y los
+  emails encolados no se procesan (la creación de reservas en sí no se ve afectada).
 
 ## Semanal
 
@@ -47,21 +47,27 @@
 - **Tasas de cambio** (`exchange_rates`): el seed inicial es un baseline ilustrativo
   (`manual` como `source`) — evaluar si conectar una API real de tasas antes de
   operar con montos en USD/EUR a escala.
-- Revisar el plan de Render/Supabase/Upstash: si el volumen de reservas creció,
-  reevaluar el upgrade a un tier pago (cold-starts en el plan gratuito pueden perder
-  un webhook que llega mientras la instancia está arrancando).
+- Revisar el plan de Render (frontend/landing), Fly.io (backend/worker), Supabase y
+  Upstash: si el volumen de reservas creció, reevaluar el upgrade a un tier pago.
+  El riesgo de perder un webhook por cold-start ya no aplica al backend —
+  `backend/fly.toml` tiene `min_machines_running = 1`, la máquina que recibe
+  webhooks no se apaga — pero sí sigue aplicando al frontend/landing en Render si
+  están en el plan free.
 
 ## Rotación de credenciales
 
 - **`DATABASE_URL`** (password de Supabase): Supabase dashboard → proyecto
   `rpowardrcwnhbkzjsiok` → Project Settings → Database → Connection string → rotar →
-  actualizar en Render (nunca commitear la contraseña real — ver el incidente
-  documentado en el Maestro, prompts/combo-VENTANA-1-completa.md).
+  actualizar en Fly.io (`fly secrets set DATABASE_URL=... -a <app-backend>` —
+  backend/worker viven ahí desde 2026-09-02, no en Render; nunca commitear la
+  contraseña real — ver el incidente documentado en el Maestro,
+  prompts/combo-VENTANA-1-completa.md).
 - **`JWT_SECRET`**: rotarlo invalida todas las sesiones admin activas (fuerza
   re-login) — no rotar en horario de uso activo del panel sin avisar.
 - **`ADMIN_PASSWORD_HASH`**: generar con
   `node -e "require('bcryptjs').hash('nueva-contraseña', 12).then(console.log)"`
-  y actualizar en Render — nunca commitear el hash ni la contraseña en texto plano.
+  y actualizar en Fly.io (`fly secrets set`) — nunca commitear el hash ni la
+  contraseña en texto plano.
 
 ## Migraciones nuevas
 
