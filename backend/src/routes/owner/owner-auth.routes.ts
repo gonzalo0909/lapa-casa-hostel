@@ -15,7 +15,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../config/prisma';
-import { verifyPassword, hashPassword, generateToken } from '../../utils/encryption';
+import { verifyPassword, hashPassword, generateToken, durationToMs, durationToSeconds } from '../../utils/encryption';
 import { authenticateOwnerToken } from '../../middleware/auth';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
@@ -29,8 +29,18 @@ const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
+// Auditoría 17 secciones, sección 15: antes solo pedía 8+ caracteres sin
+// ninguna regla de complejidad -- se agrega mayúscula+minúscula+número,
+// consistente con lo que ya se le exige al admin generar como contraseña
+// temporal (generateTempPassword produce mezcla de mayúsculas/minúsculas/
+// números por diseño, ver utils/encryption.ts).
 const ChangePasswordSchema = z.object({
-  newPassword: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+  newPassword: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .regex(/[a-z]/, 'La contraseña debe incluir al menos una minúscula')
+    .regex(/[A-Z]/, 'La contraseña debe incluir al menos una mayúscula')
+    .regex(/[0-9]/, 'La contraseña debe incluir al menos un número'),
 });
 
 const router = Router();
@@ -76,12 +86,16 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
 
     logger.info('Login de administrador exitoso', { ownerId: owner.id });
 
+    // TTL de la cookie = TTL real del JWT (auditoría 17 secciones, sección
+    // 15): antes estaba fijo en 24h sin importar JWT_EXPIRES_IN -- mismo bug
+    // ya corregido en admin-auth.routes.ts, reintroducido acá por ser una
+    // implementación separada del mismo patrón de login.
     const isProd = process.env.NODE_ENV === 'production';
     res.cookie('lch_owner', token, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000),
       path: '/',
     });
 
@@ -140,7 +154,11 @@ router.post('/logout', authenticateOwnerToken, async (req, res, next) => {
     const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
 
     if (token) {
-      await redisCache.set(`${REVOKED_PREFIX}${token}`, '1', 86400);
+      await redisCache.set(
+        `${REVOKED_PREFIX}${token}`,
+        '1',
+        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400)
+      );
     }
 
     res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });

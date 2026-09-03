@@ -8,6 +8,7 @@ import multer from 'multer';
 import { z } from 'zod';
 import { query } from '../../config/database';
 import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/cloudinary/cloudinary-client';
+import { isRealImage } from '../../utils/validate-image-bytes';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
 import { validate } from '../../middleware/validation';
@@ -118,6 +119,12 @@ router.post('/:id/photos', upload.single('photo'), validate(UploadPhotoSchema), 
     const { id } = req.params;
     if (!req.file) {
       res.status(400).json(ApiResponse.error('Falta el archivo de imagen (campo "photo")'));
+      return;
+    }
+    // Auditoría 17 secciones, sección 15: validar magic bytes reales, no
+    // solo el Content-Type que declaró el cliente (ver photos.routes.ts).
+    if (!isRealImage(req.file.buffer)) {
+      res.status(400).json(ApiResponse.error('El archivo no es una imagen válida'));
       return;
     }
 

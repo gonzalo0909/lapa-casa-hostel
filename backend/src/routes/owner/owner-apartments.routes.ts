@@ -434,6 +434,30 @@ router.post('/:id/blocks', validate(CreateBlockSchema), async (req, res, next) =
   try {
     const { start_date, end_date, block_type, reason, notes } =
       req.body as z.infer<typeof CreateBlockSchema>;
+
+    // Auditoría 17 secciones, sección 2: antes solo validaba
+    // start_date < end_date -- un owner podía bloquear fechas con una
+    // reserva confirmada ya activa ahí, sin aviso. Mismo patrón de join
+    // que date-blocker.ts (reservations → reservation_beds → beds).
+    const { rows: conflicts } = await query(
+      `SELECT r.id, g.full_name AS guest_name, rb.check_in::text, rb.check_out::text
+       FROM reservations r
+       JOIN guests g ON g.id = r.guest_id
+       JOIN reservation_beds rb ON rb.reservation_id = r.id
+       JOIN beds b ON b.id = rb.bed_id
+       WHERE b.room_type_id = $1 AND r.status IN ('confirmed', 'pending_payment')
+         AND rb.check_in < $3 AND rb.check_out > $2`,
+      [req.params.id, start_date, end_date]
+    );
+    if (conflicts.length > 0) {
+      res.status(409).json(
+        ApiResponse.error(
+          `No se puede bloquear: hay ${conflicts.length} reserva(s) confirmada(s) en ese rango de fechas`
+        )
+      );
+      return;
+    }
+
     const { rows } = await query(
       `INSERT INTO room_blocks (room_type_id, start_date, end_date, block_type, reason, notes)
        VALUES ($1, $2, $3, $4, $5, $6)
