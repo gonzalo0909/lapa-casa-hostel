@@ -1,19 +1,22 @@
 "use client"
 
 import type React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BedDouble, Home, MapPin, ArrowRight } from "lucide-react"
 
-interface PropertySelectorHeroProps {
-  onSelectHostel: () => void
-  onSelectApartments: () => void
-}
-
-export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: PropertySelectorHeroProps) {
+export function PropertySelectorHero() {
   const pathname = usePathname()
   // Extract locale from path: /es, /pt, /en, /fr, /de
   const localeMatch = pathname.match(/^\/([a-z]{2})\b/)
   const locale = localeMatch ? localeMatch[1] : 'pt'
+  // Auditoría 17 secciones, sección 11: antes esto navegaba solo con
+  // router.push() en un onClick -- las 2 páginas de mayor prioridad del
+  // sitio (/hostel, /apartamentos) quedaban sin ningún <a href> crawleable
+  // desde la home. Ahora son <Link> reales (siguen siendo transición
+  // client-side, pero emiten <a href> real en el HTML).
+  const hostelHref = `/${locale}/hostel`
+  const apartmentsHref = `/${locale}/apartamentos`
 
   return (
     <div className="min-h-screen bg-[#12160f] text-cream">
@@ -25,18 +28,18 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
             <span className="hidden text-xs uppercase tracking-[0.2em] text-cream/50 sm:inline">Rio de Janeiro</span>
           </div>
           <nav className="flex gap-2">
-            <button
-              onClick={onSelectHostel}
+            <Link
+              href={hostelHref}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
               Hostel
-            </button>
-            <button
-              onClick={onSelectApartments}
+            </Link>
+            <Link
+              href={apartmentsHref}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
               Apartamentos
-            </button>
+            </Link>
             <a
               href={`/${locale}/parceiros`}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
@@ -76,7 +79,7 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
             icon={<BedDouble className="h-6 w-6" />}
             tone="foliage"
             pattern="beds"
-            onClick={onSelectHostel}
+            href={hostelHref}
           />
           <PropertyPanel
             title="Apartamentos"
@@ -86,7 +89,7 @@ export function PropertySelectorHero({ onSelectHostel, onSelectApartments }: Pro
             icon={<Home className="h-6 w-6" />}
             tone="azulejo"
             pattern="windows"
-            onClick={onSelectApartments}
+            href={apartmentsHref}
           />
         </div>
 
@@ -106,7 +109,7 @@ function PropertyPanel({
   icon,
   tone,
   pattern,
-  onClick,
+  href,
 }: {
   title: string
   location: string
@@ -115,7 +118,7 @@ function PropertyPanel({
   icon: React.ReactNode
   tone: "foliage" | "azulejo"
   pattern: "beds" | "windows"
-  onClick: () => void
+  href: string
 }) {
   const bg =
     tone === "foliage"
@@ -123,9 +126,8 @@ function PropertyPanel({
       : "linear-gradient(155deg, #1f4f68 0%, #3a87ac 100%)"
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      href={href}
       className="group relative flex min-h-[320px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-left text-cream transition-transform duration-300 hover:-translate-y-1"
       style={{ background: bg }}
     >
@@ -147,7 +149,7 @@ function PropertyPanel({
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>
       </span>
-    </button>
+    </Link>
   )
 }
 

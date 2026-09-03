@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { HostelEngine } from '@/components/booking/hostel-engine';
 import { FAQSection } from '@/components/seo/faq-section';
-import { StructuredData, OrganizationSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
+import { StructuredData, LocalBusinessSchema } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
 // JSON-LD HowTo: cómo reservar en el hostel (AEO — motores de IA)
@@ -99,8 +99,11 @@ export default async function HostelPage({ params }: { params: { locale: string 
   // Sin PropertyTabs — el huésped de hostel no ve el tab de apartamentos
   return (
     <main>
-      {/* JSON-LD: Hostel + LocalBusiness + HowTo (AEO) */}
-      <StructuredData data={OrganizationSchema} />
+      {/* JSON-LD: LocalBusiness + HowTo (AEO). Auditoría 17 secciones,
+          sección 11: antes también incluía OrganizationSchema acá, mismo
+          @type de negocio que LocalBusinessSchema (dirección/teléfono
+          repetidos) -- ya se había limpiado esta duplicación en la home,
+          quedó pendiente en esta página. */}
       <StructuredData data={LocalBusinessSchema} />
       <StructuredData data={HowToBookSchema} />
 

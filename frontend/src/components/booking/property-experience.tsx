@@ -3,7 +3,6 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { PropertySelectorHero } from './property-selector-hero';
 import type { Locale } from '@/i18n';
 
@@ -16,22 +15,11 @@ interface PropertyExperienceProps {
  *
  * Home: hero selector (Hostel/Apartamentos).
  * Hostel → /hostel (BookingEngine), Apartamentos → /apartamentos (ApartmentEngine).
+ *
+ * PropertySelectorHero arma sus propios hrefs a partir del locale de la URL
+ * actual (auditoría 17 secciones, sección 11 -- antes navegaba con
+ * router.push() en un onClick, sin ningún <a href> real).
  */
-export const PropertyExperience: React.FC<PropertyExperienceProps> = ({ locale }) => {
-  const router = useRouter();
-
-  const handleSelectHostel = () => {
-    router.push(`/${locale}/hostel`);
-  };
-
-  const handleSelectApartments = () => {
-    router.push(`/${locale}/apartamentos`);
-  };
-
-  return (
-    <PropertySelectorHero
-      onSelectHostel={handleSelectHostel}
-      onSelectApartments={handleSelectApartments}
-    />
-  );
+export const PropertyExperience: React.FC<PropertyExperienceProps> = () => {
+  return <PropertySelectorHero />;
 };
