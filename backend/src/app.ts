@@ -39,6 +39,15 @@ app.use(helmet({
   },
 }));
 
+// helmet v5+ ya no incluye Permissions-Policy por defecto -- se agrega acá
+// a mano (mismos valores que ya usa el frontend en next.config.js) para que
+// /admin y /group-payment, servidas directo por este Express, no queden
+// sin este header (auditoría 17 secciones, sección 15).
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+
 app.use(cors(corsOptions));
 // M-02: parsear cookies para leer el httpOnly JWT del panel admin
 app.use(cookieParser());

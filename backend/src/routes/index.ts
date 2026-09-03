@@ -73,10 +73,10 @@ router.get('/info', (req: Request, res: Response) => {
  * - availability: 120 req/min (10 apts × varios refreshes simultáneos)
  * - rooms/photos: 60 req/min
  */
-router.use('/availability', rateLimiter({ max: 120, windowMs: 60000 }), availabilityRouter);
-router.use('/rooms', rateLimiter({ max: 60, windowMs: 60000 }), roomsRouter);
-router.use('/photos', rateLimiter({ max: 60, windowMs: 60000 }), photosRouter);
-router.use('/offers', rateLimiter({ max: 30, windowMs: 60000 }), offersRouter);
+router.use('/availability', rateLimiter({ max: 120, windowMs: 60000, prefix: 'availability' }), availabilityRouter);
+router.use('/rooms', rateLimiter({ max: 60, windowMs: 60000, prefix: 'rooms' }), roomsRouter);
+router.use('/photos', rateLimiter({ max: 60, windowMs: 60000, prefix: 'photos' }), photosRouter);
+router.use('/offers', rateLimiter({ max: 30, windowMs: 60000, prefix: 'offers' }), offersRouter);
 router.use('/partners', partnersRouter);
 
 /**
@@ -92,7 +92,7 @@ router.use('/webhooks', otaWebhooksRouter);
 /**
  * Semi-Protected Routes (Rate Limited)
  */
-router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000 }), bookingsRouter);
+router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000, prefix: 'bookings' }), bookingsRouter);
 
 /**
  * Payment Routes
@@ -107,8 +107,8 @@ router.use('/payments', (req, res, next) => {
     /^\/group-member\/[^/]+$/.test(req.path)
   );
   const limiter = isGroupPoll
-    ? rateLimiter({ max: 60, windowMs: 60000 })
-    : rateLimiter({ max: 3, windowMs: 1000 });
+    ? rateLimiter({ max: 60, windowMs: 60000, prefix: 'payments-poll' })
+    : rateLimiter({ max: 3, windowMs: 1000, prefix: 'payments' });
   limiter(req, res, next);
 }, paymentsRouter);
 
@@ -117,7 +117,7 @@ router.use('/payments', (req, res, next) => {
  * authenticateToken de abajo (si no, nadie podría loguearse para
  * conseguir el primer token). Rate limit estricto contra fuerza bruta.
  */
-router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000 }), adminAuthRouter);
+router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000, prefix: 'admin-login' }), adminAuthRouter);
 
 /**
  * Admin Routes (Authentication + rol admin requeridos)
@@ -131,7 +131,7 @@ router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000 }), adminAuthR
  */
 router.use(
   '/admin',
-  rateLimiter({ max: 30, windowMs: 1000 }),
+  rateLimiter({ max: 30, windowMs: 1000, prefix: 'admin' }),
   authenticateToken,
   requireRole(['admin']),
   adminRouter
@@ -143,7 +143,7 @@ router.use(
  * Público, montado antes de authenticateOwnerToken por la misma razón
  * que /admin/login.
  */
-router.use('/owner/login', rateLimiter({ max: 10, windowMs: 60000 }), ownerAuthRouter);
+router.use('/owner/login', rateLimiter({ max: 10, windowMs: 60000, prefix: 'owner-login' }), ownerAuthRouter);
 
 /**
  * Owner Routes (Authentication + rol owner requeridos) — cada
@@ -152,7 +152,7 @@ router.use('/owner/login', rateLimiter({ max: 10, windowMs: 60000 }), ownerAuthR
  */
 router.use(
   '/owner',
-  rateLimiter({ max: 30, windowMs: 1000 }),
+  rateLimiter({ max: 30, windowMs: 1000, prefix: 'owner' }),
   authenticateOwnerToken,
   ownerRouter
 );

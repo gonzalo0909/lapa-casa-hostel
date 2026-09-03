@@ -51,6 +51,22 @@ export const generateTempPassword = (length = 12): string => {
   return result;
 };
 
+// Convierte '24h'/'7d'/'90d' (mismo formato que JWT_EXPIRES_IN) a ms/segundos.
+// Compartido entre admin-auth.routes.ts y owner-auth.routes.ts para que un
+// TTL de cookie/blacklist no pueda quedar corregido en un panel y
+// desactualizado en el otro (auditoría 17 secciones, hallazgo sección 15).
+export function durationToMs(duration: string, fallbackMs: number): number {
+  const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
+  if (!match) {return fallbackMs;}
+  const value = Number(match[1]);
+  const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
+  return value * unitMs;
+}
+
+export function durationToSeconds(duration: string, fallbackSeconds: number): number {
+  return Math.floor(durationToMs(duration, fallbackSeconds * 1000) / 1000);
+}
+
 export const generateToken = (
   payload: JWTPayload,
   expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration

@@ -8,7 +8,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { verifyPassword, generateToken } from '../../utils/encryption';
+import { verifyPassword, generateToken, durationToMs, durationToSeconds } from '../../utils/encryption';
 import { authenticateToken } from '../../middleware/auth';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
@@ -21,19 +21,6 @@ const LoginSchema = z.object({
 
 // M-03: prefijo para tokens revocados en Redis (TTL = expiración del token)
 const REVOKED_PREFIX = 'revoked_token:';
-
-// Sección 8 auditoría 17 secciones: convierte '24h'/'7d'/'90d' (mismo
-// formato que ya usan JWT_EXPIRES_IN acá y en render.yaml) a milisegundos
-// para el maxAge de la cookie -- antes estaba fijo en 90 días sin importar
-// el TTL real configurado para el JWT, así que la cookie sobrevivía mucho
-// más que el token válido dentro de ella.
-function durationToMs(duration: string, fallbackMs: number): number {
-  const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
-  if (!match) {return fallbackMs;}
-  const value = Number(match[1]);
-  const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
-  return value * unitMs;
-}
 
 const router = Router();
 
@@ -115,13 +102,24 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
     const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
 
     if (token) {
-      // TTL = 24h (access token) — suficiente para que expire y la entrada se limpie sola
-      await redisCache.set(`${REVOKED_PREFIX}${token}`, '1', 86400);
+      // TTL de la blacklist = TTL real del JWT (auditoría 17 secciones,
+      // sección 15): antes estaba fijo en 86400s (24h) sin importar
+      // JWT_EXPIRES_IN -- si ese valor se configura a más de 24h, el token
+      // "revocado" volvía a ser válido apenas la entrada de Redis expiraba,
+      // aunque el JWT real siguiera vigente.
+      await redisCache.set(
+        `${REVOKED_PREFIX}${token}`,
+        '1',
+        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400)
+      );
     }
 
     const { refreshToken } = req.body as { refreshToken?: string };
     if (refreshToken) {
-      // TTL = 7d (refresh token)
+      // Vestigial: no existe ningún endpoint /refresh que emita ni consuma
+      // este token (ver comentario en el login de arriba) -- se mantiene el
+      // no-op por compatibilidad hacia atrás si algún cliente viejo todavía
+      // lo envía, sin agregarle lógica nueva.
       await redisCache.set(`${REVOKED_PREFIX}${refreshToken}`, '1', 7 * 86400);
     }
 
