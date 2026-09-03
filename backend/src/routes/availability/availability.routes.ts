@@ -67,9 +67,19 @@ router.post('/quote', validate(QuoteSchema), async (req, res, next) => {
     const { checkIn, checkOut, rooms } = req.body as z.infer<typeof QuoteSchema>;
 
     const totalBeds = rooms.reduce((sum, r) => sum + r.bedsCount, 0);
-    const pricing = await pricingService.calculateTotalPrice({ checkInDate: checkIn, checkOutDate: checkOut, rooms, totalBeds });
+    const [pricing, surchargeConfig] = await Promise.all([
+      pricingService.calculateTotalPrice({ checkInDate: checkIn, checkOutDate: checkOut, rooms, totalBeds }),
+      // Mismo valor que process-deposit.ts usa para cobrar de verdad con tarjeta
+      // (system_config.card_surcharge_percent, editable desde /admin/pricing.html)
+      // -- se expone acá para que el resumen de Step 4 no muestre un recargo
+      // fijo (10%) que puede quedar desincronizado si el dueño lo ajusta.
+      query<{ value: number }>(`SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`),
+    ]);
 
-    res.status(200).json(ApiResponse.success(pricing, 'Quote calculated'));
+    res.status(200).json(ApiResponse.success({
+      ...pricing,
+      cardSurchargePercent: surchargeConfig.rows[0]?.value ?? 10,
+    }, 'Quote calculated'));
   } catch (error) {
     logger.error('Error calculating quote', {
       error: error instanceof Error ? error.message : 'Unknown error'
