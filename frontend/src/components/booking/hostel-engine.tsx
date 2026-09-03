@@ -12,7 +12,7 @@ import {
   T, DEFAULT_ROOMS,
 } from './hostel-engine.types';
 import {
-  getSeason, calcPrice, validateCPF, fmtDate, fmtMoney,
+  getSeason, validateCPF, fmtDate, fmtMoney,
 } from './hostel-engine.utils';
 import { HOSTEL_ENGINE_CSS }   from './hostel-engine.styles';
 import { HostelCalendar }      from './hostel-calendar';
@@ -102,10 +102,44 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     }).catch(() => { /* fallback a defaults */ });
   }, [checkIn, checkOut]);
 
+  // ─ Precio real: pedido a POST /availability/quote, la misma
+  // pricingService.calculateTotalPrice() que create-booking.ts usa para
+  // fijar booking.deposit_amount -- el monto que de verdad se cobra.
+  // Antes se recalculaba en el navegador con un precio base fijo (85 BRL
+  // parejo para los 5 cuartos, que en realidad son 55/65) y sin el
+  // descuento de grupo, así que el depósito mostrado en Step 4 y el WhatsApp
+  // no coincidía con lo que MercadoPago/Stripe terminaba cobrando.
+  const [quote, setQuote] = useState<{
+    nights: number; totalPrice: number; depositAmount: number; basePrice: number; pricePerBed: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const totalBedsNow = Object.values(beds).reduce((s, n) => s + n, 0);
+    if (!checkIn || !checkOut || totalBedsNow === 0) { setQuote(null); return; }
+    const selected = rooms.filter(r => (beds[r.id] ?? 0) > 0);
+    if (selected.some(r => !r.realId)) return; // todavía no resolvió el UUID real del cuarto
+    const payload = {
+      checkIn:  checkIn.toISOString().slice(0, 10),
+      checkOut: checkOut.toISOString().slice(0, 10),
+      rooms: selected.map(r => ({ roomId: r.realId!, bedsCount: beds[r.id] ?? 0 })),
+    };
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      availabilityAPI.quote(payload).then(res => {
+        if (cancelled || !res.data) return;
+        const p = res.data;
+        setQuote({ nights: p.nights, totalPrice: p.totalPrice, depositAmount: p.depositAmount, basePrice: p.basePrice, pricePerBed: p.pricePerBed });
+      }).catch(() => { if (!cancelled) setQuote(null); });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [checkIn, checkOut, beds, rooms]);
+
   // ─ Valores derivados ─
-  const price      = calcPrice(checkIn, checkOut, beds);
   const totalBeds  = Object.values(beds).reduce((s, n) => s + n, 0);
   const season     = getSeason(checkIn ?? TODAY.current);
+  const price = quote
+    ? { nights: quote.nights, beds: totalBeds, season, pbn: quote.pricePerBed, subtotal: quote.basePrice, total: quote.totalPrice, deposit: quote.depositAmount }
+    : null;
 
   // Cuartos visibles (reveal progresivo)
   const visibleRooms = rooms.filter(r => {
