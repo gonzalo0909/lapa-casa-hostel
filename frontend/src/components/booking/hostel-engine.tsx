@@ -61,6 +61,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [pixData, setPixData]           = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
   const [pixCopied, setPixCopied]       = useState(false);
   const [stripeUrl, setStripeUrl]       = useState<string | null>(null);
+  // reservationId se guarda para poder reintentar la generación del QR/link
+  // de pago sin crear una reserva nueva si processDeposit/stripeCheckout falla.
+  const [reservationId, setReservationId] = useState('');
+  const [paymentLinkError, setPaymentLinkError] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ─ Estado del pago grupal ─
@@ -269,37 +274,54 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         guestGender: gender,
       });
 
-      const reservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
-      const displayCode = reservationId
-        ? 'LCH-' + reservationId.substring(0, 8).toUpperCase()
+      const newReservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
+      const displayCode = newReservationId
+        ? 'LCH-' + newReservationId.substring(0, 8).toUpperCase()
         : 'LCH-' + Math.random().toString(36).slice(2,8).toUpperCase();
       setBookingCode(displayCode);
+      setReservationId(newReservationId);
+      setPaymentLinkError(false);
+      setPixData(null);
+      setStripeUrl(null);
 
+      // La reserva ya quedó creada acá -- si processDeposit/stripeCheckout
+      // falla de acá en más, NO hay que tragarse el error en silencio: antes
+      // este catch estaba vacío y el huésped caía igual en la pantalla de
+      // éxito sin QR real ni link de Stripe, sin ningún aviso ni forma de
+      // reintentar (ver handleRetryPaymentLink más abajo, que reusa la misma
+      // reservationId sin duplicar la reserva).
       if (payMethod === 'pix') {
-        // PIX: generar QR real via Mercado Pago
         try {
-          const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+          const dep = await paymentAPI.processDeposit(newReservationId, 'mercadopago');
           const p = dep.data?.payment;
           if (p?.qrCodeBase64 || p?.qrCode) {
             setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
+          } else {
+            setPaymentLinkError(true);
           }
-        } catch {
-          // falla silenciosamente — igual se muestra la pantalla de éxito
+        } catch (err) {
+          console.error('processDeposit (PIX) failed', err);
+          setPaymentLinkError(true);
         }
         setPhase('success');
         startTimer();
       } else {
-        // Tarjeta: Stripe Checkout Session — se abre en nueva pestaña
+        // Tarjeta: Stripe Checkout Session — se abre en nueva pestaña (puede
+        // ser bloqueada por el navegador al no ser un gesto síncrono del
+        // usuario; por eso el link también queda visible en el panel de éxito).
         try {
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
-          const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
+          const checkout = await paymentAPI.stripeCheckout(newReservationId, origin);
           const url: string | undefined = checkout.data?.url;
           if (url) {
             setStripeUrl(url);
             window.open(url, '_blank', 'noopener');
+          } else {
+            setPaymentLinkError(true);
           }
-        } catch {
-          // falla silenciosamente
+        } catch (err) {
+          console.error('stripeCheckout failed', err);
+          setPaymentLinkError(true);
         }
         setPhase('success');
         startTimer();
@@ -310,6 +332,39 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
+
+  // ─ Reintentar generar el QR PIX / link de Stripe sin crear otra reserva ─
+  const handleRetryPaymentLink = useCallback(async () => {
+    if (!reservationId || isRetryingPayment) return;
+    setIsRetryingPayment(true);
+    setPaymentLinkError(false);
+    try {
+      if (payMethod === 'pix') {
+        const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+        const p = dep.data?.payment;
+        if (p?.qrCodeBase64 || p?.qrCode) {
+          setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
+        } else {
+          setPaymentLinkError(true);
+        }
+      } else {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
+        const url: string | undefined = checkout.data?.url;
+        if (url) {
+          setStripeUrl(url);
+          window.open(url, '_blank', 'noopener');
+        } else {
+          setPaymentLinkError(true);
+        }
+      }
+    } catch (err) {
+      console.error('handleRetryPaymentLink failed', err);
+      setPaymentLinkError(true);
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }, [reservationId, payMethod, isRetryingPayment]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -647,6 +702,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             stripeUrl={stripeUrl}
             timerStr={timerStr}
             onNewBooking={handleNewBooking}
+            paymentLinkError={paymentLinkError}
+            isRetryingPayment={isRetryingPayment}
+            onRetryPaymentLink={handleRetryPaymentLink}
           />
         )}
 
