@@ -23,10 +23,11 @@ interface HostelSuccessPanelProps {
   stripeUrl: string | null;
   timerStr: string;
   onNewBooking: () => void;
+  onSwitchMethod?: () => void;
 }
 
 export function HostelSuccessPanel({
-  t, payMethod, bookingCode, price, pixData, pixCopied, onPixCopy, stripeUrl, timerStr, onNewBooking,
+  t, payMethod, bookingCode, price, pixData, pixCopied, onPixCopy, stripeUrl, timerStr, onNewBooking, onSwitchMethod,
 }: HostelSuccessPanelProps) {
   return (
     <div className="he-card">
@@ -96,7 +97,17 @@ export function HostelSuccessPanel({
         <div className="he-success-note">
           {payMethod === 'pix' && <>{t.pixKey}<br /></>}{t.restNote}
         </div>
-        <button className="he-btn-confirm" style={{ marginTop:'1.25rem' }} onClick={onNewBooking}>
+        {onSwitchMethod && (
+          <button
+            type="button"
+            className="he-btn-back"
+            style={{ marginTop:'1.25rem' }}
+            onClick={onSwitchMethod}
+          >
+            {t.btnChangeMethod}
+          </button>
+        )}
+        <button className="he-btn-confirm" style={{ marginTop:'.6rem' }} onClick={onNewBooking}>
           {t.btnNewBooking}
         </button>
       </div>
