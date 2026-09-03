@@ -11,7 +11,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/api/'],
+        // Auditoría 17 secciones, sección 11: /payment/[id] contiene IDs de
+        // reserva reales -- ya lleva noindex propio (ver payment/[id]/page.tsx),
+        // esto es defensa adicional para bots que no respeten ese meta tag.
+        disallow: ['/admin/', '/api/', '/payment/'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
