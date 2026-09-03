@@ -29,6 +29,7 @@ function renderNav(activePage) {
     { href: '/admin/bookings.html', label: 'Reservas', page: 'bookings' },
     { href: '/admin/rooms.html', label: 'Hostel', page: 'rooms' },
     { href: '/admin/apartments.html', label: 'Apartamentos', page: 'apartments' },
+    { href: '/admin/owners.html', label: 'Administradores', page: 'owners' },
     { href: '/admin/conflicts.html', label: 'Conflictos', page: 'conflicts' },
     { href: '/admin/photos.html', label: 'Fotos huésp.', page: 'photos' },
     { href: '/admin/gallery.html', label: 'Galería', page: 'gallery' },
