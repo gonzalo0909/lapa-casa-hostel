@@ -9,6 +9,8 @@ export type PayMethod = 'pix' | 'card';
 export interface RoomDef {
   id: string;
   realId?: string;
+  /** code real de room_types (backend/database/seeds/0001_seed.sql) -- clave estable para matchear con la API de disponibilidad, a diferencia del name que es solo texto para mostrar. */
+  code: string;
   name: string;
   type: 'mixed' | 'female';
   capacity: number;
@@ -533,11 +535,11 @@ export type Translations = typeof T[Lang];
 
 // ─── Cuartos por defecto (fallback si la API no responde) ─
 export const DEFAULT_ROOMS: RoomDef[] = [
-  { id:'cuarto1', name:'Cuarto 1', type:'mixed',  capacity:12, available:12, price:85, isFlexible:false },
-  { id:'cuarto3', name:'Cuarto 3', type:'mixed',  capacity:12, available:12, price:85, isFlexible:false },
-  { id:'cuarto4', name:'Cuarto 4', type:'mixed',  capacity:7,  available:7,  price:85, isFlexible:false },
-  { id:'cuarto5', name:'Cuarto 5', type:'mixed',  capacity:7,  available:7,  price:85, isFlexible:false },
-  { id:'cuarto6', name:'Cuarto 6', type:'female', capacity:7,  available:7,  price:85, isFlexible:true  },
+  { id:'cuarto1', code:'mixto_12a',  name:'Cuarto 1', type:'mixed',  capacity:12, available:12, price:85, isFlexible:false },
+  { id:'cuarto3', code:'mixto_12b',  name:'Cuarto 3', type:'mixed',  capacity:12, available:12, price:85, isFlexible:false },
+  { id:'cuarto4', code:'mixto_7',    name:'Cuarto 4', type:'mixed',  capacity:7,  available:7,  price:85, isFlexible:false },
+  { id:'cuarto5', code:'mixto_7c',   name:'Cuarto 5', type:'mixed',  capacity:7,  available:7,  price:85, isFlexible:false },
+  { id:'cuarto6', code:'flexible_7', name:'Cuarto 6', type:'female', capacity:7,  available:7,  price:85, isFlexible:true  },
 ];
 
 // ─── Labels de calendario ─────────────────────────────────
