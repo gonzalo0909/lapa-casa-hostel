@@ -91,10 +91,11 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const apiRooms: any[] = res.data?.rooms || [];
       if (!apiRooms.length) return;
       setRooms(DEFAULT_ROOMS.map(dr => {
-        const match = apiRooms.find((ar: any) =>
-          ar.name?.toLowerCase() === dr.name.toLowerCase() ||
-          (ar.name || '').replace(/\D/g, '') === dr.id.replace(/\D/g, '')
-        );
+        // Match por code real de room_types (mixto_12a, flexible_7, etc.) --
+        // el name ("Mixto 12A") no tiene relación con los ids de fallback
+        // ("cuarto1") y nunca matcheaba, dejando realId sin asignar y
+        // mandando el slug en vez del UUID real a POST /bookings.
+        const match = apiRooms.find((ar: any) => ar.code === dr.code);
         if (!match) return dr;
         return { ...dr, realId: match.roomId, available: match.availableBeds ?? dr.available, price: match.basePrice || dr.price };
       }));
