@@ -3,14 +3,11 @@
 // Panel de éxito tras confirmar la reserva: QR PIX o link de Stripe + timer de expiración.
 
 import React from 'react';
-import { CheckCircle2, CreditCard, Check } from 'lucide-react';
+import { CheckCircle2, CreditCard, Check, AlertTriangle } from 'lucide-react';
 import { PayMethod, Translations } from './hostel-engine.types';
 import { calcPrice, fmtMoney } from './hostel-engine.utils';
 
 type Price = ReturnType<typeof calcPrice>;
-
-// PIX QR pattern decorativo — fallback si Mercado Pago no devuelve un QR real.
-const PIX_PAT = [0,1,1,0,1,0,1,1,0,1,1,1,0,1,0,1,1,0,0,1,1,0,1,0,1,0,1,1,0,1,0,0,1,1,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1];
 
 interface HostelSuccessPanelProps {
   t: Translations;
@@ -23,10 +20,16 @@ interface HostelSuccessPanelProps {
   stripeUrl: string | null;
   timerStr: string;
   onNewBooking: () => void;
+  /** true si processDeposit (PIX) / stripeCheckout (tarjeta) falló -- la reserva
+   *  ya está creada, pero el QR real / link de pago todavía no existe. */
+  paymentLinkError: boolean;
+  isRetryingPayment: boolean;
+  onRetryPaymentLink: () => void;
 }
 
 export function HostelSuccessPanel({
   t, payMethod, bookingCode, price, pixData, pixCopied, onPixCopy, stripeUrl, timerStr, onNewBooking,
+  paymentLinkError, isRetryingPayment, onRetryPaymentLink,
 }: HostelSuccessPanelProps) {
   return (
     <div className="he-card">
@@ -50,11 +53,21 @@ export function HostelSuccessPanel({
                   className="he-pix-qr-img"
                 />
               ) : (
-                /* fallback decorativo si MP no respondió */
-                <div className="he-pix-qr">
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,8px)', gridTemplateRows:'repeat(7,8px)', gap:'1px' }}>
-                    {PIX_PAT.map((b, i) => <div key={i} style={{ background: b ? '#fff' : 'transparent', width:'8px', height:'8px' }} />)}
-                  </div>
+                /* El QR real todavía no llegó (processDeposit falló o sigue en
+                   curso) -- antes acá se mostraba un patrón decorativo fijo que
+                   parecía un QR pero no servía para pagar nada. Mejor mostrar
+                   el error real y dejar reintentar sin perder la reserva ya creada. */
+                <div className="he-pix-qr-error">
+                  <AlertTriangle size={22} aria-hidden />
+                  <p>{t.paymentLinkErrorMsg}</p>
+                  <button
+                    type="button"
+                    className="he-pix-copy-btn"
+                    onClick={onRetryPaymentLink}
+                    disabled={isRetryingPayment}
+                  >
+                    {isRetryingPayment ? '…' : t.btnTryAgain}
+                  </button>
                 </div>
               )}
               <div className="he-pix-amt">{price ? fmtMoney(price.deposit) : ''}</div>
@@ -86,6 +99,21 @@ export function HostelSuccessPanel({
                 >
                   {t.cardGoToPayment ?? 'Ir al pago con tarjeta →'}
                 </a>
+              ) : paymentLinkError ? (
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'.5rem' }}>
+                  <div style={{ fontSize:'.72rem', color:'rgba(255,255,255,.85)', textAlign:'center' }}>
+                    <AlertTriangle size={16} aria-hidden style={{ verticalAlign:'-3px', marginRight:'.3em' }} />
+                    {t.paymentLinkErrorMsg}
+                  </div>
+                  <button
+                    type="button"
+                    className="he-pix-copy-btn"
+                    onClick={onRetryPaymentLink}
+                    disabled={isRetryingPayment}
+                  >
+                    {isRetryingPayment ? '…' : t.btnTryAgain}
+                  </button>
+                </div>
               ) : (
                 <div style={{ fontSize:'.72rem', color:'rgba(255,255,255,.7)', marginTop:'.2rem', textAlign:'center' }}>{t.cardInstruction}</div>
               )}
