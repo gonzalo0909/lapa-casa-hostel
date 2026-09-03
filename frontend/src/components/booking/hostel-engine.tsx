@@ -54,6 +54,12 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [payMethod, setPayMethod]     = useState<PayMethod>('pix');
   const [phase, setPhase]             = useState<Phase>('wizard');
   const [bookingCode, setBookingCode] = useState('');
+  // Pedido del dueño: en el panel de éxito, cambiar de PIX a tarjeta (o
+  // viceversa) reusaba `onNewBooking` -- window.location.reload() -- que
+  // perdía la reserva ya creada y todo el formulario. Guardamos el id real
+  // acá para poder pedir un depósito nuevo sobre la MISMA reserva en vez de
+  // crear una reserva duplicada.
+  const [reservationId, setReservationId] = useState('');
   const [timerSecs, setTimerSecs]     = useState(300);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingError, setBookingError] = useState('');
@@ -309,16 +315,17 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         guestGender: gender,
       });
 
-      const reservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
-      const displayCode = reservationId
-        ? 'LCH-' + reservationId.substring(0, 8).toUpperCase()
+      const newReservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
+      const displayCode = newReservationId
+        ? 'LCH-' + newReservationId.substring(0, 8).toUpperCase()
         : 'LCH-' + Math.random().toString(36).slice(2,8).toUpperCase();
       setBookingCode(displayCode);
+      setReservationId(newReservationId);
 
       if (payMethod === 'pix') {
         // PIX: generar QR real via Mercado Pago
         try {
-          const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+          const dep = await paymentAPI.processDeposit(newReservationId, 'mercadopago');
           const p = dep.data?.payment;
           if (p?.qrCodeBase64 || p?.qrCode) {
             setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
@@ -332,7 +339,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         // Tarjeta: Stripe Checkout Session — se abre en nueva pestaña
         try {
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
-          const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
+          const checkout = await paymentAPI.stripeCheckout(newReservationId, origin);
           const url: string | undefined = checkout.data?.url;
           if (url) {
             setStripeUrl(url);
@@ -350,6 +357,38 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
+
+  // ─ Cambiar de método de pago sin perder la reserva ya creada ─
+  const handleSwitchPayMethod = useCallback(async () => {
+    if (!reservationId) return;
+    const nextMethod: PayMethod = payMethod === 'pix' ? 'card' : 'pix';
+    if (nextMethod === 'pix' && form.country !== 'BR') return;
+    setIsProcessing(true);
+    setBookingError('');
+    try {
+      if (nextMethod === 'pix') {
+        const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+        const p = dep.data?.payment;
+        if (p?.qrCodeBase64 || p?.qrCode) {
+          setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
+        }
+      } else {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
+        const url: string | undefined = checkout.data?.url;
+        if (url) {
+          setStripeUrl(url);
+          window.open(url, '_blank', 'noopener');
+        }
+      }
+      setPayMethod(nextMethod);
+      startTimer();
+    } catch (err: any) {
+      setBookingError(err?.response?.data?.error || err?.message || t.errorBooking);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [reservationId, payMethod, form.country, t]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -689,6 +728,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             stripeUrl={stripeUrl}
             timerStr={timerStr}
             onNewBooking={handleNewBooking}
+            onSwitchMethod={form.country === 'BR' ? handleSwitchPayMethod : undefined}
           />
         )}
 

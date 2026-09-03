@@ -237,10 +237,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
       answer:   'O depósito pago na reserva não é reembolsável em caso de cancelamento ou no-show, independentemente da antecedência.',
     },
     {
-      question: 'Café da manhã está incluído?',
-      answer:   'O café da manhã não está incluído.',
-    },
-    {
       question: 'Tem estacionamento?',
       answer:   'Nenhum dos apartamentos possui estacionamento próprio. Cada um fica em um endereço diferente no Rio de Janeiro, então as opções de estacionamento variam conforme a região.',
     },
@@ -265,10 +261,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     {
       question: '¿Cuál es la política de cancelación?',
       answer:   'El depósito abonado en la reserva no es reembolsable en caso de cancelación o no-show, sin importar la anticipación.',
-    },
-    {
-      question: '¿El desayuno está incluido?',
-      answer:   'El desayuno no está incluido.',
     },
     {
       question: '¿Hay estacionamiento?',
@@ -297,10 +289,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
       answer:   'The deposit paid at booking is non-refundable in case of cancellation or no-show, regardless of notice.',
     },
     {
-      question: 'Is breakfast included?',
-      answer:   'Breakfast is not included.',
-    },
-    {
       question: 'Is there parking?',
       answer:   'None of the apartments have their own parking. Each one is at a different address in Rio de Janeiro, so parking options vary by area.',
     },
@@ -325,10 +313,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     {
       question: 'Wie lautet die Stornierungsrichtlinie?',
       answer:   'Die bei der Buchung gezahlte Anzahlung ist bei Stornierung oder Nichterscheinen nicht erstattungsfähig, unabhängig von der Vorlaufzeit.',
-    },
-    {
-      question: 'Ist das Frühstück inbegriffen?',
-      answer:   'Das Frühstück ist nicht inbegriffen.',
     },
     {
       question: 'Gibt es Parkplätze?',
@@ -357,10 +341,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
       answer:   "L'acompte versé lors de la réservation n'est pas remboursable en cas d'annulation ou de non-présentation, quel que soit le délai de préavis.",
     },
     {
-      question: 'Le petit-déjeuner est-il inclus ?',
-      answer:   "Le petit-déjeuner n'est pas inclus.",
-    },
-    {
       question: 'Y a-t-il un parking ?',
       answer:   "Aucun appartement ne dispose de parking propre. Chacun se trouve à une adresse différente à Rio de Janeiro, les options de stationnement varient donc selon le quartier.",
     },
@@ -385,10 +365,6 @@ const FAQ_APARTMENTS: Record<string, FAQItem[]> = {
     {
       question: 'Qual è la politica di cancellazione?',
       answer:   'Il deposito pagato al momento della prenotazione non è rimborsabile in caso di cancellazione o no-show, indipendentemente dal preavviso.',
-    },
-    {
-      question: 'La colazione è inclusa?',
-      answer:   'La colazione non è inclusa.',
     },
     {
       question: "C'è un parcheggio?",
