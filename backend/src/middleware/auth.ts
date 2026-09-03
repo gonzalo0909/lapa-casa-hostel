@@ -3,6 +3,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { redisCache } from '@/config/redis';
+import { prisma } from '@/config/prisma';
 import { logger } from '@/utils/logger';
 
 const REVOKED_PREFIX = 'revoked_token:';
@@ -155,6 +156,27 @@ export const authenticateOwnerToken = async (
       res.status(401).json({
         success: false,
         error: 'Token revocado',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    // FIX (auditoría 2026-09-03): a diferencia de authenticateToken (admin
+    // único, no se desactiva), un administrador de apartamento SÍ se puede
+    // desactivar desde /admin/apartment-owners/:id (soft delete). Sin este
+    // chequeo, un token ya emitido seguía funcionando hasta por 24h después
+    // de desactivado -- ni /owner/apartments/* ni ningún otro endpoint bajo
+    // /owner volvía a mirar la DB una vez pasado el login. Un query extra
+    // por request es aceptable acá: es un panel interno de bajo tráfico, no
+    // el motor de reservas.
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id: decoded.ownerId },
+      select: { isActive: true },
+    });
+    if (!owner || !owner.isActive) {
+      res.status(401).json({
+        success: false,
+        error: 'Cuenta desactivada',
         timestamp: new Date().toISOString(),
       });
       return;
