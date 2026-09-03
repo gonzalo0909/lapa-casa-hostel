@@ -71,6 +71,12 @@ tags:
     description: Login/logout del panel admin
   - name: Admin
     description: Panel admin (protegido, requiere rol admin)
+  - name: Owner Auth
+    description: Login/logout del panel de administradores de apartamento
+  - name: Owner Panel
+    description: >-
+      Panel de administradores de apartamento (protegido, requiere rol owner
+      -- cada uno ve solo sus propios apartamentos, filtrado por owner_id)
 
 components:
   securitySchemes:
@@ -79,6 +85,13 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: También aceptado como cookie httpOnly `lch_admin`
+    ownerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        JWT de administrador de apartamento (role owner), separado del admin
+        único de arriba. También aceptado como cookie httpOnly `lch_owner`.
 
   schemas:
     ApiSuccess:
@@ -524,29 +537,26 @@ paths:
         '200': { description: OK }
         '404': { description: Sesión no encontrada, content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
 
-  /payments/group-member/{memberToken}:
-    get:
-      tags: [Payments]
-      summary: Estado del slot individual de un invitado del grupo
-      parameters:
-        - { name: memberToken, in: path, required: true, schema: { type: string } }
-      responses:
-        '200': { description: OK }
-        '404': { description: Link no encontrado, content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
-
-  /payments/group-member/{memberToken}/pay:
+  /payments/group/{token}/pay:
     post:
       tags: [Payments]
-      summary: El invitado inicia su propio pago dentro de la sesión grupal
+      summary: Un invitado reclama y paga su propio slot dentro de la sesión grupal
+      description: >-
+        Auditoría 17 secciones, sección 8: reemplaza a
+        `/payments/group-member/{memberToken}` y
+        `/payments/group-member/{memberToken}/pay`, que documentaban rutas
+        que nunca existieron en el código (el token es único por sesión
+        grupal, no hay un `memberToken` separado — ver
+        `routes/payments/payments.routes.ts:163`).
       parameters:
-        - { name: memberToken, in: path, required: true, schema: { type: string } }
+        - { name: token, in: path, required: true, schema: { type: string } }
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [guest, paymentMethod]
+              required: [guest, paymentMethod, documentPhotoBase64]
               properties:
                 guest:
                   type: object
@@ -558,6 +568,7 @@ paths:
                     country: { type: string }
                     language: { type: string }
                 paymentMethod: { type: string, enum: [card, pix] }
+                documentPhotoBase64: { type: string, description: 'Foto del documento como data URL, obligatoria' }
       responses:
         '200': { description: Pago iniciado }
         '409': { description: 'Sesión expirada, cerrada, o slot ya pagado/reclamado', content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
@@ -992,6 +1003,19 @@ paths:
       parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
       responses: { '200': { description: OK } }
 
+  /admin/guests/document-photos:
+    get:
+      tags: [Admin]
+      summary: Lista fotos de documento subidas por huéspedes al reservar (solo lectura)
+      description: >-
+        Auditoría 17 secciones, sección 8: faltaba en este doc. El admin solo
+        mira -- la subida es automática al reservar (guests.document_photo_url).
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 100 } }
+      responses: { '200': { description: OK } }
+
   /admin/photos:
     get:
       tags: [Admin]
@@ -1143,6 +1167,19 @@ paths:
       parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
       responses: { '200': { description: Eliminado } }
 
+  /admin/apartment-owners/{id}/reset-password:
+    post:
+      tags: [Admin]
+      summary: Genera una nueva contraseña temporal para el administrador de apartamento
+      description: >-
+        Auditoría 17 secciones, sección 8: faltaba en este doc. La contraseña
+        viaja una sola vez en texto plano en la respuesta (ver
+        owner-auth.routes.ts) -- must_change_password fuerza cambiarla en el
+        primer login siguiente.
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: 'Contraseña temporal generada' } }
+
   /admin/apartment-owners/{id}/onboarding-link:
     post:
       tags: [Admin]
@@ -1292,4 +1329,203 @@ paths:
       tags: [Admin]
       summary: Eventos de la ciudad de Río usados como señal de precio dinámico
       security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  # ── Owner Auth ───────────────────────────────────────────────────────────
+  # Auditoría 17 secciones, sección 8: toda esta sección faltaba en el doc
+  # (18 rutas reales sin documentar). Mismo nivel de detalle que la sección
+  # Admin de arriba -- path/método/resumen reales, request body solo donde
+  # es simple.
+  /owner/login:
+    post:
+      tags: [Owner Auth]
+      summary: Login de administrador de apartamento
+      description: Emite el JWT como cookie httpOnly `lch_owner`. Rate limit 10/min.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { description: Login exitoso (Set-Cookie lch_owner) }
+        '401': { description: Credenciales inválidas, content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+
+  /owner/login/change-password:
+    post:
+      tags: [Owner Auth]
+      summary: Cambia la contraseña del administrador logueado
+      security: [{ ownerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newPassword]
+              properties:
+                newPassword: { type: string, minLength: 8, description: 'Mayúscula + minúscula + número, mín. 8 caracteres' }
+      responses: { '200': { description: 'Contraseña actualizada' } }
+
+  /owner/login/logout:
+    post:
+      tags: [Owner Auth]
+      summary: Logout -- revoca el token actual y limpia la cookie
+      security: [{ ownerAuth: [] }]
+      responses: { '200': { description: 'Sesión cerrada' } }
+
+  # ── Owner Panel (protegido, requiere ownerAuth) ─────────────────────────
+  /owner/me:
+    get:
+      tags: [Owner Panel]
+      summary: Datos de la sesión de owner activa
+      security: [{ ownerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /owner/apartments:
+    get:
+      tags: [Owner Panel]
+      summary: Lista los apartamentos del owner logueado
+      security: [{ ownerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /owner/apartments/{id}:
+    get:
+      tags: [Owner Panel]
+      summary: Detalle de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    put:
+      tags: [Owner Panel]
+      summary: Edita datos de un apartamento propio (descripción, capacidad, precio base, etc.)
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+
+  /owner/apartments/{id}/photos:
+    get:
+      tags: [Owner Panel]
+      summary: Lista fotos de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Owner Panel]
+      summary: Sube una foto (multipart, campo `photo`, máx 15MB, valida magic bytes reales)
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo: { type: string, format: binary }
+                altText: { type: string }
+      responses: { '201': { description: Creada } }
+
+  /owner/apartments/photos/{photoId}:
+    patch:
+      tags: [Owner Panel]
+      summary: Edita metadata de una foto (isPrimary, altText, displayOrder)
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: photoId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    delete:
+      tags: [Owner Panel]
+      summary: Elimina una foto
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: photoId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Eliminada } }
+
+  /owner/apartments/{id}/reviews:
+    get:
+      tags: [Owner Panel]
+      summary: Lista reseñas de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Owner Panel]
+      summary: Agrega una reseña externa (importada de Google/Booking, etc.)
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '201': { description: Creada } }
+
+  /owner/apartments/reviews/{reviewId}:
+    put:
+      tags: [Owner Panel]
+      summary: Edita una reseña
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    delete:
+      tags: [Owner Panel]
+      summary: Elimina una reseña
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Eliminada } }
+
+  /owner/apartments/{id}/blocks:
+    get:
+      tags: [Owner Panel]
+      summary: Lista bloqueos de fechas de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Owner Panel]
+      summary: Bloquea un rango de fechas (mantenimiento, uso personal, etc.)
+      description: >-
+        Auditoría 17 secciones, sección 2: devuelve 409 si el rango se
+        superpone con una reserva confirmada o pendiente de pago existente
+        (ver owner-apartments.routes.ts) -- ya no se puede bloquear encima de
+        un huésped con reserva activa.
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [start_date, end_date]
+              properties:
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                block_type: { type: string }
+                reason: { type: string }
+                notes: { type: string }
+      responses:
+        '201': { description: Creado }
+        '400': { description: 'Fecha de fin no posterior a la de inicio', content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+        '409': { description: 'Hay una reserva confirmada/pendiente en ese rango', content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+
+  /owner/apartments/blocks/{blockId}:
+    delete:
+      tags: [Owner Panel]
+      summary: Elimina un bloqueo de fechas
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: blockId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Eliminado } }
+
+  /owner/apartments/{id}/pricing:
+    get:
+      tags: [Owner Panel]
+      summary: Configuración de precios/unidad de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+    put:
+      tags: [Owner Panel]
+      summary: Edita configuración de precios/unidad de un apartamento propio
+      security: [{ ownerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
       responses: { '200': { description: OK } }
