@@ -1,103 +1,11 @@
 # lapa-casa-hostel/render.yaml
+#
+# Backend API + worker de colas se mudaron a Fly.io (2026-09-02) --
+# api.lapacasario.com corre ahi ahora (ver backend/fly.toml), no en
+# Render. Este archivo quedo solo con lo que sigue en Render: la landing
+# estatica y el frontend Next.js (motor de reservas). Ver docs/DEPLOY.md.
 
 services:
-  # Backend API Service
-  - type: web
-    name: lapa-casa-hostel-api
-    env: node
-    # Render no ofrece region en Sudamerica; Oregon es la mas cercana
-    # disponible, con latencia extra hacia Supabase (sa-east-1) y los
-    # usuarios reales en Rio de Janeiro -- limitacion conocida, no un bug.
-    region: oregon
-    plan: free
-    branch: definitivo2026
-    rootDir: backend
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: npm run start
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      # DATABASE_URL real de Supabase (proyecto rpowardrcwnhbkzjsiok) --
-      # sync: false = se carga a mano desde el dashboard de Render, nunca
-      # se commitea en este archivo (ver incidente de seguridad previo:
-      # una version anterior tenia la contrasena real en texto plano en
-      # prompts/combo-VENTANA-1-completa.md).
-      - key: DATABASE_URL
-        sync: false
-      # CA real de Supabase en PEM, con \n literales (FIX incidente
-      # 2026-08-31: sin esto la conexión TLS falla con
-      # SELF_SIGNED_CERT_IN_CHAIN -- el trust store por defecto de Node no
-      # valida el certificado de conexión directa de Supabase). Sacarlo del
-      # dashboard de Supabase: Project Settings -> Database -> SSL
-      # Configuration -> "Download certificate". sync: false = se carga a
-      # mano en el dashboard de Render.
-      - key: DATABASE_CA_CERT
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
-      - key: ENCRYPTION_KEY
-        generateValue: true
-      - key: PORT
-        value: 10000
-      # CORS_ORIGINS, APP_URL y FRONTEND_URL dependen de la cuenta de Render
-      # (cada cuenta genera URLs con sufijo distinto, ej. -fxz0).
-      # sync: false = se cargan a mano en el dashboard de Render.
-      # Valores a usar (ajustar según los URLs reales del dashboard):
-      #   CORS_ORIGINS  → https://<frontend-url>.onrender.com (separados por coma si hay varios)
-      #   APP_URL       → https://<backend-url>.onrender.com
-      #   FRONTEND_URL  → https://<frontend-url>.onrender.com
-      - key: CORS_ORIGINS
-        sync: false
-      - key: APP_URL
-        sync: false
-      # Apunta al frontend real: frontend/src/app/[locale]/payment/[id]/
-      # (PaymentConfirmationPage, con countdown) ya existe y es donde el
-      # link de pago de los emails de confirmacion tiene que aterrizar.
-      - key: FRONTEND_URL
-        sync: false
-      - key: TIMEZONE
-        value: America/Sao_Paulo
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: MP_ACCESS_TOKEN
-        sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: FROM_EMAIL
-        value: lapalandiarj@gmail.com
-      - key: EMAIL_FROM
-        value: lapalandiarj@gmail.com
-      - key: EMAIL_FROM_NAME
-        value: Lapa Casa
-      - key: ADMIN_EMAIL
-        sync: false
-      - key: ADMIN_PASSWORD_HASH
-        sync: false
-      # ventana4 (bloque 2): Google Sheets, exportacion de solo lectura hacia
-      # afuera. Sin estas 3 variables la exportacion queda deshabilitada sin
-      # romper el resto del backend (ver backend/.env.example para el paso
-      # a paso de como generarlas).
-      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
-        sync: false
-      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-        sync: false
-      - key: GOOGLE_SHEETS_SPREADSHEET_ID
-        sync: false
-      # ventana4 (bloque 2): debe coincidir EXACTO con el nombre de la
-      # pestaña real en Google Sheets -- "Hoja 1" es el nombre por
-      # defecto que Google le pone a la primera pestaña en cuentas en
-      # español (no "Sheet1"). Verificado contra la hoja real del hostel.
-      - key: GOOGLE_SHEETS_SHEET_NAME
-        value: Hoja 1
-    autoDeploy: true
-
   # Landing estatica (info de contacto + links directos a las OTAs).
   # Ocupa el dominio raiz por ahora; el frontend real (motor de reservas,
   # ver servicio siguiente) queda en su propio subdominio hasta que el
@@ -144,11 +52,10 @@ services:
         value: production
       - key: PORT
         value: 10000
-      # NEXT_PUBLIC_SITE_URL y NEXT_PUBLIC_API_URL dependen del Render account.
-      # sync: false = se cargan a mano en el dashboard.
-      # Valores a usar:
-      #   NEXT_PUBLIC_SITE_URL → https://<frontend-url>.onrender.com
-      #   NEXT_PUBLIC_API_URL  → https://<backend-url>.onrender.com/api/v1
+      # sync: false = se cargan a mano en el dashboard de Render.
+      # Valores reales:
+      #   NEXT_PUBLIC_SITE_URL → https://www.lapacasario.com
+      #   NEXT_PUBLIC_API_URL  → https://api.lapacasario.com/api/v1 (Fly.io, no Render)
       - key: NEXT_PUBLIC_SITE_URL
         sync: false
       # lib/api.ts arma las rutas como `${NEXT_PUBLIC_API_URL}/availability/...`
@@ -166,76 +73,14 @@ services:
         sync: false
     autoDeploy: true
 
-  # Worker de colas BullMQ (FIX auditoría 2026-08-30): antes no existía
-  # ningún servicio que corriera `npm run worker` -- el backend seguía
-  # ENCOLANDO jobs con total normalidad (REDIS_URL ya está configurada
-  # arriba) pero nada los consumía nunca. Sin esto: el cobro de saldo a
-  # 7 días nunca se dispara, los emails programados (bienvenida,
-  # recordatorios) nunca salen, los holds de reservas pendientes
-  # vencidas nunca se liberan, y el sync con Airbnb/Hostelworld (cada 5
-  # min vía ICAL_IMPORT_INTERVAL_MINUTES) nunca corre solo.
-  #
-  # OJO: el plan "free" de Render históricamente NO soporta Background
-  # Workers (solo Web Services) -- verificar el plan mínimo requerido
-  # en el dashboard de Render antes de crear este servicio; puede
-  # implicar un costo mensual que no existía con los 3 servicios
-  # actuales (todos en plan free).
-  - type: worker
-    name: lapa-casa-hostel-worker
-    env: node
-    region: oregon
-    plan: starter
-    branch: definitivo2026
-    rootDir: backend
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: npm run worker
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false
-      # Ver el comentario junto a DATABASE_CA_CERT en el servicio backend
-      # arriba -- este worker abre su propio pool de Postgres (src/config/
-      # database.ts) y necesita la misma CA.
-      - key: DATABASE_CA_CERT
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: APP_URL
-        sync: false
-      - key: FRONTEND_URL
-        sync: false
-      - key: TIMEZONE
-        value: America/Sao_Paulo
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: MP_ACCESS_TOKEN
-        sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: FROM_EMAIL
-        value: lapalandiarj@gmail.com
-      - key: EMAIL_FROM
-        value: lapalandiarj@gmail.com
-      - key: EMAIL_FROM_NAME
-        value: Lapa Casa
-      - key: ADMIN_EMAIL
-        sync: false
-      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
-        sync: false
-      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-        sync: false
-      - key: GOOGLE_SHEETS_SPREADSHEET_ID
-        sync: false
-      - key: GOOGLE_SHEETS_SHEET_NAME
-        value: Hoja 1
-    autoDeploy: true
-
-# No hay bloque "databases": la base es la Supabase real
-# (proyecto rpowardrcwnhbkzjsiok), no una base gestionada por Render.
-# DATABASE_URL se carga a mano en el dashboard (ver envVars del backend).
+# El backend API y el worker de colas BullMQ (cobro de saldo a 7 dias,
+# emails programados, liberacion de holds vencidos, sync con
+# Airbnb/Hostelworld cada 5 min) corren en Fly.io -- ver backend/fly.toml
+# (dos process groups, "app" y "worker", misma imagen Docker). No hay
+# bloque "databases" acá: la base es la Supabase real (proyecto
+# rpowardrcwnhbkzjsiok), no una base gestionada por Render ni por Fly.
 #
-# Dominios custom (lapacasario.com -> landing, api.lapacasario.com
-# -> backend) se atan a mano en el dashboard de Render por servicio
-# (Settings -> Custom Domains) -- Render no soporta asignarlos desde este
-# archivo. Ver docs/DEPLOY.md.
+# Dominios custom: lapacasario.com/www -> landing/frontend (Render,
+# Settings -> Custom Domains por servicio); api.lapacasario.com ->
+# backend (Fly, ver backend/fly.toml y Certificates en el dashboard de
+# Fly). Ver docs/DEPLOY.md.

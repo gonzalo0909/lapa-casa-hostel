@@ -8,10 +8,13 @@
 # despues de cambiar una variable de entorno en el dashboard) o para
 # integrarlo en un pipeline de CI propio.
 #
-# Uso:
-#   RENDER_DEPLOY_HOOK_BACKEND=https://api.render.com/deploy/srv-xxx?key=yyy \
-#     ./scripts/deploy.sh backend
+# Backend/worker ya NO estan en Render (se mudaron a Fly.io, 2026-09-02) --
+# este script solo cubre landing/frontend. Fly tiene su propio Auto-Deploy
+# on push conectado a GitHub (ver backend/fly.toml y el dashboard de Fly,
+# Settings -> Deploy branch); no hay Deploy Hook equivalente que disparar
+# desde aca.
 #
+# Uso:
 #   RENDER_DEPLOY_HOOK_LANDING=https://api.render.com/deploy/srv-zzz?key=www \
 #     ./scripts/deploy.sh landing
 #
@@ -26,14 +29,12 @@ set -euo pipefail
 
 TARGET="${1:-}"
 
-if [[ "$TARGET" != "backend" && "$TARGET" != "landing" && "$TARGET" != "frontend" ]]; then
-  echo "Uso: $0 <backend|landing|frontend>" >&2
+if [[ "$TARGET" != "landing" && "$TARGET" != "frontend" ]]; then
+  echo "Uso: $0 <landing|frontend>  (backend/worker estan en Fly.io, no en Render)" >&2
   exit 1
 fi
 
-if [[ "$TARGET" == "backend" ]]; then
-  HOOK_URL="${RENDER_DEPLOY_HOOK_BACKEND:-}"
-elif [[ "$TARGET" == "landing" ]]; then
+if [[ "$TARGET" == "landing" ]]; then
   HOOK_URL="${RENDER_DEPLOY_HOOK_LANDING:-}"
 else
   HOOK_URL="${RENDER_DEPLOY_HOOK_FRONTEND:-}"
