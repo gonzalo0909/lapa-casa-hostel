@@ -1,98 +1,71 @@
-> **Corrección (auditoría de 17 secciones, sección 11):** el dominio final
-> del proyecto es `lapacasario.com` (aún no comprado) — coincide con lo que
-> describe este documento, no es una alternativa descartada como decía una
-> versión anterior de esta nota. Lo que sí es distinto de lo vigente hoy es
-> el **stack**: hoy (`render.yaml`, `docs/DEPLOY.md`) todo corre junto en
-> Render. El plan real a corto plazo es dividirlo en frontend (Vercel) +
-> backend en un servidor en Brasil (no necesariamente Render Starter como
-> dice este documento más abajo) — todavía sin implementar. Hasta que esa
-> migración se haga, `docs/DEPLOY.md` sigue siendo la guía del deploy
-> *actual*; este documento describe la dirección hacia la que se va, no
-> el estado presente.
+> **Actualizado 2026-09-02:** este documento describía un plan aspiracional
+> (Vercel + Render) que nunca se implementó tal cual. El dominio
+> `lapacasario.com` ya está comprado (Porkbun) y el stack real terminó
+> siendo distinto: backend+worker en **Fly.io** (no Render), frontend
+> **sigue en Render por ahora** (migración a Vercel planeada, sin fecha
+> fija). `docs/DEPLOY.md` es la guía completa y detallada — este archivo
+> es el resumen rápido.
 
 # Deploy Recordatorio — lapacasario.com
 
-## Stack
-- **Frontend**: Vercel (free) — Next.js
-- **Backend**: Render Starter $7/mes (sin cold starts)
-- **Dominio**: comprar en Namecheap / Cloudflare Registrar / Porkbun (~$9/año)
-- **DNS**: apuntar directamente a Vercel y Render (Cloudflare es opcional)
+## Stack real (hoy)
+- **Frontend + landing**: Render (`lapa-casa-hostel-frontend`, `lapa-casa-hostel-landing`) — migración a Vercel pendiente
+- **Backend + worker**: Fly.io, app `lapa-casa-hostel` (dos process groups: `app` y `worker`, ver `backend/fly.toml`)
+- **Dominio**: `lapacasario.com`, comprado en Porkbun
+- **Base de datos**: Supabase (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — no gestionada por Render ni por Fly
+
+## Dominios ya configurados
+| Dominio | Apunta a | DNS |
+|---|---|---|
+| `lapacasario.com` (+ `www`) | Frontend en Render | ALIAS/CNAME → `lapa-casa-hostel-frontend-313b.onrender.com` |
+| `api.lapacasario.com` | Backend en Fly.io | A + AAAA + CNAME que muestra Fly → Certificates |
 
 ---
 
-## 1 — Comprar el dominio
-1. Ir a [Namecheap](https://namecheap.com) o [Porkbun](https://porkbun.com)
-2. Buscar `lapacasario.com` y comprarlo (~$9/año)
-3. En el panel de DNS del registrador, crear los registros que Vercel y Render te van a dar
+## Deploy del backend (Fly.io) — sin `flyctl` local
+
+Todo se hace desde el dashboard web de Fly (fly.io/dashboard), sin instalar nada:
+
+1. Fly → **Launch an App** → conectar el repo de GitHub → `gonzalo0909/lapa-casa-hostel`
+2. Working directory / Config path: `backend` (ahí vive `Dockerfile` y `fly.toml`)
+3. Branch: `definitivo2026`, región: `gru` (São Paulo)
+4. Secrets (Settings → Secrets → Batch Import): `DATABASE_URL`, `REDIS_URL`,
+   `JWT_SECRET`, `ENCRYPTION_KEY`, `CORS_ORIGINS`, `APP_URL`, `FRONTEND_URL`,
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `MP_ACCESS_TOKEN`,
+   `MP_WEBHOOK_SECRET`, `RESEND_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`,
+   `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
+   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`.
+   **`DATABASE_CA_CERT` ya no hace falta** — es código (`backend/src/config/supabase-ca.ts`), no secreto.
+5. Settings → **Auto-Deploy on push**, rama `definitivo2026` — cada push despliega solo
+6. Certificates → agregar `api.lapacasario.com`, cargar los registros DNS que muestra en Porkbun
+7. Verificar: `https://api.lapacasario.com/health` → `{"status":"healthy"}`
 
 ---
 
-## 2 — Deploy del Backend en Render
+## Deploy del frontend (Render, por ahora)
 
-1. Entrar en [render.com](https://render.com) → crear cuenta
-2. Conectar el repo GitHub (`gonzalo0909/lapa-casa-hostel`)
-3. Crear un **Web Service**, raíz: `backend/`
-4. Plan: **Starter ($7/mes)** — evita el sleep de 15 min del plan free
-5. Variables de entorno mínimas:
-   ```
-   DATABASE_URL=postgresql://...
-   JWT_SECRET=...
-   CORS_ORIGINS=https://lapacasario.com,https://www.lapacasario.com
-   NODE_ENV=production
-   ```
-6. Una vez desplegado, el backend estará en:
-   `https://lapa-casa-hostel-api.onrender.com`
-7. En Render → Settings → Custom Domain: agregar `api.lapacasario.com` (opcional, para tener URL propia)
-
----
-
-## 3 — Deploy del Frontend en Vercel
-
-1. Entrar en [vercel.com](https://vercel.com) → crear cuenta con GitHub
-2. New Project → importar `gonzalo0909/lapa-casa-hostel`
-3. Root Directory: `frontend/`
-4. Framework: **Next.js** (autodetectado)
-5. Variables de entorno:
-   ```
-   NEXT_PUBLIC_API_URL=https://lapa-casa-hostel-api.onrender.com/api/v1
-   NEXT_PUBLIC_SITE_URL=https://lapacasario.com
-   ```
-6. Deploy → Vercel te da un dominio `.vercel.app` para probar
-7. Settings → Domains → agregar `lapacasario.com` y `www.lapacasario.com`
-8. Vercel te muestra los registros DNS a agregar en tu registrador
-
----
-
-## 4 — DNS (en tu registrador)
-
-Agregar los registros que Vercel te indica, generalmente:
+Ya está desplegado como `lapa-casa-hostel-frontend` en Render, con `lapacasario.com`
+y `www.lapacasario.com` como Custom Domains apuntando ahí. Variables clave:
 ```
-Type    Name    Value
-A       @       76.76.21.21
-CNAME   www     cname.vercel-dns.com
+NEXT_PUBLIC_API_URL=https://api.lapacasario.com/api/v1
+NEXT_PUBLIC_SITE_URL=https://www.lapacasario.com
 ```
 
-Para el backend (opcional, dominio propio):
-```
-CNAME   api     your-render-service.onrender.com
-```
+Cuando se migre a Vercel: nuevo proyecto ahí con las mismas variables, y cambiar
+el DNS de `lapacasario.com`/`www` del ALIAS de Render al que dé Vercel — no hay
+que tocar nada del backend en Fly.
 
 ---
 
-## 5 — Cloudflare (OPCIONAL)
+## Panel de administradores de apartamento
 
-Si querés una capa extra gratuita de CDN y seguridad:
-1. Crear cuenta en [cloudflare.com](https://cloudflare.com)
-2. Agregar tu dominio → Cloudflare te da sus nameservers
-3. En tu registrador, cambiar los nameservers por los de Cloudflare
-4. Cloudflare gestiona el DNS en lugar del registrador
-5. **No hostea el código** — solo actúa como intermediario/CDN
-
-> Si no querés complicaciones, no usés Cloudflare. Apuntá el DNS directamente desde el registrador a Vercel/Render — funciona perfecto.
+`www.lapacasario.com/owner/login` — fuera del prefijo de idioma (`/pt`, `/es`...),
+herramienta interna en portugués. Requiere una cuenta creada de antemano desde el
+panel admin general (`api.lapacasario.com/admin`).
 
 ---
 
-## 6 — Google Business Profile (cuando el site esté listo)
+## Google Business Profile (cuando el site esté listo)
 
 Crear **dos fichas separadas**:
 1. **Lapa Casa Hostel** — con dirección física: Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro
@@ -102,12 +75,12 @@ Así en Google Maps aparecen como negocios independientes con SEO propio.
 
 ---
 
-## 7 — Checklist final antes de lanzar
+## Checklist final antes de lanzar
 
-- [ ] Comprar dominio lapacasario.com
-- [ ] Deploy backend en Render Starter
-- [ ] Deploy frontend en Vercel
-- [ ] Configurar DNS
+- [x] Comprar dominio lapacasario.com
+- [x] Deploy backend en Fly.io
+- [x] Deploy frontend en Render (Vercel pendiente)
+- [x] Configurar DNS (`api.` → Fly, raíz/`www` → Render)
 - [ ] Probar formulario de reserva hostel (end-to-end)
 - [ ] Probar formulario de reserva apartamentos (end-to-end)
 - [ ] Verificar que /apartamentos NO muestra tab de hostel
@@ -115,3 +88,4 @@ Así en Google Maps aparecen como negocios independientes con SEO propio.
 - [ ] Configurar Google Business Profile (dos fichas)
 - [ ] Cargar apartamentos reales en la DB
 - [ ] Cargar fotos de apartamentos
+- [ ] Migrar frontend a Vercel

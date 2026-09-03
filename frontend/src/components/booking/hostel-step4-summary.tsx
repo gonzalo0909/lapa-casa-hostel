@@ -21,6 +21,8 @@ interface HostelStep4SummaryProps {
   beds: Record<string, number>;
   payMethod: PayMethod;
   onPayMethodChange: (m: PayMethod) => void;
+  /** 1 + system_config.card_surcharge_percent/100 -- real, no hardcodear 1.10 acá (ver hostel-engine.tsx). */
+  cardSurchargeMult: number;
   currency: CurrencyInfo | null;
   convertBRL: (v: number, currency: CurrencyInfo) => string;
   bookingError: string;
@@ -34,10 +36,10 @@ export function HostelStep4Summary({
   t, form, price, checkIn, checkOut, rooms, beds, payMethod, onPayMethodChange,
   currency, convertBRL, bookingError,
   isProcessing, isWaLoading,
-  onConfirm, onWaClick,
+  onConfirm, onWaClick, cardSurchargeMult,
 }: HostelStep4SummaryProps) {
   const selR = rooms.filter(r => (beds[r.id] ?? 0) > 0);
-  const mult       = payMethod === 'card' ? 1.10 : 1;
+  const mult       = payMethod === 'card' ? cardSurchargeMult : 1;
   const depositAmt = Math.round(price.deposit * mult);
   const remaining  = Math.round((price.total - price.deposit) * mult);
 
@@ -133,7 +135,7 @@ export function HostelStep4Summary({
               <CreditCard size={13} aria-hidden />{t.pmCard}
             </div>
             <div className="he-pm-detail">
-              {fmtMoney(Math.round(price.deposit * 1.10))} · {fmtMoney(Math.round((price.total - price.deposit) * 1.10))} {t.tAtCheckin}
+              {fmtMoney(Math.round(price.deposit * cardSurchargeMult))} · {fmtMoney(Math.round((price.total - price.deposit) * cardSurchargeMult))} {t.tAtCheckin}
             </div>
           </div>
         </button>

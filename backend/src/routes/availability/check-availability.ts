@@ -66,6 +66,7 @@ export const checkAvailabilityHandler = async (
         const avail = await availabilityService.checkRoomAvailability(rt.id, checkIn, checkOut);
         return {
           roomId: rt.id,
+          code: rt.code,
           name: rt.name,
           type: rt.default_gender,
           capacity: rt.capacity,
@@ -135,6 +136,7 @@ export const checkAvailabilityHandler = async (
         bedsAvailable: totalAvailable,
         rooms: roomsAvailability.map(room => ({
           roomId: room.roomId,
+          code: room.code,
           name: room.name,
           type: room.type,
           capacity: room.capacity,

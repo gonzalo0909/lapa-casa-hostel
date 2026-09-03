@@ -20,7 +20,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  */
 
 const textareaVariants = cva(
-  'flex min-h-[80px] w-full rounded-lg border bg-white px-3 py-2 text-base transition-colors placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 resize-y',
+  'flex min-h-[80px] w-full rounded-lg border bg-white px-3 py-2 text-base text-gray-900 transition-colors placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 resize-y',
   {
     variants: {
       variant: {
