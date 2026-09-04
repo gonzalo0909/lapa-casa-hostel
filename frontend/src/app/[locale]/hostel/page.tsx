@@ -6,7 +6,7 @@
 
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { HostelEngine } from '@/components/booking/hostel-engine';
+import { HostelEngine } from '@/components/booking/hostel-engine-lazy';
 import { FAQSection } from '@/components/seo/faq-section';
 import { StructuredData, LocalBusinessSchema } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
@@ -14,45 +14,46 @@ import { locales, defaultLocale, type Locale } from '@/i18n';
 // JSON-LD HowTo: cómo reservar en el hostel (AEO — motores de IA)
 const HowToBookSchema = {
   '@context': 'https://schema.org',
-  '@type':    'HowTo',
-  name:       'How to book at Lapa Casa Hostel',
-  description:'Step-by-step guide to reserving beds or full dormitories at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro.',
-  totalTime:  'PT5M',
+  '@type': 'HowTo',
+  name: 'How to book at Lapa Casa Hostel',
+  description:
+    'Step-by-step guide to reserving beds or full dormitories at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro.',
+  totalTime: 'PT5M',
   step: [
     {
-      '@type':  'HowToStep',
+      '@type': 'HowToStep',
       position: 1,
-      name:     'Choose your dates',
-      text:     'Select your check-in and check-out dates using the booking calendar on our website.',
-      url:      'https://lapacasario.com/en/hostel',
+      name: 'Choose your dates',
+      text: 'Select your check-in and check-out dates using the booking calendar on our website.',
+      url: 'https://lapacasario.com/en/hostel',
     },
     {
-      '@type':  'HowToStep',
+      '@type': 'HowToStep',
       position: 2,
-      name:     'Select your beds or room',
-      text:     'Pick the number of beds or choose a full dormitory (Mixto 12A, Mixto 12B, Mixto 7 or Flexible 7). Groups of 6+ get automatic discounts.',
-      url:      'https://lapacasario.com/en/hostel',
+      name: 'Select your beds or room',
+      text: 'Pick the number of beds or choose a full dormitory (Mixto 12A, Mixto 12B, Mixto 7 or Flexible 7). Groups of 6+ get automatic discounts.',
+      url: 'https://lapacasario.com/en/hostel',
     },
     {
-      '@type':  'HowToStep',
+      '@type': 'HowToStep',
       position: 3,
-      name:     'Fill in guest information',
-      text:     'Enter your name, email, and number of guests. Group leader fills in once for the whole group.',
-      url:      'https://lapacasario.com/en/hostel',
+      name: 'Fill in guest information',
+      text: 'Enter your name, email, and number of guests. Group leader fills in once for the whole group.',
+      url: 'https://lapacasario.com/en/hostel',
     },
     {
-      '@type':  'HowToStep',
+      '@type': 'HowToStep',
       position: 4,
-      name:     'Choose your payment method',
-      text:     'Pay securely by credit card (Stripe), PIX, or Mercado Pago. Installment payments are available.',
-      url:      'https://lapacasario.com/en/hostel',
+      name: 'Choose your payment method',
+      text: 'Pay securely by credit card (Stripe), PIX, or Mercado Pago. Installment payments are available.',
+      url: 'https://lapacasario.com/en/hostel',
     },
     {
-      '@type':  'HowToStep',
+      '@type': 'HowToStep',
       position: 5,
-      name:     'Confirm and receive your booking',
-      text:     'You will receive an instant confirmation email with your booking details and check-in instructions.',
-      url:      'https://lapacasario.com/en/hostel',
+      name: 'Confirm and receive your booking',
+      text: 'You will receive an instant confirmation email with your booking details and check-in instructions.',
+      url: 'https://lapacasario.com/en/hostel',
     },
   ],
 };
@@ -73,9 +74,7 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: `${SITE_URL}/${locale}/hostel`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${SITE_URL}/${l}/hostel`]),
-      ),
+      languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/hostel`])),
     },
     openGraph: {
       title,
@@ -91,9 +90,9 @@ export async function generateMetadata({
 }
 
 export default async function HostelPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale)
-    ? params.locale
-    : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
 
   // Sin PropertyTabs — el huésped de hostel no ve el tab de apartamentos
