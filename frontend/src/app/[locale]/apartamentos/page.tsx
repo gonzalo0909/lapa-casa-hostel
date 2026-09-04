@@ -5,7 +5,7 @@
 
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ApartmentEngine } from '@/components/booking/apartment-engine';
+import { ApartmentEngine } from '@/components/booking/apartment-engine-lazy';
 import { StructuredData, ApartmentServiceSchema } from '@/components/seo/structured-data';
 import { FAQSection } from '@/components/seo/faq-section';
 import { locales, defaultLocale, type Locale } from '@/i18n';
@@ -27,9 +27,7 @@ export async function generateMetadata({
     // Sin noindex — Google debe indexar /apartamentos con su propio SEO
     alternates: {
       canonical: `${SITE_URL}/${locale}/apartamentos`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${SITE_URL}/${l}/apartamentos`]),
-      ),
+      languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/apartamentos`])),
     },
     openGraph: {
       title,
@@ -45,9 +43,9 @@ export async function generateMetadata({
 }
 
 export default async function ApartmentsPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale)
-    ? params.locale
-    : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
 
   // Sin PropertyTabs — el huésped de apartamentos no ve el tab de hostel
