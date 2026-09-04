@@ -63,20 +63,20 @@ export async function generateMetadata({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const m = META[safeLocale]!;
   return {
-    title:       m.title,
+    title: m.title,
     description: m.description,
     alternates: {
       canonical: `${SITE_URL}/${locale}/santa-teresa`,
       languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/santa-teresa`])),
     },
     openGraph: {
-      title:       m.title,
+      title: m.title,
       description: m.description,
-      url:         `${SITE_URL}/${locale}/santa-teresa`,
-      siteName:    'Lapa Casa',
+      url: `${SITE_URL}/${locale}/santa-teresa`,
+      siteName: 'Lapa Casa',
       locale,
-      type:        'article',
-      images:      [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+      type: 'article',
+      images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
     },
     twitter: { card: 'summary_large_image', title: m.title, description: m.description },
   };
@@ -85,19 +85,19 @@ export async function generateMetadata({
 // ─── Contenido por idioma ──────────────────────────────────────────────────
 
 interface Content {
-  headline:     string;
-  intro:        string;
-  sections:     Section[];
-  faq:          FAQ[];
-  ctaTitle:     string;
-  ctaBody:      string;
-  ctaBtn:       string;
-  ctaWa:        string;
+  headline: string;
+  intro: string;
+  sections: Section[];
+  faq: FAQ[];
+  ctaTitle: string;
+  ctaBody: string;
+  ctaBtn: string;
+  ctaWa: string;
 }
 
 interface Section {
-  title:  string;
-  body:   string;
+  title: string;
+  body: string;
   items?: string[];
 }
 
@@ -114,7 +114,7 @@ const CONTENT: Record<string, Content> = {
     sections: [
       {
         title: 'O que fazer em Santa Teresa',
-        body:  'Santa Teresa oferece uma mistura única de cultura, arte e gastronomia. Principais atrações:',
+        body: 'Santa Teresa oferece uma mistura única de cultura, arte e gastronomia. Principais atrações:',
         items: [
           'Museu Chácara do Céu — coleção de arte moderna com vista panorâmica',
           'Escadaria Selarón — mosaico mundialmente famoso, a 10 min a pé',
@@ -127,7 +127,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Como chegar a Santa Teresa',
-        body:  'Santa Teresa é bem acessível a partir de qualquer ponto do Rio:',
+        body: 'Santa Teresa é bem acessível a partir de qualquer ponto do Rio:',
         items: [
           'Uber / táxi — a opção mais prática. Informe "Santa Teresa, próximo aos Arcos da Lapa"',
           'Bonde histórico — saída do Largo da Carioca, Centro. Linha única que atravessa o bairro',
@@ -137,8 +137,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Segurança em Santa Teresa',
-        body:
-          'Santa Teresa é considerado um dos bairros mais seguros para turistas no Rio. A comunidade de moradores é ativa e as ruas do entorno do hostel são bem iluminadas. Como em qualquer cidade grande, recomendamos:',
+        body: 'Santa Teresa é considerado um dos bairros mais seguros para turistas no Rio. A comunidade de moradores é ativa e as ruas do entorno do hostel são bem iluminadas. Como em qualquer cidade grande, recomendamos:',
         items: [
           'Evitar exibir objetos de valor em locais muito movimentados',
           'Preferir Uber/táxi após as 23h para ir a outros bairros',
@@ -148,12 +147,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Gastronomia: onde comer em Santa Teresa',
-        body:  'O bairro tem uma cena gastronômica diversa e autêntica:',
+        body: 'O bairro tem uma cena gastronômica diversa e autêntica:',
         items: [
           'Aprazível — restaurante com vista para a Baía, comida brasileira de autor',
           'Bar do Mineiro — feijoada e boteco tradicional carioca',
           'Sobrenatural — frutos do mar, ambiente descontraído',
-          'Mike\'s Haus — hambúrgueres artesanais em estilo alemão',
+          "Mike's Haus — hambúrgueres artesanais em estilo alemão",
           'Espirito Santa — cozinha amazônica com vista panorâmica',
         ],
       },
@@ -177,9 +176,10 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Hospede-se no coração de Santa Teresa',
-    ctaBody:  'O Lapa Casa Hostel fica a 5 minutos dos Arcos da Lapa. Especialistas em grupos com os melhores preços garantidos.',
-    ctaBtn:   'Reservar agora',
-    ctaWa:    'Falar no WhatsApp',
+    ctaBody:
+      'O Lapa Casa Hostel fica a 5 minutos dos Arcos da Lapa. Especialistas em grupos com os melhores preços garantidos.',
+    ctaBtn: 'Reservar agora',
+    ctaWa: 'Falar no WhatsApp',
   },
 
   en: {
@@ -189,7 +189,7 @@ const CONTENT: Record<string, Content> = {
     sections: [
       {
         title: 'Things to do in Santa Teresa',
-        body:  'Santa Teresa offers a unique mix of culture, art, and gastronomy. Top attractions:',
+        body: 'Santa Teresa offers a unique mix of culture, art, and gastronomy. Top attractions:',
         items: [
           'Museu Chácara do Céu — modern art collection with panoramic views',
           'Escadaria Selarón — world-famous mosaic staircase, 10 min walk',
@@ -202,7 +202,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'How to get to Santa Teresa',
-        body:  'Santa Teresa is easily accessible from anywhere in Rio:',
+        body: 'Santa Teresa is easily accessible from anywhere in Rio:',
         items: [
           'Uber / taxi — most convenient. Tell the driver "Santa Teresa, near Arcos da Lapa"',
           'Historic tram — departs from Largo da Carioca, Centro. The only line crossing the neighborhood',
@@ -212,8 +212,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Safety in Santa Teresa',
-        body:
-          'Santa Teresa is considered one of the safest neighborhoods for tourists in Rio. The local community is active and the streets around the hostel are well-lit. As with any major city, we recommend:',
+        body: 'Santa Teresa is considered one of the safest neighborhoods for tourists in Rio. The local community is active and the streets around the hostel are well-lit. As with any major city, we recommend:',
         items: [
           'Avoid displaying valuables in busy areas',
           'Prefer Uber/taxi after 11 PM when heading to other neighborhoods',
@@ -223,12 +222,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Where to eat in Santa Teresa',
-        body:  'The neighborhood has a diverse and authentic food scene:',
+        body: 'The neighborhood has a diverse and authentic food scene:',
         items: [
           'Aprazível — bay-view restaurant with creative Brazilian cuisine',
           'Bar do Mineiro — traditional Rio feijoada and bar food',
           'Sobrenatural — seafood in a relaxed setting',
-          'Mike\'s Haus — craft burgers in German style',
+          "Mike's Haus — craft burgers in German style",
           'Espirito Santa — Amazonian cuisine with panoramic views',
         ],
       },
@@ -252,9 +251,10 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Stay in the heart of Santa Teresa',
-    ctaBody:  'Lapa Casa Hostel is 5 minutes from Arcos da Lapa. Group specialists with the best prices guaranteed.',
-    ctaBtn:   'Book now',
-    ctaWa:    'WhatsApp us',
+    ctaBody:
+      'Lapa Casa Hostel is 5 minutes from Arcos da Lapa. Group specialists with the best prices guaranteed.',
+    ctaBtn: 'Book now',
+    ctaWa: 'WhatsApp us',
   },
 
   es: {
@@ -264,7 +264,7 @@ const CONTENT: Record<string, Content> = {
     sections: [
       {
         title: 'Qué hacer en Santa Teresa',
-        body:  'Santa Teresa ofrece una mezcla única de cultura, arte y gastronomía. Principales atracciones:',
+        body: 'Santa Teresa ofrece una mezcla única de cultura, arte y gastronomía. Principales atracciones:',
         items: [
           'Museu Chácara do Céu — colección de arte moderno con vistas panorámicas',
           'Escadaria Selarón — mosaico mundialmente famoso, a 10 min a pie',
@@ -277,7 +277,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Cómo llegar a Santa Teresa',
-        body:  'Santa Teresa es muy accesible desde cualquier punto de Río:',
+        body: 'Santa Teresa es muy accesible desde cualquier punto de Río:',
         items: [
           'Uber / taxi — la opción más práctica. Di "Santa Teresa, cerca de Arcos da Lapa"',
           'Tranvía histórico — sale del Largo da Carioca, Centro. La única línea que atraviesa el barrio',
@@ -287,8 +287,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Seguridad en Santa Teresa',
-        body:
-          'Santa Teresa es considerado uno de los barrios más seguros para turistas en Río. La comunidad de vecinos es activa y las calles alrededor del hostel están bien iluminadas. Como en cualquier ciudad grande, recomendamos:',
+        body: 'Santa Teresa es considerado uno de los barrios más seguros para turistas en Río. La comunidad de vecinos es activa y las calles alrededor del hostel están bien iluminadas. Como en cualquier ciudad grande, recomendamos:',
         items: [
           'Evitar mostrar objetos de valor en zonas muy concurridas',
           'Preferir Uber/taxi después de las 23h para ir a otros barrios',
@@ -298,12 +297,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Dónde comer en Santa Teresa',
-        body:  'El barrio tiene una escena gastronómica diversa y auténtica:',
+        body: 'El barrio tiene una escena gastronómica diversa y auténtica:',
         items: [
           'Aprazível — restaurante con vista a la bahía, cocina brasileña de autor',
           'Bar do Mineiro — feijoada tradicional y bar carioca',
           'Sobrenatural — mariscos en ambiente relajado',
-          'Mike\'s Haus — hamburguesas artesanales al estilo alemán',
+          "Mike's Haus — hamburguesas artesanales al estilo alemán",
           'Espirito Santa — cocina amazónica con vistas panorámicas',
         ],
       },
@@ -327,9 +326,10 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Alójate en el corazón de Santa Teresa',
-    ctaBody:  'Lapa Casa Hostel está a 5 minutos de Arcos da Lapa. Especialistas en grupos con los mejores precios garantizados.',
-    ctaBtn:   'Reservar ahora',
-    ctaWa:    'WhatsApp',
+    ctaBody:
+      'Lapa Casa Hostel está a 5 minutos de Arcos da Lapa. Especialistas en grupos con los mejores precios garantizados.',
+    ctaBtn: 'Reservar ahora',
+    ctaWa: 'WhatsApp',
   },
 
   de: {
@@ -339,7 +339,7 @@ const CONTENT: Record<string, Content> = {
     sections: [
       {
         title: 'Sehenswürdigkeiten in Santa Teresa',
-        body:  'Santa Teresa bietet eine einzigartige Mischung aus Kultur, Kunst und Gastronomie:',
+        body: 'Santa Teresa bietet eine einzigartige Mischung aus Kultur, Kunst und Gastronomie:',
         items: [
           'Museu Chácara do Céu — Sammlung moderner Kunst mit Panoramablick',
           'Escadaria Selarón — weltberühmtes Mosaiktreppenviertel, 10 Min. zu Fuß',
@@ -351,7 +351,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Anreise nach Santa Teresa',
-        body:  'Santa Teresa ist von überall in Rio gut erreichbar:',
+        body: 'Santa Teresa ist von überall in Rio gut erreichbar:',
         items: [
           'Uber / Taxi — bequemste Option. Nennen Sie "Santa Teresa, nahe Arcos da Lapa"',
           'Historische Straßenbahn — ab Largo da Carioca, Stadtzentrum',
@@ -361,7 +361,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Sicherheit in Santa Teresa',
-        body:  'Santa Teresa gilt als eines der sichersten Viertel für Touristen in Rio. Empfehlungen:',
+        body: 'Santa Teresa gilt als eines der sichersten Viertel für Touristen in Rio. Empfehlungen:',
         items: [
           'Wertgegenstände nicht auffällig tragen',
           'Nach 23 Uhr Uber/Taxi für andere Stadtteile bevorzugen',
@@ -385,31 +385,32 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Übernachten im Herzen von Santa Teresa',
-    ctaBody:  'Lapa Casa Hostel liegt 5 Minuten von Arcos da Lapa. Gruppen-Spezialisten mit Bestpreisgarantie.',
-    ctaBtn:   'Jetzt buchen',
-    ctaWa:    'WhatsApp',
+    ctaBody:
+      'Lapa Casa Hostel liegt 5 Minuten von Arcos da Lapa. Gruppen-Spezialisten mit Bestpreisgarantie.',
+    ctaBtn: 'Jetzt buchen',
+    ctaWa: 'WhatsApp',
   },
 
   fr: {
     headline: 'Santa Teresa, Rio de Janeiro',
     intro:
-      'Santa Teresa est le quartier le plus bohème et charmant de Rio de Janeiro. Villas coloniales, rues pavées, tramway historique et vue imprenable sur la baie de Guanabara en font l\'une des destinations préférées des voyageurs du monde entier.',
+      "Santa Teresa est le quartier le plus bohème et charmant de Rio de Janeiro. Villas coloniales, rues pavées, tramway historique et vue imprenable sur la baie de Guanabara en font l'une des destinations préférées des voyageurs du monde entier.",
     sections: [
       {
         title: 'Que faire à Santa Teresa',
-        body:  'Santa Teresa offre un mélange unique de culture, d\'art et de gastronomie:',
+        body: "Santa Teresa offre un mélange unique de culture, d'art et de gastronomie:",
         items: [
-          'Museu Chácara do Céu — collection d\'art moderne avec vue panoramique',
+          "Museu Chácara do Céu — collection d'art moderne avec vue panoramique",
           'Escadaria Selarón — mosaïque mondialement connue, à 10 min à pied',
           'Arcos da Lapa — aqueduc historique du XVIIIe siècle, à 5 min',
           'Tramway de Santa Teresa — tramway historique traversant le quartier',
           'Feira do Lavradio — marché aux antiquités chaque dernier samedi du mois',
-          'Galeries et ateliers d\'art — quartier à forte tradition artistique',
+          "Galeries et ateliers d'art — quartier à forte tradition artistique",
         ],
       },
       {
         title: 'Comment se rendre à Santa Teresa',
-        body:  'Santa Teresa est facilement accessible depuis n\'importe quel point de Rio:',
+        body: "Santa Teresa est facilement accessible depuis n'importe quel point de Rio:",
         items: [
           'Uber / taxi — l\'option la plus pratique. Dites "Santa Teresa, près des Arcos da Lapa"',
           'Tramway historique — depuis Largo da Carioca, Centre-ville',
@@ -419,11 +420,11 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Sécurité à Santa Teresa',
-        body:  'Santa Teresa est considéré comme l\'un des quartiers les plus sûrs pour les touristes à Rio:',
+        body: "Santa Teresa est considéré comme l'un des quartiers les plus sûrs pour les touristes à Rio:",
         items: [
-          'Éviter d\'afficher des objets de valeur dans les zones très fréquentées',
-          'Préférer Uber/taxi après 23h pour aller dans d\'autres quartiers',
-          'Demander conseil au personnel de l\'auberge sur les meilleures routes',
+          "Éviter d'afficher des objets de valeur dans les zones très fréquentées",
+          "Préférer Uber/taxi après 23h pour aller dans d'autres quartiers",
+          "Demander conseil au personnel de l'auberge sur les meilleures routes",
           'Marcher en groupe — surtout la nuit en direction de Lapa',
         ],
       },
@@ -431,11 +432,11 @@ const CONTENT: Record<string, Content> = {
     faq: [
       {
         q: 'Santa Teresa est-il sûr pour les touristes?',
-        a: 'Oui. Santa Teresa est l\'un des quartiers les plus sûrs pour les touristes à Rio. La communauté locale est active et le quartier bénéficie d\'une surveillance régulière.',
+        a: "Oui. Santa Teresa est l'un des quartiers les plus sûrs pour les touristes à Rio. La communauté locale est active et le quartier bénéficie d'une surveillance régulière.",
       },
       {
         q: 'Combien de temps faut-il pour explorer Santa Teresa?',
-        a: 'Une journée entière est idéale. Pour les principaux points d\'intérêt, une demi-journée suffit.',
+        a: "Une journée entière est idéale. Pour les principaux points d'intérêt, une demi-journée suffit.",
       },
       {
         q: 'Santa Teresa est-il proche de Lapa?',
@@ -443,9 +444,10 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Séjournez au cœur de Santa Teresa',
-    ctaBody:  'Lapa Casa Hostel est à 5 minutes des Arcos da Lapa. Spécialistes groupes, meilleur prix garanti.',
-    ctaBtn:   'Réserver maintenant',
-    ctaWa:    'WhatsApp',
+    ctaBody:
+      'Lapa Casa Hostel est à 5 minutes des Arcos da Lapa. Spécialistes groupes, meilleur prix garanti.',
+    ctaBtn: 'Réserver maintenant',
+    ctaWa: 'WhatsApp',
   },
 
   it: {
@@ -455,20 +457,20 @@ const CONTENT: Record<string, Content> = {
     sections: [
       {
         title: 'Cosa fare a Santa Teresa',
-        body:  'Santa Teresa offre un mix unico di cultura, arte e gastronomia. Le attrazioni principali:',
+        body: 'Santa Teresa offre un mix unico di cultura, arte e gastronomia. Le attrazioni principali:',
         items: [
           'Museu Chácara do Céu — collezione di arte moderna con vista panoramica',
           'Escadaria Selarón — mosaico famoso in tutto il mondo, a 10 min a piedi',
           'Arcos da Lapa — acquedotto storico del XVIII secolo, a 5 min',
           'Tram di Santa Teresa — storico tram che attraversa il quartiere',
-          'Feira do Lavradio — mercato dell\'antiquariato ogni ultimo sabato del mese',
-          'Atelier e gallerie d\'arte — quartiere con una forte tradizione artistica',
+          "Feira do Lavradio — mercato dell'antiquariato ogni ultimo sabato del mese",
+          "Atelier e gallerie d'arte — quartiere con una forte tradizione artistica",
           'Bar do Mineiro e Aprazível — gastronomia carioca autentica',
         ],
       },
       {
         title: 'Come arrivare a Santa Teresa',
-        body:  'Santa Teresa è ben raggiungibile da qualsiasi punto di Rio:',
+        body: 'Santa Teresa è ben raggiungibile da qualsiasi punto di Rio:',
         items: [
           'Uber / taxi — l\'opzione più pratica. Indica "Santa Teresa, vicino agli Arcos da Lapa"',
           'Tram storico — partenza da Largo da Carioca, Centro. Unica linea che attraversa il quartiere',
@@ -478,23 +480,22 @@ const CONTENT: Record<string, Content> = {
       },
       {
         title: 'Sicurezza a Santa Teresa',
-        body:
-          'Santa Teresa è considerato uno dei quartieri più sicuri per i turisti a Rio. La comunità di residenti è attiva e le strade intorno all\'hostel sono ben illuminate. Come in qualsiasi grande città, consigliamo di:',
+        body: "Santa Teresa è considerato uno dei quartieri più sicuri per i turisti a Rio. La comunità di residenti è attiva e le strade intorno all'hostel sono ben illuminate. Come in qualsiasi grande città, consigliamo di:",
         items: [
           'Evitare di esporre oggetti di valore in zone molto affollate',
           'Preferire Uber/taxi dopo le 23:00 per andare in altri quartieri',
-          'Chiedere indicazioni al personale dell\'hostel sui percorsi migliori',
+          "Chiedere indicazioni al personale dell'hostel sui percorsi migliori",
           'Camminare in gruppo — specialmente di notte verso Lapa',
         ],
       },
       {
         title: 'Gastronomia: dove mangiare a Santa Teresa',
-        body:  'Il quartiere ha una scena gastronomica diversificata e autentica:',
+        body: 'Il quartiere ha una scena gastronomica diversificata e autentica:',
         items: [
-          'Aprazível — ristorante con vista sulla baia, cucina brasiliana d\'autore',
+          "Aprazível — ristorante con vista sulla baia, cucina brasiliana d'autore",
           'Bar do Mineiro — feijoada e boteco tradizionale carioca',
           'Sobrenatural — frutti di mare, atmosfera rilassata',
-          'Mike\'s Haus — hamburger artigianali in stile tedesco',
+          "Mike's Haus — hamburger artigianali in stile tedesco",
           'Espirito Santa — cucina amazzonica con vista panoramica',
         ],
       },
@@ -506,7 +507,7 @@ const CONTENT: Record<string, Content> = {
       },
       {
         q: 'Quanto tempo serve per esplorare Santa Teresa?',
-        a: 'Una giornata intera è l\'ideale per esplorare con calma il quartiere — musei, tram, pranzo e passeggiate tra le stradine. Per visitare solo i punti principali, mezza giornata è sufficiente.',
+        a: "Una giornata intera è l'ideale per esplorare con calma il quartiere — musei, tram, pranzo e passeggiate tra le stradine. Per visitare solo i punti principali, mezza giornata è sufficiente.",
       },
       {
         q: 'Santa Teresa è vicina a Lapa?',
@@ -518,9 +519,10 @@ const CONTENT: Record<string, Content> = {
       },
     ],
     ctaTitle: 'Soggiorna nel cuore di Santa Teresa',
-    ctaBody:  'Il Lapa Casa Hostel si trova a 5 minuti dagli Arcos da Lapa. Specialisti in gruppi con i migliori prezzi garantiti.',
-    ctaBtn:   'Prenota ora',
-    ctaWa:    'Scrivici su WhatsApp',
+    ctaBody:
+      'Il Lapa Casa Hostel si trova a 5 minuti dagli Arcos da Lapa. Specialisti in gruppi con i migliori prezzi garantiti.',
+    ctaBtn: 'Prenota ora',
+    ctaWa: 'Scrivici su WhatsApp',
   },
 };
 
@@ -528,28 +530,47 @@ const CONTENT: Record<string, Content> = {
 
 const TouristDestinationSchema = {
   '@context': 'https://schema.org',
-  '@type':    'TouristDestination',
-  name:       'Santa Teresa',
-  description:'Historic and bohemian neighborhood in Rio de Janeiro, known for colonial architecture, art galleries, the Selarón Steps, and proximity to Lapa.',
-  url:        'https://lapacasario.com/en/santa-teresa',
+  '@type': 'TouristDestination',
+  name: 'Santa Teresa',
+  description:
+    'Historic and bohemian neighborhood in Rio de Janeiro, known for colonial architecture, art galleries, the Selarón Steps, and proximity to Lapa.',
+  url: 'https://lapacasario.com/en/santa-teresa',
   touristType: ['Backpacker', 'Group traveler', 'Cultural tourist', 'Solo traveler'],
   includesAttraction: [
-    { '@type': 'TouristAttraction', name: 'Escadaria Selarón', description: 'World-famous mosaic staircase' },
-    { '@type': 'TouristAttraction', name: 'Arcos da Lapa',     description: '18th-century aqueduct and nightlife hub' },
-    { '@type': 'TouristAttraction', name: 'Museu Chácara do Céu', description: 'Modern art museum with bay views' },
-    { '@type': 'TouristAttraction', name: 'Bonde de Santa Teresa', description: 'Historic tram line through the neighborhood' },
+    {
+      '@type': 'TouristAttraction',
+      name: 'Escadaria Selarón',
+      description: 'World-famous mosaic staircase',
+    },
+    {
+      '@type': 'TouristAttraction',
+      name: 'Arcos da Lapa',
+      description: '18th-century aqueduct and nightlife hub',
+    },
+    {
+      '@type': 'TouristAttraction',
+      name: 'Museu Chácara do Céu',
+      description: 'Modern art museum with bay views',
+    },
+    {
+      '@type': 'TouristAttraction',
+      name: 'Bonde de Santa Teresa',
+      description: 'Historic tram line through the neighborhood',
+    },
   ],
   geo: {
-    '@type':    'GeoCoordinates',
-    latitude:   -22.9145,
-    longitude:  -43.1852,
+    '@type': 'GeoCoordinates',
+    latitude: -22.9145,
+    longitude: -43.1852,
   },
 };
 
 // ─── Page component ────────────────────────────────────────────────────────
 
 export default async function SantaTeresaPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -558,10 +579,10 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
   // FAQ schema for AEO
   const faqSchema = {
     '@context': 'https://schema.org',
-    '@type':    'FAQPage',
+    '@type': 'FAQPage',
     mainEntity: c.faq.map((item) => ({
       '@type': 'Question',
-      name:    item.q,
+      name: item.q,
       acceptedAnswer: { '@type': 'Answer', text: item.a },
     })),
   };
@@ -573,16 +594,33 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
 
       {/* ── Hero ── */}
       <section className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-4 py-16">
+        <div className="max-w-3xl mx-auto px-4 pt-6">
+          <Link
+            href={`/${locale}/hostel`}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ←{' '}
+            {locale === 'pt'
+              ? 'Voltar'
+              : locale === 'en'
+                ? 'Back'
+                : locale === 'es'
+                  ? 'Volver'
+                  : locale === 'de'
+                    ? 'Zurück'
+                    : locale === 'it'
+                      ? 'Indietro'
+                      : 'Retour'}
+          </Link>
+        </div>
+        <div className="max-w-3xl mx-auto px-4 py-16 pt-6">
           <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-4">
             Rio de Janeiro · Brasil
           </p>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-6 leading-tight">
             {c.headline}
           </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-            {c.intro}
-          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">{c.intro}</p>
         </div>
       </section>
 
@@ -609,9 +647,7 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
 
         {/* ── FAQ ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-8">
-            FAQ
-          </h2>
+          <h2 className="text-2xl font-display font-semibold text-foreground mb-8">FAQ</h2>
           <div className="space-y-3">
             {c.faq.map((item, i) => (
               <details
@@ -636,12 +672,17 @@ export default async function SantaTeresaPage({ params }: { params: { locale: st
             href={`/${locale}/grupos`}
             className="underline hover:text-foreground transition-colors"
           >
-            {locale === 'pt' ? '🎒 Viajando em grupo? Veja nossos descontos para grupos' :
-             locale === 'en' ? '🎒 Traveling with a group? See our group discounts' :
-             locale === 'es' ? '🎒 ¿Viajando en grupo? Descubre nuestros descuentos para grupos' :
-             locale === 'de' ? '🎒 Als Gruppe unterwegs? Gruppenrabatte entdecken' :
-             locale === 'it' ? '🎒 Viaggi in gruppo? Scopri i nostri sconti per gruppi' :
-             '🎒 En voyage de groupe ? Découvrez nos remises de groupe'}
+            {locale === 'pt'
+              ? '🎒 Viajando em grupo? Veja nossos descontos para grupos'
+              : locale === 'en'
+                ? '🎒 Traveling with a group? See our group discounts'
+                : locale === 'es'
+                  ? '🎒 ¿Viajando en grupo? Descubre nuestros descuentos para grupos'
+                  : locale === 'de'
+                    ? '🎒 Als Gruppe unterwegs? Gruppenrabatte entdecken'
+                    : locale === 'it'
+                      ? '🎒 Viaggi in gruppo? Scopri i nostri sconti per gruppi'
+                      : '🎒 En voyage de groupe ? Découvrez nos remises de groupe'}
           </Link>
         </div>
 
