@@ -235,7 +235,7 @@ router.get('/bookings/today', async (_req, res, next) => {
                 (r.check_out_date - r.check_in_date)::int AS nights
          FROM reservations r JOIN guests g ON g.id = r.guest_id
          WHERE r.check_in_date = $1::date
-           AND r.status IN ('confirmed', 'pending', 'checked-in')
+           AND r.status IN ('confirmed', 'pending_payment')
          ORDER BY r.reservation_number ASC`,
         [today],
       ),
@@ -259,7 +259,7 @@ router.get('/bookings/today', async (_req, res, next) => {
                 (r.check_out_date - r.check_in_date)::int AS nights
          FROM reservations r JOIN guests g ON g.id = r.guest_id
          WHERE r.check_out_date = $1::date
-           AND r.status IN ('confirmed', 'checked-in', 'checked-out')
+           AND r.status = 'confirmed'
          ORDER BY r.reservation_number ASC`,
         [today],
       ),
@@ -267,7 +267,7 @@ router.get('/bookings/today', async (_req, res, next) => {
         `SELECT
            (SELECT COUNT(rb.id)::int FROM reservation_beds rb
             JOIN reservations r ON r.id = rb.reservation_id
-            WHERE r.status IN ('confirmed', 'checked-in')
+            WHERE r.status = 'confirmed'
               AND r.check_in_date <= $1::date AND r.check_out_date > $1::date
            ) AS occupied,
            (SELECT COUNT(*)::int FROM beds) AS total`,
@@ -320,7 +320,7 @@ router.get('/bookings/upcoming', async (req, res, next) => {
               (r.check_out_date - r.check_in_date)::int AS nights
        FROM reservations r JOIN guests g ON g.id = r.guest_id
        WHERE r.check_in_date >= $1::date AND r.check_in_date <= $2::date
-         AND r.status IN ('confirmed', 'pending')
+         AND r.status IN ('confirmed', 'pending_payment')
        ORDER BY r.check_in_date ASC
        LIMIT 50`,
       [today, until],
