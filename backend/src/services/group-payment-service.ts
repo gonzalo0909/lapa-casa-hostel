@@ -116,14 +116,18 @@ const generateReservationNumber = (): string =>
 
 async function getCardSurchargePercent(): Promise<number> {
   const { rows } = await query<{ value: number }>(
-    `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`
+    `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`,
   );
   return rows[0]?.value ?? 0;
 }
 
 function resolvePricingStrategy(seasonType: string): 'min' | 'weighted_avg' | 'per_room' {
-  if (seasonType === 'baja') {return 'min';}
-  if (seasonType === 'media') {return 'weighted_avg';}
+  if (seasonType === 'baja') {
+    return 'min';
+  }
+  if (seasonType === 'media') {
+    return 'weighted_avg';
+  }
   return 'per_room';
 }
 
@@ -132,10 +136,14 @@ async function allocateGroupBeds(
   checkIn: string,
   checkOut: string,
   totalBeds: number,
-  gender: 'mixed' | 'female' | 'male'
+  gender: 'mixed' | 'female' | 'male',
 ): Promise<RoomAllocation[]> {
   const { rows: rooms } = await client.query<{
-    id: string; code: string; capacity: number; base_price: string; is_flexible: boolean;
+    id: string;
+    code: string;
+    capacity: number;
+    base_price: string;
+    is_flexible: boolean;
   }>(
     `SELECT id, code, capacity, base_price, is_flexible
      FROM room_types
@@ -146,23 +154,27 @@ async function allocateGroupBeds(
          OR is_flexible = true
        )
      ORDER BY is_flexible ASC, capacity DESC, code ASC`,
-    [gender]
+    [gender],
   );
 
   const allocations: RoomAllocation[] = [];
   let remaining = totalBeds;
 
   for (const room of rooms) {
-    if (remaining <= 0) {break;}
+    if (remaining <= 0) {
+      break;
+    }
 
     if (room.is_flexible && gender !== 'female') {
       const { rows: statusRows } = await client.query<{ effective_gender: string }>(
         `SELECT effective_gender FROM availability_cache
          WHERE room_type_id = $1 AND date = $2::date LIMIT 1`,
-        [room.id, checkIn]
+        [room.id, checkIn],
       );
       const effectiveGender = statusRows[0]?.effective_gender ?? 'female';
-      if (effectiveGender === 'female') {continue;}
+      if (effectiveGender === 'female') {
+        continue;
+      }
     }
 
     const { rows: beds } = await client.query<{ bed_id: string }>(
@@ -173,10 +185,12 @@ async function allocateGroupBeds(
        ORDER BY regexp_replace(bed_code, '[0-9]+$', ''),
                 NULLIF(regexp_replace(bed_code, '^[^0-9]*', ''), '')::INT
        LIMIT $5`,
-      [checkIn, checkOut, gender, room.id, remaining]
+      [checkIn, checkOut, gender, room.id, remaining],
     );
 
-    if (beds.length === 0) {continue;}
+    if (beds.length === 0) {
+      continue;
+    }
 
     const bedIds = beds.map((b) => b.bed_id);
     const basePricePerBed = parseFloat(room.base_price);
@@ -195,7 +209,7 @@ async function allocateGroupBeds(
 
   if (remaining > 0) {
     throw new Error(
-      `No hay suficientes camas disponibles. Faltan ${remaining} de ${totalBeds} solicitadas.`
+      `No hay suficientes camas disponibles. Faltan ${remaining} de ${totalBeds} solicitadas.`,
     );
   }
 
@@ -206,21 +220,27 @@ function applyPricingStrategy(
   allocations: RoomAllocation[],
   strategy: 'min' | 'weighted_avg' | 'per_room',
   nights: number,
-  seasonMultiplier: number
+  seasonMultiplier: number,
 ): { allocations: RoomAllocation[]; defaultAmountPerBed: number } {
   const pricePerBed = (a: RoomAllocation) =>
     parseFloat((a.basePricePerBed * nights * seasonMultiplier).toFixed(2));
 
   if (strategy === 'min') {
     const minPrice = Math.min(...allocations.map(pricePerBed));
-    return { allocations: allocations.map((a) => ({ ...a, amountPerBed: minPrice })), defaultAmountPerBed: minPrice };
+    return {
+      allocations: allocations.map((a) => ({ ...a, amountPerBed: minPrice })),
+      defaultAmountPerBed: minPrice,
+    };
   }
 
   if (strategy === 'weighted_avg') {
     const totalBeds = allocations.reduce((s, a) => s + a.bedsCount, 0);
     const weightedSum = allocations.reduce((s, a) => s + pricePerBed(a) * a.bedsCount, 0);
     const avg = parseFloat((weightedSum / totalBeds).toFixed(2));
-    return { allocations: allocations.map((a) => ({ ...a, amountPerBed: avg })), defaultAmountPerBed: avg };
+    return {
+      allocations: allocations.map((a) => ({ ...a, amountPerBed: avg })),
+      defaultAmountPerBed: avg,
+    };
   }
 
   const updated = allocations.map((a) => ({ ...a, amountPerBed: pricePerBed(a) }));
@@ -230,7 +250,6 @@ function applyPricingStrategy(
 // ── Clase principal ───────────────────────────────────────────────────────────
 
 export class GroupPaymentService {
-
   /**
    * Crea la sesión de pago grupal:
    * 1. Asigna camas (overflow automático)
@@ -245,7 +264,7 @@ export class GroupPaymentService {
 
     const { rows: multRows } = await query<{ calculate_season_multiplier: string }>(
       `SELECT calculate_season_multiplier($1::date) AS calculate_season_multiplier`,
-      [input.checkIn]
+      [input.checkIn],
     );
     const seasonMultiplier = parseFloat(multRows[0].calculate_season_multiplier);
 
@@ -254,11 +273,18 @@ export class GroupPaymentService {
       // El titular reserva su propia cama directamente en el motor del hostel,
       // por lo que la sesión grupal solo cubre a los N-1 invitados restantes.
       const rawAllocations = await allocateGroupBeds(
-        client, input.checkIn, input.checkOut, input.totalBeds - 1, input.guestGender
+        client,
+        input.checkIn,
+        input.checkOut,
+        input.totalBeds - 1,
+        input.guestGender,
       );
 
       const { allocations, defaultAmountPerBed } = applyPricingStrategy(
-        rawAllocations, strategy, input.nights, seasonMultiplier
+        rawAllocations,
+        strategy,
+        input.nights,
+        seasonMultiplier,
       );
 
       const allBedIds = allocations.flatMap((a) => a.bedIds);
@@ -269,7 +295,7 @@ export class GroupPaymentService {
         `SELECT bed_id FROM reservation_beds
          WHERE bed_id = ANY($1::uuid[])
            AND daterange(check_in, check_out, '[)') && daterange($2::date, $3::date, '[)')`,
-        [allBedIds, input.checkIn, input.checkOut]
+        [allBedIds, input.checkIn, input.checkOut],
       );
       if (occupied.length > 0) {
         throw new Error('Algunas camas ya no están disponibles. Por favor intentá de nuevo.');
@@ -280,11 +306,13 @@ export class GroupPaymentService {
         email: input.titular.email,
         phone: input.titular.phone ?? null,
         country: input.titular.country ?? null,
-        language: input.titular.language ?? null
+        language: input.titular.language ?? null,
       });
 
       const { rows: chRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
-      if (chRows.length === 0) {throw new Error('Canal direct no encontrado');}
+      if (chRows.length === 0) {
+        throw new Error('Canal direct no encontrado');
+      }
       const channelId = chRows[0].id;
 
       const reservationNumber = generateReservationNumber();
@@ -292,9 +320,9 @@ export class GroupPaymentService {
       const totalBeds = input.totalBeds - 1;
 
       const totalPrice = parseFloat(
-        allocations.reduce((s, a) => s + a.amountPerBed * a.bedsCount, 0).toFixed(2)
+        allocations.reduce((s, a) => s + a.amountPerBed * a.bedsCount, 0).toFixed(2),
       );
-      const depositPercent = 0.30;
+      const depositPercent = 0.3;
       const depositAmount = parseFloat((totalPrice * depositPercent).toFixed(2));
       const remainingAmount = parseFloat((totalPrice - depositAmount).toFixed(2));
 
@@ -315,12 +343,23 @@ export class GroupPaymentService {
            'pending_group'::booking_status, $15, $16, 'direct'
          ) RETURNING id, reservation_number`,
         [
-          reservationNumber, titular.id, channelId, input.guestGender,
-          input.checkIn, input.checkOut, input.nights, totalBeds,
-          defaultAmountPerBed, seasonMultiplier, totalPrice,
-          depositPercent, depositAmount, remainingAmount,
-          expiresAt.toISOString(), input.specialRequests ?? null
-        ]
+          reservationNumber,
+          titular.id,
+          channelId,
+          input.guestGender,
+          input.checkIn,
+          input.checkOut,
+          input.nights,
+          totalBeds,
+          defaultAmountPerBed,
+          seasonMultiplier,
+          totalPrice,
+          depositPercent,
+          depositAmount,
+          remainingAmount,
+          expiresAt.toISOString(),
+          input.specialRequests ?? null,
+        ],
       );
       const reservation = resRows[0];
 
@@ -330,7 +369,7 @@ export class GroupPaymentService {
         `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
          SELECT $1, bed_id, $3::date, $4::date
          FROM unnest($2::uuid[]) AS bed_id`,
-        [reservation.id, allBedIds, input.checkIn, input.checkOut]
+        [reservation.id, allBedIds, input.checkIn, input.checkOut],
       );
 
       // Único link de la sesión: el titular lo comparte por WhatsApp,
@@ -338,7 +377,7 @@ export class GroupPaymentService {
       const sessionToken = generateToken();
       const groupPaymentUrl = `${input.appBaseUrl}/group-payment/${sessionToken}`;
       const waShareUrl = `https://wa.me/?text=${encodeURIComponent(
-        `Hola! Te invito a pagar tu cama para nuestro grupo en Lapa Casa Hostel. Cada uno paga la suya:\n${groupPaymentUrl}\n\nTenés 10 minutos desde que abrí este link.`
+        `Hola! Te invito a pagar tu cama para nuestro grupo en Lapa Casa Hostel. Cada uno paga la suya:\n${groupPaymentUrl}\n\nTenés 10 minutos desde que abrí este link.`,
       )}`;
 
       const { rows: sessionRows } = await client.query(
@@ -347,7 +386,15 @@ export class GroupPaymentService {
             pricing_strategy, season_type, wa_share_url, expires_at)
          VALUES ($1, $2, $3, 0, $4, $5, $6, $7)
          RETURNING id`,
-        [reservation.id, sessionToken, totalBeds, strategy, seasonType, waShareUrl, expiresAt.toISOString()]
+        [
+          reservation.id,
+          sessionToken,
+          totalBeds,
+          strategy,
+          seasonType,
+          waShareUrl,
+          expiresAt.toISOString(),
+        ],
       );
       const sessionId = sessionRows[0].id;
 
@@ -370,7 +417,7 @@ export class GroupPaymentService {
         `INSERT INTO group_payment_members (session_id, slot_index, bed_id, status)
          SELECT $1, slot_index, bed_id, 'invited'
          FROM unnest($2::int[], $3::uuid[]) AS t(slot_index, bed_id)`,
-        [sessionId, slotIndices, slotBedIds]
+        [sessionId, slotIndices, slotBedIds],
       );
 
       return {
@@ -408,42 +455,60 @@ export class GroupPaymentService {
     members: Array<{ guestName: string; paymentMethod: string; paidAt: string }>;
   }> {
     const { rows } = await query<{
-      id: string; status: string; total_beds: number; paid_beds: number;
-      pricing_strategy: string; season_type: string; expires_at: string;
+      id: string;
+      status: string;
+      total_beds: number;
+      paid_beds: number;
+      pricing_strategy: string;
+      season_type: string;
+      expires_at: string;
       reservation_id: string;
     }>(
       `SELECT id, status, total_beds, paid_beds, pricing_strategy, season_type, expires_at, reservation_id
        FROM group_payment_sessions WHERE token = $1`,
-      [token]
+      [token],
     );
 
-    if (rows.length === 0) {return {
-      found: false, expired: false, completed: false,
-      totalBeds: 0, paidBeds: 0, amountPerBed: 0,
-      seasonType: '', pricingStrategy: '', expiresAt: '',
-      members: []
-    };}
+    if (rows.length === 0) {
+      return {
+        found: false,
+        expired: false,
+        completed: false,
+        totalBeds: 0,
+        paidBeds: 0,
+        amountPerBed: 0,
+        seasonType: '',
+        pricingStrategy: '',
+        expiresAt: '',
+        members: [],
+      };
+    }
 
     const session = rows[0];
 
-    const { rows: resRows } = await query<{ base_price: string; season_multiplier: string; nights_count: number }>(
-      `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
-      [session.reservation_id]
+    // reservations.base_price ya guarda el precio final por cama para toda
+    // la estadía (defaultAmountPerBed de applyPricingStrategy -- nightly
+    // rate x noches x multiplicador de temporada, ver createGroupSession
+    // más arriba), no una tarifa nightly suelta -- no volver a multiplicar
+    // por season_multiplier/nights_count acá, eso duplicaba el cobro.
+    const { rows: resRows } = await query<{ base_price: string }>(
+      `SELECT base_price FROM reservations WHERE id = $1`,
+      [session.reservation_id],
     );
     const res = resRows[0];
-    const amountPerBed = res
-      ? parseFloat((parseFloat(res.base_price) * parseFloat(res.season_multiplier) * res.nights_count).toFixed(2))
-      : 0;
+    const amountPerBed = res ? parseFloat(parseFloat(res.base_price).toFixed(2)) : 0;
 
     const { rows: memberRows } = await query<{
-      guest_name: string; payment_method: string; paid_at: string;
+      guest_name: string;
+      payment_method: string;
+      paid_at: string;
     }>(
       `SELECT g.full_name AS guest_name, m.payment_method, m.paid_at
        FROM group_payment_members m
        LEFT JOIN guests g ON g.id = m.guest_id
        WHERE m.session_id = $1 AND m.status = 'paid'
        ORDER BY m.paid_at ASC`,
-      [session.id]
+      [session.id],
     );
 
     return {
@@ -475,32 +540,40 @@ export class GroupPaymentService {
    */
   async claimAndPaySlot(input: ClaimSlotInput): Promise<MemberPaymentResult> {
     const { rows: sessionRows } = await query<{
-      id: string; status: string; expires_at: string; reservation_id: string;
+      id: string;
+      status: string;
+      expires_at: string;
+      reservation_id: string;
     }>(
       `SELECT id, status, expires_at, reservation_id
        FROM group_payment_sessions WHERE token = $1`,
-      [input.sessionToken]
+      [input.sessionToken],
     );
 
-    if (sessionRows.length === 0) {throw new Error('Link de pago no encontrado');}
+    if (sessionRows.length === 0) {
+      throw new Error('Link de pago no encontrado');
+    }
     const session = sessionRows[0];
 
-    if (session.status !== 'open') {throw new Error('Esta sesión ya está cerrada o expirada');}
-    if (new Date(session.expires_at) < new Date()) {throw new Error('El tiempo para completar el pago grupal expiró');}
+    if (session.status !== 'open') {
+      throw new Error('Esta sesión ya está cerrada o expirada');
+    }
+    if (new Date(session.expires_at) < new Date()) {
+      throw new Error('El tiempo para completar el pago grupal expiró');
+    }
 
-    // Precio base de la reserva
-    const { rows: resRows } = await query<{
-      base_price: string; season_multiplier: string; nights_count: number;
-    }>(
-      `SELECT base_price, season_multiplier, nights_count FROM reservations WHERE id = $1`,
-      [session.reservation_id]
+    // reservations.base_price ya es el precio final por cama para toda la
+    // estadía (ver nota en getSessionStatus más arriba) -- no volver a
+    // multiplicar por season_multiplier/nights_count, eso duplicaba el cobro.
+    const { rows: resRows } = await query<{ base_price: string }>(
+      `SELECT base_price FROM reservations WHERE id = $1`,
+      [session.reservation_id],
     );
     const res = resRows[0];
-    const basePricePerBed = parseFloat(res.base_price);
-    const amountPerBed = parseFloat((basePricePerBed * res.nights_count * parseFloat(res.season_multiplier)).toFixed(2));
+    const amountPerBed = parseFloat(parseFloat(res.base_price).toFixed(2));
 
     const cardSurchargePct = input.paymentMethod === 'card' ? await getCardSurchargePercent() : 0;
-    const cardSurcharge = parseFloat((amountPerBed * cardSurchargePct / 100).toFixed(2));
+    const cardSurcharge = parseFloat(((amountPerBed * cardSurchargePct) / 100).toFixed(2));
     const amountCharged = parseFloat((amountPerBed + cardSurcharge).toFixed(2));
 
     // Foto del documento — obligatoria, se sube antes de tocar el slot
@@ -513,7 +586,7 @@ export class GroupPaymentService {
       email: input.guest.email,
       phone: input.guest.phone ?? null,
       country: input.guest.country ?? null,
-      language: input.guest.language ?? null
+      language: input.guest.language ?? null,
     });
     await guestRepo.setDocumentPhoto(guest.id, photo);
 
@@ -530,7 +603,7 @@ export class GroupPaymentService {
          LIMIT 1
        )
        RETURNING id`,
-      [session.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge]
+      [session.id, guest.id, amountCharged, input.paymentMethod, cardSurcharge],
     );
 
     if (claimedRows.length === 0) {
@@ -540,7 +613,7 @@ export class GroupPaymentService {
     const memberId = claimedRows[0].id;
     const appBaseUrl = process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
     const successUrl = `${appBaseUrl}/group-payment/${input.sessionToken}?status=success`;
-    const cancelUrl  = `${appBaseUrl}/group-payment/${input.sessionToken}?status=cancel`;
+    const cancelUrl = `${appBaseUrl}/group-payment/${input.sessionToken}?status=cancel`;
 
     if (input.paymentMethod === 'card') {
       const { stripeHandler } = await import('../lib/payments/stripe-handler');
@@ -607,15 +680,18 @@ export class GroupPaymentService {
     bedId?: string;
   }): Promise<{ reservationConfirmed: boolean }> {
     const { rows: memberRows } = await query<{
-      id: string; session_id: string; status: string;
-    }>(
-      `SELECT id, session_id, status FROM group_payment_members WHERE id = $1`,
-      [params.memberId]
-    );
+      id: string;
+      session_id: string;
+      status: string;
+    }>(`SELECT id, session_id, status FROM group_payment_members WHERE id = $1`, [params.memberId]);
 
-    if (memberRows.length === 0) {throw new Error('Miembro no encontrado');}
+    if (memberRows.length === 0) {
+      throw new Error('Miembro no encontrado');
+    }
     const member = memberRows[0];
-    if (member.status === 'paid') {return { reservationConfirmed: false };}
+    if (member.status === 'paid') {
+      return { reservationConfirmed: false };
+    }
 
     await query(
       `UPDATE group_payment_members
@@ -626,17 +702,20 @@ export class GroupPaymentService {
        WHERE id = $1`,
       params.bedId
         ? [params.memberId, params.providerPaymentId, params.bedId]
-        : [params.memberId, params.providerPaymentId]
+        : [params.memberId, params.providerPaymentId],
     );
 
     const { rows: sessionRows } = await query<{
-      id: string; total_beds: number; paid_beds: number; reservation_id: string;
+      id: string;
+      total_beds: number;
+      paid_beds: number;
+      reservation_id: string;
     }>(
       `UPDATE group_payment_sessions
        SET paid_beds = paid_beds + 1, updated_at = now()
        WHERE id = $1
        RETURNING id, total_beds, paid_beds, reservation_id`,
-      [member.session_id]
+      [member.session_id],
     );
 
     const session = sessionRows[0];
@@ -650,27 +729,29 @@ export class GroupPaymentService {
 
   /** Confirma la reserva grupal cuando todos los miembros pagaron. */
   private async autoConfirmGroup(sessionId: string, reservationId: string): Promise<void> {
-    await query(
-      `UPDATE reservations SET status = 'confirmed', updated_at = now() WHERE id = $1`,
-      [reservationId]
-    );
+    await query(`UPDATE reservations SET status = 'confirmed', updated_at = now() WHERE id = $1`, [
+      reservationId,
+    ]);
     await query(
       `UPDATE group_payment_sessions SET status = 'completed', updated_at = now() WHERE id = $1`,
-      [sessionId]
+      [sessionId],
     );
 
     // Notificar al titular
     try {
       const { rows: titularRows } = await query<{
-        guest_email: string; guest_name: string; reservation_number: string;
-        total_beds: number; check_in_date: string;
+        guest_email: string;
+        guest_name: string;
+        reservation_number: string;
+        total_beds: number;
+        check_in_date: string;
       }>(
         `SELECT g.email AS guest_email, g.full_name AS guest_name,
                 r.reservation_number, r.beds_count AS total_beds, r.check_in_date
          FROM reservations r
          JOIN guests g ON g.id = r.guest_id
          WHERE r.id = $1`,
-        [reservationId]
+        [reservationId],
       );
       if (titularRows.length > 0) {
         const t = titularRows[0];
@@ -699,12 +780,13 @@ export class GroupPaymentService {
    */
   async cancelExpiredSessions(): Promise<number> {
     const { rows: expiredSessions } = await query<{
-      id: string; reservation_id: string;
+      id: string;
+      reservation_id: string;
     }>(
       `UPDATE group_payment_sessions
        SET status = 'expired', updated_at = now()
        WHERE status = 'open' AND expires_at < now()
-       RETURNING id, reservation_id`
+       RETURNING id, reservation_id`,
     );
 
     let processed = 0;
@@ -713,22 +795,27 @@ export class GroupPaymentService {
     for (const session of expiredSessions) {
       try {
         const { rows: paidMembers } = await query<{
-          id: string; bed_id: string; guest_id: string;
-          payment_method: string; provider_payment_id: string; amount_charged: string;
+          id: string;
+          bed_id: string;
+          guest_id: string;
+          payment_method: string;
+          provider_payment_id: string;
+          amount_charged: string;
         }>(
           `SELECT id, bed_id, guest_id, payment_method, provider_payment_id, amount_charged
            FROM group_payment_members
            WHERE session_id = $1 AND status = 'paid'`,
-          [session.id]
+          [session.id],
         );
 
         const { rows: unpaidMembers } = await query<{
-          id: string; guest_id: string;
+          id: string;
+          guest_id: string;
         }>(
           `SELECT id, guest_id
            FROM group_payment_members
            WHERE session_id = $1 AND status IN ('invited', 'pending')`,
-          [session.id]
+          [session.id],
         );
 
         if (paidMembers.length > 0) {
@@ -737,12 +824,14 @@ export class GroupPaymentService {
 
           if (paidBedIds.length < paidMembers.length) {
             // Algún miembro sin bed_id asignado — mantener todos los beds y confirmar la reserva parcialmente
-            logger.warn('Miembros pagados sin bed_id, confirmando reserva completa', { sessionId: session.id });
+            logger.warn('Miembros pagados sin bed_id, confirmando reserva completa', {
+              sessionId: session.id,
+            });
             await query(
               `UPDATE reservations
                SET status = 'confirmed', updated_at = now()
                WHERE id = $1 AND status = 'pending_group'`,
-              [session.reservation_id]
+              [session.reservation_id],
             );
           } else {
             // Eliminar de reservation_beds los beds NO pagados
@@ -750,7 +839,7 @@ export class GroupPaymentService {
               `DELETE FROM reservation_beds
                WHERE reservation_id = $1
                  AND bed_id NOT IN (SELECT unnest($2::uuid[]))`,
-              [session.reservation_id, paidBedIds]
+              [session.reservation_id, paidBedIds],
             );
 
             // Confirmar la reserva con los beds pagados
@@ -760,7 +849,7 @@ export class GroupPaymentService {
                    beds_count = $2,
                    updated_at = now()
                WHERE id = $1 AND status = 'pending_group'`,
-              [session.reservation_id, paidMembers.length]
+              [session.reservation_id, paidMembers.length],
             );
           }
         } else {
@@ -770,7 +859,7 @@ export class GroupPaymentService {
              SET status = 'cancelled', cancelled_at = now(),
                  cancellation_reason = 'Sesión de pago grupal expirada sin pagos'
              WHERE id = $1 AND status = 'pending_group'`,
-            [session.reservation_id]
+            [session.reservation_id],
           );
         }
 
@@ -779,7 +868,7 @@ export class GroupPaymentService {
           `UPDATE group_payment_members
            SET status = 'failed', updated_at = now()
            WHERE session_id = $1 AND status IN ('invited', 'pending')`,
-          [session.id]
+          [session.id],
         );
 
         // Notificar por email a los invitados que no pagaron (si tienen guest_id)
@@ -789,18 +878,25 @@ export class GroupPaymentService {
             try {
               const { rows: unpaidGuests } = await query<{ email: string; full_name: string }>(
                 `SELECT email, full_name FROM guests WHERE id = ANY($1::uuid[])`,
-                [unpaidGuestIds]
+                [unpaidGuestIds],
               );
               const { emailService } = await import('./email-service');
               for (const g of unpaidGuests) {
-                await emailService.sendGroupPaymentExpiredToUnpaid({
-                  guestEmail: g.email,
-                  guestName: g.full_name,
-                  bookingUrl: `${frontendUrl}/pt/hostel`,
-                }).catch((err: Error) => logger.warn('Error al enviar email expirado a invitado', { err: err.message }));
+                await emailService
+                  .sendGroupPaymentExpiredToUnpaid({
+                    guestEmail: g.email,
+                    guestName: g.full_name,
+                    bookingUrl: `${frontendUrl}/pt/hostel`,
+                  })
+                  .catch((err: Error) =>
+                    logger.warn('Error al enviar email expirado a invitado', { err: err.message }),
+                  );
               }
             } catch (err) {
-              logger.warn('Error al enviar emails a invitados no pagados', { sessionId: session.id, err });
+              logger.warn('Error al enviar emails a invitados no pagados', {
+                sessionId: session.id,
+                err,
+              });
             }
           }
         }
