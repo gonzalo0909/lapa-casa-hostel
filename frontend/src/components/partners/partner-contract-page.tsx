@@ -50,23 +50,24 @@ interface PartnersContent {
 const CONTENT: Record<string, PartnersContent> = {
   pt: {
     eyebrow: 'Rio de Janeiro · Programa de Parceiros',
-    heroTitle: 'Seu apartamento rendendo no Rio de Janeiro, sem você mexer um dedo.',
-    heroSubtitle: 'Cuidamos de tudo: hóspedes, check-in, check-out e limpeza. Você só recebe.',
+    heroTitle: 'Seu apartamento no Rio de Janeiro, rendendo enquanto você vive sua vida.',
+    heroSubtitle:
+      'Cuidamos dos hóspedes, da limpeza, do check-in e do check-out. Você só acompanha a renda crescer, mês a mês.',
     ctaWhatsapp: 'Falar pelo WhatsApp',
     whatsappMessage:
       'Olá! Tenho um apartamento no Rio de Janeiro e quero saber mais sobre a gestão de aluguel por temporada.',
     benefitsTitle: 'O que você ganha como parceiro',
     benefits: [
-      'Comissão de apenas 5% por reserva confirmada — sem taxa de adesão nem mensalidade',
-      'Cuidamos de tudo: check-in, check-out, atendimento ao hóspede e coordenação da limpeza',
-      'Repasse automático poucas horas após cada check-in, via TED ou PIX',
-      'Você não precisa estar disponível no imóvel nem morar perto',
-      'Pessoa física ou jurídica, tanto faz — as condições são as mesmas',
-      'Tratamos os dados dos seus hóspedes com todo o cuidado exigido pela LGPD',
+      'Você ganha desde a primeira reserva: comissão de apenas 5%, a mais baixa do mercado — sem taxa de adesão, sem mensalidade, sem pegadinhas',
+      'Fazemos o trabalho pesado: atendemos cada hóspede, coordenamos a limpeza e resolvemos qualquer imprevisto por você',
+      'Você recebe rápido: o dinheiro cai na sua conta poucas horas após cada check-in',
+      'Liberdade total: você não precisa morar no Rio, nem visitar seu imóvel',
+      'Começar é simples: pessoa física ou jurídica, o processo é o mesmo para todos',
+      'Tranquilidade de verdade: tratamos os dados dos seus hóspedes com o mesmo cuidado que dedicamos ao seu imóvel',
     ],
     contractNoteTitle: 'E o contrato?',
     contractNote:
-      'Só enviamos o contrato completo quando você já tiver certeza de que quer seguir em frente — não precisa ler cláusula por cláusula antes de dar o primeiro passo. Fale com a gente e resolvemos suas dúvidas primeiro.',
+      'O contrato vem depois, não antes. Primeiro conversamos e resolvemos suas dúvidas — só enviamos para assinatura quando você tiver 100% de certeza.',
     formTitle: 'Quero listar minha propriedade',
     formBody:
       'Preencha o formulário e nossa equipe entra em contato para conversar sobre seu imóvel.',
@@ -88,24 +89,24 @@ const CONTENT: Record<string, PartnersContent> = {
   },
   es: {
     eyebrow: 'Río de Janeiro · Programa de Socios',
-    heroTitle: 'Tu apartamento generando ingresos en Río de Janeiro, sin mover un dedo.',
+    heroTitle: 'Tu apartamento en Río de Janeiro, generando ingresos mientras vos vivís tu vida.',
     heroSubtitle:
-      'Nos encargamos de todo: huéspedes, check-in, check-out y limpieza. Tú solo cobras.',
+      'Nosotros nos ocupamos de los huéspedes, la limpieza, el check-in y el check-out. Vos solo mirás cómo crece tu ingreso, mes a mes.',
     ctaWhatsapp: 'Hablar por WhatsApp',
     whatsappMessage:
       '¡Hola! Tengo un apartamento en Río de Janeiro y quiero saber más sobre la gestión de alquiler por temporada.',
     benefitsTitle: 'Lo que ganas como socio',
     benefits: [
-      'Comisión de solo 5% por reserva confirmada — sin tarifa de inscripción ni mensualidad',
-      'Nos encargamos de todo: check-in, check-out, atención al huésped y coordinación de limpieza',
-      'Pago automático a pocas horas de cada check-in, por TED o PIX',
-      'No necesitas estar disponible en la propiedad ni vivir cerca',
-      'Persona física o empresa, da igual — las condiciones son las mismas',
-      'Cuidamos los datos de tus huéspedes con todo el resguardo que exige la LGPD',
+      'Ganás desde la primera reserva: comisión de solo 5%, la más baja del mercado — sin inscripción, sin mensualidad, sin sorpresas',
+      'Nosotros hacemos el trabajo pesado: atendemos a cada huésped, coordinamos la limpieza y resolvemos cualquier imprevisto por vos',
+      'Cobrás rápido: el dinero llega a tu cuenta a pocas horas de cada check-in',
+      'Total libertad: no necesitás vivir en Río, ni siquiera visitar tu propiedad',
+      'Empezar es simple: seas persona física o tengas una empresa, el proceso es el mismo para todos',
+      'Tranquilidad de verdad: cuidamos los datos de tus huéspedes con el mismo rigor con que cuidamos tu propiedad',
     ],
     contractNoteTitle: '¿Y el contrato?',
     contractNote:
-      'El contrato completo se lo mandamos recién cuando ya tengas la certeza de que querés seguir adelante — no hace falta leer cláusula por cláusula antes de dar el primer paso. Hablemos primero y resolvemos tus dudas.',
+      'El contrato llega después, no antes. Primero conversamos y resolvemos tus dudas — recién te lo mandamos para firmar cuando estés 100% seguro.',
     formTitle: 'Quiero listar mi propiedad',
     formBody:
       'Completa el formulario y nuestro equipo se pone en contacto para conversar sobre tu inmueble.',
@@ -127,24 +128,24 @@ const CONTENT: Record<string, PartnersContent> = {
   },
   en: {
     eyebrow: 'Rio de Janeiro · Partner Program',
-    heroTitle: 'Your apartment earning in Rio de Janeiro, without you lifting a finger.',
+    heroTitle: 'Your apartment in Rio de Janeiro, earning while you live your life.',
     heroSubtitle:
-      'We handle everything: guests, check-in, check-out, and cleaning. You just collect.',
+      'We handle guests, cleaning, check-in and check-out. You just watch the income grow, month after month.',
     ctaWhatsapp: 'Chat on WhatsApp',
     whatsappMessage:
       'Hi! I have an apartment in Rio de Janeiro and I want to know more about your short-term rental management.',
     benefitsTitle: 'What you get as a partner',
     benefits: [
-      'Just 5% commission per confirmed booking — no sign-up fee, no monthly charge',
-      'We handle everything: check-in, check-out, guest support, and cleaning coordination',
-      'Automatic payout a few hours after each check-in, by bank transfer',
-      'You don’t need to be on-site or live nearby',
-      'Individuals or registered businesses — same terms either way',
-      'We handle your guests’ data with the care required by data protection law (LGPD)',
+      'You earn from the first booking: just 5% commission, the lowest around — no sign-up fee, no monthly charge, no surprises',
+      'We do the heavy lifting: we handle every guest, coordinate cleaning, and sort out anything unexpected for you',
+      'Get paid fast: the money lands in your account a few hours after each check-in',
+      'Total freedom: you don’t need to live in Rio, or even visit your property',
+      'Getting started is simple: individual or registered business, the process is the same for everyone',
+      'Real peace of mind: we handle your guests’ data with the same care we put into your property',
     ],
     contractNoteTitle: 'What about the contract?',
     contractNote:
-      'We only send the full contract once you’re sure you want to move forward — no need to read every clause before taking the first step. Let’s talk first and answer your questions.',
+      'The contract comes later, not first. Let’s talk and answer your questions — we’ll only send it for signature once you’re 100% sure.',
     formTitle: 'I want to list my property',
     formBody: 'Fill out the form and our team will reach out to talk about your property.',
     labelName: 'Full name',
@@ -165,24 +166,24 @@ const CONTENT: Record<string, PartnersContent> = {
   },
   de: {
     eyebrow: 'Rio de Janeiro · Partnerprogramm',
-    heroTitle: 'Ihre Wohnung in Rio de Janeiro bringt Einnahmen, ohne dass Sie etwas tun müssen.',
+    heroTitle: 'Ihre Wohnung in Rio de Janeiro verdient Geld, während Sie Ihr Leben leben.',
     heroSubtitle:
-      'Wir kümmern uns um alles: Gäste, Check-in, Check-out und Reinigung. Sie kassieren einfach.',
+      'Wir kümmern uns um Gäste, Reinigung, Check-in und Check-out. Sie sehen nur zu, wie die Einnahmen wachsen — Monat für Monat.',
     ctaWhatsapp: 'Auf WhatsApp schreiben',
     whatsappMessage:
       'Hallo! Ich habe eine Wohnung in Rio de Janeiro und möchte mehr über Ihre Verwaltung von Ferienwohnungen erfahren.',
     benefitsTitle: 'Ihre Vorteile als Partner',
     benefits: [
-      'Nur 5% Provision pro bestätigter Buchung — keine Anmeldegebühr, keine monatlichen Kosten',
-      'Wir kümmern uns um alles: Check-in, Check-out, Gästebetreuung und Reinigungskoordination',
-      'Automatische Auszahlung wenige Stunden nach jedem Check-in, per Überweisung',
-      'Sie müssen nicht vor Ort sein oder in der Nähe wohnen',
-      'Privatperson oder Unternehmen — die Bedingungen sind gleich',
-      'Wir behandeln die Daten Ihrer Gäste mit der von der LGPD geforderten Sorgfalt',
+      'Sie verdienen ab der ersten Buchung: nur 5% Provision, die niedrigste am Markt — keine Anmeldegebühr, keine monatlichen Kosten, keine Überraschungen',
+      'Wir übernehmen die Arbeit: wir betreuen jeden Gast, koordinieren die Reinigung und lösen jedes unerwartete Problem für Sie',
+      'Schnelle Auszahlung: das Geld ist wenige Stunden nach jedem Check-in auf Ihrem Konto',
+      'Völlige Freiheit: Sie müssen weder in Rio wohnen noch Ihre Immobilie je besuchen',
+      'Der Einstieg ist einfach: Privatperson oder Unternehmen — für alle gilt derselbe Prozess',
+      'Echte Sicherheit: wir behandeln die Daten Ihrer Gäste mit derselben Sorgfalt wie Ihre Immobilie',
     ],
     contractNoteTitle: 'Und der Vertrag?',
     contractNote:
-      'Den vollständigen Vertrag schicken wir erst, wenn Sie sicher sind, dass Sie fortfahren möchten — Sie müssen nicht jede Klausel lesen, bevor Sie den ersten Schritt machen. Lassen Sie uns zuerst sprechen und Ihre Fragen klären.',
+      'Der Vertrag kommt später, nicht zuerst. Lassen Sie uns zunächst sprechen und Ihre Fragen klären — wir schicken ihn erst zur Unterschrift, wenn Sie sich zu 100% sicher sind.',
     formTitle: 'Ich möchte meine Immobilie eintragen',
     formBody:
       'Füllen Sie das Formular aus, unser Team meldet sich, um über Ihre Immobilie zu sprechen.',
@@ -205,25 +206,24 @@ const CONTENT: Record<string, PartnersContent> = {
   },
   fr: {
     eyebrow: 'Rio de Janeiro · Programme Partenaire',
-    heroTitle:
-      'Votre appartement génère des revenus à Rio de Janeiro, sans que vous ayez à vous en occuper.',
+    heroTitle: 'Votre appartement à Rio de Janeiro rapporte pendant que vous vivez votre vie.',
     heroSubtitle:
-      'On s’occupe de tout : voyageurs, check-in, check-out et ménage. Vous n’avez qu’à encaisser.',
+      'On s’occupe des voyageurs, du ménage, du check-in et du check-out. Vous n’avez qu’à voir vos revenus grandir, mois après mois.',
     ctaWhatsapp: 'Discuter sur WhatsApp',
     whatsappMessage:
       'Bonjour ! J’ai un appartement à Rio de Janeiro et je voudrais en savoir plus sur votre gestion de location saisonnière.',
     benefitsTitle: 'Ce que vous gagnez en tant que partenaire',
     benefits: [
-      'Seulement 5% de commission par réservation confirmée — sans frais d’inscription ni abonnement',
-      'On s’occupe de tout : check-in, check-out, assistance aux voyageurs et coordination du ménage',
-      'Virement automatique quelques heures après chaque check-in, par virement bancaire',
-      'Vous n’avez pas besoin d’être sur place ni d’habiter à proximité',
-      'Particulier ou société — les conditions sont les mêmes',
-      'Nous traitons les données de vos voyageurs avec la rigueur exigée par le RGPD/LGPD',
+      'Vous gagnez dès la première réservation : seulement 5% de commission, la plus basse du marché — sans frais d’inscription, sans abonnement, sans surprise',
+      'On fait le travail pour vous : on s’occupe de chaque voyageur, on coordonne le ménage et on règle le moindre imprévu',
+      'Vous êtes payé rapidement : l’argent arrive sur votre compte quelques heures après chaque check-in',
+      'Liberté totale : pas besoin de vivre à Rio, ni même de visiter votre bien',
+      'C’est simple pour commencer : particulier ou société, la démarche est la même pour tous',
+      'Une vraie tranquillité d’esprit : on traite les données de vos voyageurs avec autant de soin que votre bien',
     ],
     contractNoteTitle: 'Et le contrat ?',
     contractNote:
-      'Nous n’envoyons le contrat complet qu’une fois que vous êtes certain de vouloir avancer — pas besoin de lire chaque clause avant de faire le premier pas. Parlons-en d’abord et répondons à vos questions.',
+      'Le contrat arrive après, pas avant. Parlons-en d’abord et répondons à vos questions — on ne vous l’envoie pour signature que lorsque vous êtes sûr à 100%.',
     formTitle: 'Je veux inscrire mon bien',
     formBody:
       'Remplissez le formulaire et notre équipe vous contactera pour discuter de votre bien.',
@@ -245,24 +245,24 @@ const CONTENT: Record<string, PartnersContent> = {
   },
   it: {
     eyebrow: 'Rio de Janeiro · Programma Partner',
-    heroTitle:
-      'Il tuo appartamento genera reddito a Rio de Janeiro, senza che tu debba muovere un dito.',
-    heroSubtitle: 'Pensiamo a tutto: ospiti, check-in, check-out e pulizie. Tu incassi soltanto.',
+    heroTitle: 'Il tuo appartamento a Rio de Janeiro guadagna mentre tu vivi la tua vita.',
+    heroSubtitle:
+      'Pensiamo noi agli ospiti, alle pulizie, al check-in e al check-out. Tu guardi solo il tuo guadagno crescere, mese dopo mese.',
     ctaWhatsapp: 'Scrivi su WhatsApp',
     whatsappMessage:
       "Ciao! Ho un appartamento a Rio de Janeiro e vorrei saperne di più sulla gestione dell'affitto breve.",
     benefitsTitle: 'Cosa ottieni come partner',
     benefits: [
-      'Solo il 5% di commissione per prenotazione confermata — nessuna quota di iscrizione né canone mensile',
-      'Pensiamo a tutto: check-in, check-out, assistenza agli ospiti e coordinamento delle pulizie',
-      'Pagamento automatico poche ore dopo ogni check-in, tramite bonifico',
-      "Non devi essere presente nell'immobile né abitare nelle vicinanze",
-      'Persona fisica o azienda, per noi è lo stesso — le condizioni non cambiano',
-      'Trattiamo i dati dei tuoi ospiti con tutta la cura richiesta dalla normativa (LGPD)',
+      'Guadagni dalla prima prenotazione: solo il 5% di commissione, la più bassa sul mercato — nessuna quota di iscrizione, nessun canone mensile, nessuna sorpresa',
+      'Facciamo noi il lavoro pesante: seguiamo ogni ospite, coordiniamo le pulizie e risolviamo qualsiasi imprevisto per te',
+      'Vieni pagato in fretta: il denaro arriva sul tuo conto poche ore dopo ogni check-in',
+      'Libertà totale: non devi vivere a Rio, né mai visitare il tuo immobile',
+      'Iniziare è semplice: persona fisica o azienda, la procedura è la stessa per tutti',
+      'Tranquillità vera: trattiamo i dati dei tuoi ospiti con la stessa cura che dedichiamo al tuo immobile',
     ],
     contractNoteTitle: 'E il contratto?',
     contractNote:
-      'Il contratto completo te lo inviamo solo quando sei sicuro di voler andare avanti — non serve leggere ogni clausola prima di fare il primo passo. Parliamone prima e rispondiamo alle tue domande.',
+      'Il contratto arriva dopo, non prima. Parliamone prima e rispondiamo alle tue domande — te lo inviamo per la firma solo quando sei sicuro al 100%.',
     formTitle: 'Voglio inserire il mio immobile',
     formBody: 'Compila il modulo e il nostro team ti contatterà per parlare del tuo immobile.',
     labelName: 'Nome completo',
