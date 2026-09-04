@@ -53,6 +53,8 @@ export interface CreatedBooking {
   deposit: number;
   remaining: number;
   checkIn: string;
+  /** Código de referido propio, generado al confirmar (idea #49, roadmap.html). */
+  referralCode?: string | null;
 }
 
 // ─── Cupón de descuento ──────────────────────────────────────────────────────
@@ -83,9 +85,23 @@ export const BCP47: Record<string, string> = {
 
 /** Horarios de check-in disponibles (cada 30 min, 14:00–22:00). */
 export const CHECKIN_TIMES = [
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-  '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-  '20:00', '20:30', '21:00', '21:30', '22:00',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+  '17:30',
+  '18:00',
+  '18:30',
+  '19:00',
+  '19:30',
+  '20:00',
+  '20:30',
+  '21:00',
+  '21:30',
+  '22:00',
 ];
 
 // ─── Tipo auxiliar para el grid del Paso 2 ──────────────────────────────────

@@ -3,7 +3,7 @@
 // Step 3 — Formulario completo del huésped.
 // Incluye formateo CPF/phone inline, validación por campo y política de cancelación.
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   KeyRound,
   DoorOpen,
@@ -16,9 +16,16 @@ import {
   Camera,
   Check,
   X,
+  Tag,
 } from 'lucide-react';
 import { Lang, FormState, FormErrors, FieldFeedback, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
+
+export interface AppliedCoupon {
+  code: string;
+  label: string;
+  discount_percent: number;
+}
 
 function FieldFb({ fb }: { fb: FieldFeedback | null }) {
   if (!fb) return null;
@@ -73,6 +80,16 @@ interface HostelGuestFormProps {
   onEmailFb: (v: FieldFeedback | null) => void;
   onPhoneFb: (v: FieldFeedback | null) => void;
   onCancelToggle: () => void;
+  /** Cupón/código de referido aplicado (idea #49, roadmap.html) -- null = sin código. */
+  appliedCoupon?: AppliedCoupon | null;
+  onCouponApply?: (coupon: AppliedCoupon) => void;
+  onCouponRemove?: () => void;
+  onValidateCoupon?: (
+    code: string,
+  ) => Promise<
+    | { valid: boolean; discount_percent?: number; label?: string; code?: string; message?: string }
+    | undefined
+  >;
 }
 
 // ─── Iconos de reglas de la casa (Lucide) ────────────────
@@ -93,8 +110,43 @@ export function HostelGuestForm({
   onEmailFb,
   onPhoneFb,
   onCancelToggle,
+  appliedCoupon,
+  onCouponApply,
+  onCouponRemove,
+  onValidateCoupon,
 }: HostelGuestFormProps) {
   const t = T[lang];
+
+  // ── Cupón / código de referido ────────────────────────────────────────────
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) {
+      return;
+    }
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const result = await onValidateCoupon?.(code);
+      if (result?.valid && result.discount_percent) {
+        onCouponApply?.({
+          code: result.code ?? code,
+          label: result.label ?? code,
+          discount_percent: result.discount_percent,
+        });
+        setCouponInput('');
+      } else {
+        setCouponError(result?.message ?? 'Código inválido');
+      }
+    } catch {
+      setCouponError('Error al validar el código');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   return (
     <div className="he-panel">
@@ -417,6 +469,72 @@ export function HostelGuestForm({
         </label>
         {formErrors.restriction && <div className="he-ferr">{formErrors.restriction}</div>}
       </div>
+
+      {/* Cupón / código de referido (idea #49, roadmap.html) */}
+      {onValidateCoupon && (
+        <div className="he-rules">
+          <div className="he-rules-title">
+            <Tag size={14} color="#6A6058" aria-hidden />
+            ¿Tenés un código de descuento?
+          </div>
+          {appliedCoupon ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '.5rem',
+              }}
+            >
+              <span className="he-rule">
+                Código <strong>{appliedCoupon.code}</strong> aplicado (
+                {appliedCoupon.discount_percent}% off)
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  onCouponRemove?.();
+                  setCouponError(null);
+                }}
+                className="he-btn-back"
+                style={{ padding: '.3rem .7rem', fontSize: '.72rem' }}
+              >
+                Quitar
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', gap: '.5rem' }}>
+                <input
+                  className={`he-inp${couponError ? ' err' : ''}`}
+                  style={{ flex: 1 }}
+                  value={couponInput}
+                  onChange={(e) => {
+                    setCouponInput(e.target.value.toUpperCase());
+                    setCouponError(null);
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                  placeholder="CÓDIGO"
+                  disabled={couponLoading}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading || !couponInput.trim()}
+                  className="he-btn-confirm"
+                  style={{
+                    padding: '.55rem 1rem',
+                    opacity: couponLoading || !couponInput.trim() ? 0.6 : 1,
+                  }}
+                >
+                  {couponLoading ? '…' : 'Aplicar'}
+                </button>
+              </div>
+              {couponError && <div className="he-ferr">{couponError}</div>}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Política de cancelación */}
       <div className="he-cancel">

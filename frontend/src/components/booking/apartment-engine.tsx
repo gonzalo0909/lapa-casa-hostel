@@ -17,7 +17,18 @@ import React, { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, KeyRound, DoorOpen, FileText, Ban, CigaretteOff, CheckCircle2, Mail } from 'lucide-react';
+import {
+  AlertTriangle,
+  KeyRound,
+  DoorOpen,
+  FileText,
+  Ban,
+  CigaretteOff,
+  CheckCircle2,
+  Mail,
+  Gift,
+  Check,
+} from 'lucide-react';
 import styles from './apartment-engine.module.css';
 import { Modal, ModalBody } from '../ui/modal';
 import { PaymentCountdown } from '../payment/payment-countdown';
@@ -42,8 +53,14 @@ import { EMPTY_FORM } from './apartment-engine.types';
 // Carga @stripe/stripe-js + @stripe/react-stripe-js (SDK pesado) recién al
 // llegar al paso 4 (pago) en vez de en el bundle inicial del wizard.
 const PaymentProcessor = dynamic(
-  () => import('../payment/payment-processor').then(m => m.PaymentProcessor),
-  { loading: () => <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><LoadingSpinner size="md" /></div> }
+  () => import('../payment/payment-processor').then((m) => m.PaymentProcessor),
+  {
+    loading: () => (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+        <LoadingSpinner size="md" />
+      </div>
+    ),
+  },
 );
 
 export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' }) => {
@@ -81,6 +98,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const [booking, setBooking] = useState<CreatedBooking | null>(null);
   const [paymentDone, setPaymentDone] = useState(false);
   const [paySuccessOpen, setPaySuccessOpen] = useState(true);
+  const [referralCopied, setReferralCopied] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
 
   // ── Ref para scroll suave al contenido del paso (evitar saltar al hero) ──
@@ -96,9 +114,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   // ── Cálculos derivados ───────────────────────────────────────────────────
   const nights =
     checkIn && checkOut
-      ? Math.round(
-          (parseDs(checkOut).getTime() - parseDs(checkIn).getTime()) / 86400000,
-        )
+      ? Math.round((parseDs(checkOut).getTime() - parseDs(checkIn).getTime()) / 86400000)
       : 0;
 
   // ── API: carga de apartamentos disponibles ───────────────────────────────
@@ -120,7 +136,9 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
 
   // ── Manejadores de paso ──────────────────────────────────────────────────
   const handleDatesContinue = () => {
-    if (!checkIn || !checkOut) { return; }
+    if (!checkIn || !checkOut) {
+      return;
+    }
     setStep(2);
     loadApartments(checkIn, checkOut);
   };
@@ -128,7 +146,11 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const handleMiniCalendarApply = useCallback(
     async (range: { checkIn: Date; checkOut: Date }) => {
       const ds = (d: Date) =>
-        [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+        [
+          d.getFullYear(),
+          String(d.getMonth() + 1).padStart(2, '0'),
+          String(d.getDate()).padStart(2, '0'),
+        ].join('-');
       const newCin = ds(range.checkIn);
       const newCout = ds(range.checkOut);
       setCheckIn(newCin);
@@ -162,10 +184,16 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const handleReserve = async () => {
     // Marcar todos los campos como tocados para mostrar errores en el form
     setTouched({
-      fullName: true, email: true, confirmEmail: true,
-      phone: true, document: true, arrivalTime: true,
+      fullName: true,
+      email: true,
+      confirmEmail: true,
+      phone: true,
+      document: true,
+      arrivalTime: true,
     });
-    if (!selectedApartment || !checkIn || !checkOut) { return; }
+    if (!selectedApartment || !checkIn || !checkOut) {
+      return;
+    }
 
     // Validación local (espeja la lógica de ApartmentGuestForm)
     const emailOk = isEmailFmt(guestForm.email);
@@ -174,13 +202,15 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
     const phoneOk = phoneDigits.length >= 10;
     const cpfHasLetter = /[a-zA-Z]/.test(guestForm.document);
     const cpfDigits = guestForm.document.replace(/\D/g, '');
-    const cpfOk = cpfHasLetter
-      ? true
-      : cpfDigits.length === 11
-        ? validateCPF(cpfDigits)
-        : false;
-    const canReserve =
-      !!(guestForm.fullName.trim() && emailOk && confirmEmailOk && phoneOk && cpfOk && guestForm.arrivalTime);
+    const cpfOk = cpfHasLetter ? true : cpfDigits.length === 11 ? validateCPF(cpfDigits) : false;
+    const canReserve = !!(
+      guestForm.fullName.trim() &&
+      emailOk &&
+      confirmEmailOk &&
+      phoneOk &&
+      cpfOk &&
+      guestForm.arrivalTime
+    );
     if (!canReserve) {
       setError(t('formIncomplete'));
       return;
@@ -216,19 +246,22 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         // pensado para rangos tipo "14-16" → "14:00 – 16:00". Los horarios de
         // este selector son puntuales (ej. "14:30"), sin guión, así que la
         // transformación produciría "14:30:00" (roto). Lo armamos nosotros.
-        specialRequests: [
-          guestForm.arrivalTime ? `Horário de chegada: ${guestForm.arrivalTime}` : null,
-          guestForm.specialRequests.trim() || null,
-        ]
-          .filter(Boolean)
-          .join('\n') || undefined,
+        specialRequests:
+          [
+            guestForm.arrivalTime ? `Horário de chegada: ${guestForm.arrivalTime}` : null,
+            guestForm.specialRequests.trim() || null,
+          ]
+            .filter(Boolean)
+            .join('\n') || undefined,
         language: locale === 'de' || locale === 'fr' || locale === 'it' ? 'en' : locale,
         source: 'web',
         guestGender: 'mixed',
         ...(appliedCoupon ? { offerCode: appliedCoupon.code } : {}),
       });
       const b = res?.data?.booking;
-      if (!b?.id) { throw new Error('No se recibió ID de reserva del servidor'); }
+      if (!b?.id) {
+        throw new Error('No se recibió ID de reserva del servidor');
+      }
       const totalPrice = selectedApartment.priceTotal;
       const depositAmount = selectedApartment.depositAmount;
       // Si hay cupón aplicado, usamos el precio con descuento como fallback
@@ -243,6 +276,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         deposit: b.payment?.depositAmount ?? discountedDeposit,
         remaining: b.pricing?.remaining ?? discountedTotal - discountedDeposit,
         checkIn,
+        referralCode: b.referralCode ?? null,
       });
       setStep(4);
       scrollToContent();
@@ -255,9 +289,13 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
 
   const goBack = () => {
     setError(null);
-    if (step === 2) { setStep(1); }
-    else if (step === 3) { setStep(2); }
-    else if (step === 4) { setStep(3); }
+    if (step === 2) {
+      setStep(1);
+    } else if (step === 3) {
+      setStep(2);
+    } else if (step === 4) {
+      setStep(3);
+    }
     scrollToContent();
   };
 
@@ -302,11 +340,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
               <div className={styles.stepItem}>
                 <span
                   className={`${styles.stepBadge} ${
-                    step > s.n
-                      ? styles.stepBadgeDone
-                      : step === s.n
-                        ? styles.stepBadgeActive
-                        : ''
+                    step > s.n ? styles.stepBadgeDone : step === s.n ? styles.stepBadgeActive : ''
                   }`}
                 >
                   {step > s.n ? '✓' : s.n}
@@ -330,23 +364,33 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
           </div>
           <div className={styles.noticesGrid}>
             <div className={styles.noticeItem}>
-              <span className={styles.noticeIcon}><KeyRound size={16} /></span>
+              <span className={styles.noticeIcon}>
+                <KeyRound size={16} />
+              </span>
               <span>{t.rich('noticeCheckin', { b: (chunks) => <strong>{chunks}</strong> })}</span>
             </div>
             <div className={styles.noticeItem}>
-              <span className={styles.noticeIcon}><DoorOpen size={16} /></span>
+              <span className={styles.noticeIcon}>
+                <DoorOpen size={16} />
+              </span>
               <span>{t.rich('noticeCheckout', { b: (chunks) => <strong>{chunks}</strong> })}</span>
             </div>
             <div className={styles.noticeItem}>
-              <span className={styles.noticeIcon}><FileText size={16} /></span>
+              <span className={styles.noticeIcon}>
+                <FileText size={16} />
+              </span>
               <span>{t.rich('noticeDocument', { b: (chunks) => <strong>{chunks}</strong> })}</span>
             </div>
             <div className={styles.noticeItem}>
-              <span className={styles.noticeIcon}><Ban size={16} /></span>
+              <span className={styles.noticeIcon}>
+                <Ban size={16} />
+              </span>
               <span>{t.rich('noticeAge', { b: (chunks) => <strong>{chunks}</strong> })}</span>
             </div>
             <div className={styles.noticeItem}>
-              <span className={styles.noticeIcon}><CigaretteOff size={16} /></span>
+              <span className={styles.noticeIcon}>
+                <CigaretteOff size={16} />
+              </span>
               <span>{t.rich('noticeSmoking', { b: (chunks) => <strong>{chunks}</strong> })}</span>
             </div>
           </div>
@@ -407,12 +451,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
             touched={touched}
             isCreatingBooking={isCreatingBooking}
             error={error}
-            onFieldChange={(field, value) =>
-              setGuestForm((f) => ({ ...f, [field]: value }))
-            }
-            onFieldBlur={(field) =>
-              setTouched((tt) => ({ ...tt, [field]: true }))
-            }
+            onFieldChange={(field, value) => setGuestForm((f) => ({ ...f, [field]: value }))}
+            onFieldBlur={(field) => setTouched((tt) => ({ ...tt, [field]: true }))}
             onReserve={handleReserve}
             onBack={goBack}
             additionalGuests={additionalGuests}
@@ -453,6 +493,76 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
                         <Mail size={14} /> {t('paymentSuccessLine3')}
                       </span>
                     </div>
+                    {booking.referralCode && (
+                      <div style={{ marginTop: '1.25rem', textAlign: 'left', width: '100%' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '.4rem',
+                            fontSize: '.8rem',
+                            fontWeight: 600,
+                            marginBottom: '.35rem',
+                          }}
+                        >
+                          <Gift size={14} /> {t('referralTitle')}
+                        </div>
+                        <p
+                          style={{
+                            fontSize: '.78rem',
+                            color: 'var(--fg-muted)',
+                            margin: '0 0 .6rem',
+                          }}
+                        >
+                          {t('referralBody')}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+                          <code
+                            style={{
+                              flex: 1,
+                              fontFamily: 'monospace',
+                              fontSize: '.9rem',
+                              fontWeight: 700,
+                              letterSpacing: '.04em',
+                              background: 'var(--bg-subtle)',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              padding: '.5rem .7rem',
+                            }}
+                          >
+                            {booking.referralCode}
+                          </code>
+                          <button
+                            type="button"
+                            className={styles.cardBtn}
+                            style={{ width: 'auto', marginTop: 0, whiteSpace: 'nowrap' }}
+                            onClick={() => {
+                              navigator.clipboard
+                                .writeText(booking.referralCode ?? '')
+                                .catch(() => {});
+                              setReferralCopied(true);
+                              setTimeout(() => setReferralCopied(false), 3000);
+                            }}
+                          >
+                            {referralCopied ? (
+                              <>
+                                <Check
+                                  size={13}
+                                  style={{
+                                    display: 'inline',
+                                    verticalAlign: '-2px',
+                                    marginRight: '.3em',
+                                  }}
+                                />
+                                {t('referralCopied')}
+                              </>
+                            ) : (
+                              t('referralCopy')
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </ModalBody>
               </Modal>

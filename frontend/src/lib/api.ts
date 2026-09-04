@@ -262,7 +262,7 @@ export const bookingAPI = {
     language?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
     source?: string;
     guestGender?: 'mixed' | 'female';
-    /** Código de oferta/cupón de descuento (apartamentos). */
+    /** Código de oferta/cupón de descuento -- apartamentos y referidos (idea #49), también válido para el hostel. */
     offerCode?: string;
   }) => api.post('/bookings', data),
 
@@ -427,7 +427,11 @@ export const photosAPI = {
  * Ruta pública: POST /api/v1/offers/validate
  */
 export const offersAPI = {
-  validate: (code: string, apartmentId: string, checkIn: string) =>
+  // apartmentId opcional -- el hostel también usa este endpoint para
+  // validar códigos de referido (idea #49), sin apartamento asociado.
+  // El backend (POST /offers/validate) ya trata apartmentId como
+  // opcional, solo el tipo acá no lo reflejaba.
+  validate: (code: string, apartmentId: string | undefined, checkIn: string) =>
     api.post('/offers/validate', { code, apartmentId, checkIn }),
 };
 

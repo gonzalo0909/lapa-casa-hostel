@@ -51,6 +51,23 @@ export const generateTempPassword = (length = 12): string => {
   return result;
 };
 
+// Mismo alfabeto legible que generateTempPassword, pero solo mayúsculas --
+// apartment_offers.code se compara siempre en mayúsculas (ver
+// create-booking.ts/offers.routes.ts, .toUpperCase() antes del match), un
+// código de referido con minúsculas generaría confusión al compartirlo a
+// mano sin ningún beneficio real.
+const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+/** Código de referido -- prefijo fijo para que se distinga a simple vista de un cupón armado a mano por el admin. */
+export function generateReferralCode(): string {
+  const bytes = crypto.randomBytes(6);
+  let suffix = '';
+  for (let i = 0; i < 6; i++) {
+    suffix += REFERRAL_CODE_ALPHABET[bytes[i] % REFERRAL_CODE_ALPHABET.length];
+  }
+  return `REF-${suffix}`;
+}
+
 // Convierte '24h'/'7d'/'90d' (mismo formato que JWT_EXPIRES_IN) a ms/segundos.
 // Compartido entre admin-auth.routes.ts y owner-auth.routes.ts para que un
 // TTL de cookie/blacklist no pueda quedar corregido en un panel y
