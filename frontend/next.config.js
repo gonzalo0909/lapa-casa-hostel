@@ -37,11 +37,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: [
-      'lapacasario.com',
-      'res.cloudinary.com',
-      'images.unsplash.com',
-    ],
+    domains: ['lapacasario.com', 'res.cloudinary.com', 'images.unsplash.com'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -115,7 +111,7 @@ const nextConfig = {
               "img-src 'self' data: https:",
               "font-src 'self' data:",
               `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net`,
-              "frame-src https://js.stripe.com",
+              'frame-src https://js.stripe.com',
             ].join('; '),
           },
         ],
@@ -138,22 +134,27 @@ const nextConfig = {
     ];
   },
 
-  // Redirects for SEO
+  // Redirects for SEO -- apuntaban a /booking, una página que nunca
+  // existió en este App Router (el motor real vive en /hostel y
+  // /apartamentos, cada uno con su propio flujo) -- cualquiera que
+  // llegara por un link viejo a /reserva, /reservas o /book caía en un
+  // 404. localePrefix:'always' del middleware de next-intl agrega el
+  // /pt, /es, etc. automáticamente sobre este destino sin locale.
   async redirects() {
     return [
       {
         source: '/reserva',
-        destination: '/booking',
+        destination: '/hostel',
         permanent: true,
       },
       {
         source: '/reservas',
-        destination: '/booking',
+        destination: '/hostel',
         permanent: true,
       },
       {
         source: '/book',
-        destination: '/booking',
+        destination: '/hostel',
         permanent: true,
       },
     ];
@@ -220,9 +221,12 @@ const nextConfig = {
 
   // Compiler options
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
   },
 
   // Output configuration — standalone incompatible con 'next start' en Render
