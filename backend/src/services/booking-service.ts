@@ -21,9 +21,12 @@ import type { Reservation, BookingStatus } from '../types/database';
 
 // ventana4 (bloque 2): fire-and-forget -- un fallo al encolar el espejo a
 // Sheets nunca debe tumbar la operación real sobre la reserva.
-const exportToSheetsAsync = (reservationId: string, action: 'upsert' | 'delete' = 'upsert'): void => {
-  enqueueSheetsExport(reservationId, action).catch(err =>
-    logger.warn('No se pudo encolar el export a Sheets', { reservationId, error: err.message })
+const exportToSheetsAsync = (
+  reservationId: string,
+  action: 'upsert' | 'delete' = 'upsert',
+): void => {
+  enqueueSheetsExport(reservationId, action).catch((err) =>
+    logger.warn('No se pudo encolar el export a Sheets', { reservationId, error: err.message }),
   );
 };
 
@@ -35,9 +38,11 @@ const exportToSheetsAsync = (reservationId: string, action: 'upsert' | 'delete' 
 // de camas específicas. Fire-and-forget: si Redis falla acá, la reserva
 // real ya quedó guardada, no hay nada que revertir.
 const invalidateAvailabilityCache = (): void => {
-  redisClient.delPattern('availability:*').catch((err) =>
-    logger.warn('No se pudo invalidar el cache de disponibilidad', { error: err.message })
-  );
+  redisClient
+    .delPattern('availability:*')
+    .catch((err) =>
+      logger.warn('No se pudo invalidar el cache de disponibilidad', { error: err.message }),
+    );
 };
 
 const guestRepo = new GuestRepository();
@@ -110,7 +115,7 @@ const pickAvailableBedsInRoom = async (
   checkOut: string,
   count: number,
   gender: 'mixed' | 'female' | 'male',
-  preferredBedIds: string[] = []
+  preferredBedIds: string[] = [],
 ): Promise<string[]> => {
   const { rows } = await client.query(
     `SELECT bed_id FROM check_availability($1::date, $2::date, $3::bed_gender)
@@ -120,7 +125,7 @@ const pickAvailableBedsInRoom = async (
        regexp_replace(bed_code, '[0-9]+$', ''),
        NULLIF(regexp_replace(bed_code, '^[^0-9]*', ''), '')::INT
      LIMIT $5`,
-    [checkIn, checkOut, gender, roomTypeId, count, preferredBedIds]
+    [checkIn, checkOut, gender, roomTypeId, count, preferredBedIds],
   );
   return rows.map((r: any) => r.bed_id);
 };
@@ -128,25 +133,45 @@ const pickAvailableBedsInRoom = async (
 export class BookingService {
   async createBooking(data: CreateBookingInput): Promise<Reservation & { bedIds: string[] }> {
     const result = await withTransaction(async (client) => {
-      const guest = await guestRepo.upsert({
-        full_name: data.guest.full_name,
-        email: data.guest.email,
-        phone: data.guest.phone ?? null,
-        country: data.guest.country ?? null,
-        language: data.guest.language ?? null
-      }, client);
+      const guest = await guestRepo.upsert(
+        {
+          full_name: data.guest.full_name,
+          email: data.guest.email,
+          phone: data.guest.phone ?? null,
+          country: data.guest.country ?? null,
+          language: data.guest.language ?? null,
+          document: data.guest.document ?? null,
+        },
+        client,
+      );
 
-      const { rows: channelRows } = await client.query(`SELECT id FROM channels WHERE code = 'direct'`);
-      if (channelRows.length === 0) {throw new Error('Canal "direct" no encontrado en la tabla channels');}
+      const { rows: channelRows } = await client.query(
+        `SELECT id FROM channels WHERE code = 'direct'`,
+      );
+      if (channelRows.length === 0) {
+        throw new Error('Canal "direct" no encontrado en la tabla channels');
+      }
       const channelId = channelRows[0].id;
 
       // 1) Elegir camas candidatas por habitacion (sin lock todavia)
       const guestGender = data.guestGender ?? 'mixed';
       const candidateBedIds: string[] = [];
       for (const room of data.rooms) {
-        const beds = await pickAvailableBedsInRoom(client, room.roomId, data.checkIn, data.checkOut, room.bedsCount, guestGender, room.preferredBedIds);
+        const beds = await pickAvailableBedsInRoom(
+          client,
+          room.roomId,
+          data.checkIn,
+          data.checkOut,
+          room.bedsCount,
+          guestGender,
+          room.preferredBedIds,
+        );
         if (beds.length < room.bedsCount) {
-          throw new InsufficientAvailabilityError({ roomId: room.roomId, requested: room.bedsCount, found: beds.length });
+          throw new InsufficientAvailabilityError({
+            roomId: room.roomId,
+            requested: room.bedsCount,
+            found: beds.length,
+          });
         }
         candidateBedIds.push(...beds);
       }
@@ -159,17 +184,19 @@ export class BookingService {
         `SELECT bed_id FROM reservation_beds
          WHERE bed_id = ANY($1::uuid[])
            AND daterange(check_in, check_out, '[)') && daterange($2::date, $3::date, '[)')`,
-        [candidateBedIds, data.checkIn, data.checkOut]
+        [candidateBedIds, data.checkIn, data.checkOut],
       );
       if (stillOccupied.length > 0) {
-        throw new InsufficientAvailabilityError({ conflictingBeds: stillOccupied.map((r: any) => r.bed_id) });
+        throw new InsufficientAvailabilityError({
+          conflictingBeds: stillOccupied.map((r: any) => r.bed_id),
+        });
       }
 
       // 4) early_bird_discount real, via SQL (el resto del precio ya vino de pricingService)
       const bookingDate = new Date().toISOString().slice(0, 10);
       const { rows: earlyBirdRows } = await client.query(
         `SELECT calculate_early_bird_discount($1::date, $2::date) AS d`,
-        [bookingDate, data.checkIn]
+        [bookingDate, data.checkIn],
       );
       const earlyBirdDiscount = parseFloat(earlyBirdRows[0].d);
 
@@ -208,10 +235,12 @@ export class BookingService {
           data.pricing.depositAmount,
           data.pricing.remainingAmount,
           initialStatus,
-          initialStatus === 'pending_payment' ? new Date(Date.now() + 5 * 60 * 1000).toISOString() : null,
+          initialStatus === 'pending_payment'
+            ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+            : null,
           data.specialRequests ?? null,
-          data.source ?? 'direct'
-        ]
+          data.source ?? 'direct',
+        ],
       );
       const reservation = reservationRows[0];
 
@@ -225,7 +254,7 @@ export class BookingService {
           `INSERT INTO reservation_beds (reservation_id, bed_id, check_in, check_out)
            SELECT $1, bed_id, $3::date, $4::date
            FROM unnest($2::uuid[]) AS bed_id`,
-          [reservation.id, candidateBedIds, data.checkIn, data.checkOut]
+          [reservation.id, candidateBedIds, data.checkIn, data.checkOut],
         );
       } catch (error) {
         if (isOverbookingError(error)) {
@@ -234,7 +263,11 @@ export class BookingService {
         throw error;
       }
 
-      logger.info('Booking created', { reservationId: reservation.id, reservationNumber, beds: candidateBedIds.length });
+      logger.info('Booking created', {
+        reservationId: reservation.id,
+        reservationNumber,
+        beds: candidateBedIds.length,
+      });
       return { ...reservation, bedIds: candidateBedIds };
     });
 
@@ -264,22 +297,33 @@ export class BookingService {
     return result;
   }
 
-  async listBookings(filters: {
-    status?: BookingStatus;
-    dateFrom?: string;
-    dateTo?: string;
-    guestEmail?: string;
-    guestName?: string;
-    page?: number;
-    limit?: number;
-  } = {}): Promise<{ data: Reservation[]; total: number; page: number; limit: number; totalPages: number }> {
+  async listBookings(
+    filters: {
+      status?: BookingStatus;
+      dateFrom?: string;
+      dateTo?: string;
+      guestEmail?: string;
+      guestName?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ): Promise<{
+    data: Reservation[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 20;
     const { data, total } = await bookingRepo.search({ ...filters, page, limit });
     return { data, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
   }
 
-  async getBookingStats(from: string, to: string): Promise<{
+  async getBookingStats(
+    from: string,
+    to: string,
+  ): Promise<{
     totalBookings: number;
     confirmedBookings: number;
     pendingBookings: number;
@@ -287,7 +331,11 @@ export class BookingService {
     totalRevenue: number;
   }> {
     const result = await query<{
-      total: string; confirmed: string; pending: string; cancelled: string; revenue: string;
+      total: string;
+      confirmed: string;
+      pending: string;
+      cancelled: string;
+      revenue: string;
     }>(
       `SELECT
          COUNT(*)::int AS total,
@@ -297,7 +345,7 @@ export class BookingService {
          COALESCE(SUM(final_price) FILTER (WHERE status IN ('confirmed','completed')), 0) AS revenue
        FROM reservations
        WHERE check_in_date >= $1::date AND check_in_date <= $2::date`,
-      [from, to]
+      [from, to],
     );
     const row = result.rows[0];
     return {
@@ -305,7 +353,7 @@ export class BookingService {
       confirmedBookings: parseInt(row.confirmed, 10),
       pendingBookings: parseInt(row.pending, 10),
       cancelledBookings: parseInt(row.cancelled, 10),
-      totalRevenue: parseFloat(row.revenue)
+      totalRevenue: parseFloat(row.revenue),
     };
   }
 
@@ -315,25 +363,31 @@ export class BookingService {
       `UPDATE reservations
        SET status = 'cancelled', cancelled_at = now(), cancellation_reason = 'pending_payment_expired', updated_at = now()
        WHERE status = 'pending_payment' AND pending_expires_at < now()
-       RETURNING id`
+       RETURNING id`,
     );
     return rows.length;
   }
 
   // ventana3
-  async updateBooking(id: string, data: Parameters<typeof bookingRepo.update>[1]): Promise<Reservation> {
+  async updateBooking(
+    id: string,
+    data: Parameters<typeof bookingRepo.update>[1],
+  ): Promise<Reservation> {
     const result = await bookingRepo.update(id, data);
     exportToSheetsAsync(id);
     return result;
   }
 
   // ventana3
-  async updateGuest(guestId: string, data: Partial<{
-    full_name: string;
-    phone: string;
-    country: string;
-    language: string;
-  }>): Promise<void> {
+  async updateGuest(
+    guestId: string,
+    data: Partial<{
+      full_name: string;
+      phone: string;
+      country: string;
+      language: string;
+    }>,
+  ): Promise<void> {
     await guestRepo.update(guestId, data);
   }
 }
