@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { bookingAPI, availabilityAPI, paymentAPI } from '@/lib/api';
+import { bookingAPI, availabilityAPI, paymentAPI, offersAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
   Lang,
@@ -22,7 +22,7 @@ import { getSeason, validateCPF, fmtDate, fmtMoney } from './hostel-engine.utils
 import { HOSTEL_ENGINE_CSS } from './hostel-engine.styles';
 import { HostelCalendar } from './hostel-calendar';
 import { HostelRoomSelector } from './hostel-room-selector';
-import { HostelGuestForm } from './hostel-guest-form';
+import { HostelGuestForm, type AppliedCoupon } from './hostel-guest-form';
 import { HostelInfoBanner } from './hostel-info-banner';
 
 // Solo se ven después de que el usuario avanza el wizard (step 4, o tras
@@ -91,6 +91,12 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // acá para poder pedir un depósito nuevo sobre la MISMA reserva en vez de
   // crear una reserva duplicada.
   const [reservationId, setReservationId] = useState('');
+  // Programa de referidos (idea #49, roadmap.html): appliedCoupon es el
+  // código que el huésped ingresó para descontar ESTA reserva; ownReferralCode
+  // es el código nuevo que le toca a ÉL para compartir, devuelto por el
+  // backend al crear la reserva -- se muestra en la pantalla de éxito.
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [ownReferralCode, setOwnReferralCode] = useState<string | null>(null);
   const [timerSecs, setTimerSecs] = useState(300);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingError, setBookingError] = useState('');
@@ -446,6 +452,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         language: lang === 'de' || lang === 'fr' || lang === 'it' ? 'en' : lang,
         source: 'direct',
         guestGender: gender,
+        ...(appliedCoupon ? { offerCode: appliedCoupon.code } : {}),
       });
 
       const newReservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
@@ -454,6 +461,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         : 'LCH-' + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingCode(displayCode);
       setReservationId(newReservationId);
+      setOwnReferralCode(response.data?.booking?.referralCode ?? null);
 
       setPaymentInitFailed(false);
       if (payMethod === 'pix') {
@@ -496,7 +504,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod]);
+  }, [form, beds, rooms, checkIn, checkOut, lang, t, totalBeds, payMethod, appliedCoupon]);
 
   // ─ Cambiar de método de pago sin perder la reserva ya creada ─
   const handleSwitchPayMethod = useCallback(async () => {
@@ -892,6 +900,23 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                 onEmailFb={setEmailFb}
                 onPhoneFb={setPhoneFb}
                 onCancelToggle={() => setCancelOpen((o) => !o)}
+                appliedCoupon={appliedCoupon}
+                onCouponApply={setAppliedCoupon}
+                onCouponRemove={() => setAppliedCoupon(null)}
+                onValidateCoupon={async (code) => {
+                  const res = await offersAPI.validate(
+                    code,
+                    undefined,
+                    checkIn ? checkIn.toISOString().slice(0, 10) : '',
+                  );
+                  return res.data as {
+                    valid: boolean;
+                    discount_percent?: number;
+                    label?: string;
+                    code?: string;
+                    message?: string;
+                  };
+                }}
               />
             )}
 
@@ -961,6 +986,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             onNewBooking={handleNewBooking}
             onSwitchMethod={form.country === 'BR' ? handleSwitchPayMethod : undefined}
             paymentInitFailed={paymentInitFailed}
+            referralCode={ownReferralCode}
           />
         )}
 

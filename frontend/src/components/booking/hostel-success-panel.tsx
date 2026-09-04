@@ -2,8 +2,8 @@
 // frontend/src/components/booking/hostel-success-panel.tsx
 // Panel de éxito tras confirmar la reserva: QR PIX o link de Stripe + timer de expiración.
 
-import React from 'react';
-import { CheckCircle2, CreditCard, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, CreditCard, Check, Gift } from 'lucide-react';
 import { PayMethod, Translations } from './hostel-engine.types';
 import { calcPrice, fmtMoney } from './hostel-engine.utils';
 
@@ -28,6 +28,8 @@ interface HostelSuccessPanelProps {
   onNewBooking: () => void;
   onSwitchMethod?: () => void;
   paymentInitFailed?: boolean;
+  /** Código de referido propio, generado al confirmar (idea #49, roadmap.html). */
+  referralCode?: string | null;
 }
 
 export function HostelSuccessPanel({
@@ -43,7 +45,17 @@ export function HostelSuccessPanel({
   onNewBooking,
   onSwitchMethod,
   paymentInitFailed,
+  referralCode,
 }: HostelSuccessPanelProps) {
+  const [referralCopied, setReferralCopied] = useState(false);
+  const handleReferralCopy = () => {
+    if (!referralCode) {
+      return;
+    }
+    navigator.clipboard.writeText(referralCode).catch(() => {});
+    setReferralCopied(true);
+    setTimeout(() => setReferralCopied(false), 3000);
+  };
   return (
     <div className="he-card">
       <div className="he-success-panel">
@@ -156,6 +168,49 @@ export function HostelSuccessPanel({
           )}
           {t.restNote}
         </div>
+        {referralCode && (
+          <div className="he-rules" style={{ marginTop: '1rem', textAlign: 'left' }}>
+            <div className="he-rules-title">
+              <Gift size={14} color="#7BC47F" aria-hidden />
+              {t.referralTitle}
+            </div>
+            <p style={{ fontSize: '.78rem', color: '#F0EDE0', margin: '0 0 .6rem' }}>
+              {t.referralBody}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+              <code
+                style={{
+                  flex: 1,
+                  fontFamily: 'monospace',
+                  fontSize: '.95rem',
+                  fontWeight: 700,
+                  letterSpacing: '.05em',
+                  background: 'rgba(255,255,255,.08)',
+                  border: '1px solid rgba(255,255,255,.15)',
+                  borderRadius: '8px',
+                  padding: '.5rem .75rem',
+                  color: '#7BC47F',
+                }}
+              >
+                {referralCode}
+              </code>
+              <button type="button" className="he-pix-copy-btn" onClick={handleReferralCopy}>
+                {referralCopied ? (
+                  <>
+                    <Check
+                      size={13}
+                      aria-hidden
+                      style={{ display: 'inline', verticalAlign: '-2px', marginRight: '.3em' }}
+                    />
+                    {t.referralCopied}
+                  </>
+                ) : (
+                  t.referralCopy
+                )}
+              </button>
+            </div>
+          </div>
+        )}
         {onSwitchMethod && (
           <button
             type="button"
