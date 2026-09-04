@@ -57,7 +57,9 @@ export const generateTempPassword = (length = 12): string => {
 // desactualizado en el otro (auditoría 17 secciones, hallazgo sección 15).
 export function durationToMs(duration: string, fallbackMs: number): number {
   const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
-  if (!match) {return fallbackMs;}
+  if (!match) {
+    return fallbackMs;
+  }
   const value = Number(match[1]);
   const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
   return value * unitMs;
@@ -67,12 +69,22 @@ export function durationToSeconds(duration: string, fallbackSeconds: number): nu
   return Math.floor(durationToMs(duration, fallbackSeconds * 1000) / 1000);
 }
 
+// Token del patrón "doble cookie" para CSRF (ver middleware/csrf.ts) --
+// random, sin relación con el JWT de sesión, se emite en el login como
+// cookie NO httpOnly para que el frontend lo pueda leer y reenviar en un
+// header en cada request que modifica datos.
+export function generateCsrfToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
 export const generateToken = (
   payload: JWTPayload,
-  expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration
+  expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration,
 ): string => {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {throw new Error('JWT_SECRET not configured');}
+  if (!secret) {
+    throw new Error('JWT_SECRET not configured');
+  }
   return (jwt.sign as any)(payload, secret, {
     expiresIn,
     issuer: 'lapa-casa-hostel',

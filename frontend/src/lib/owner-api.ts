@@ -5,7 +5,7 @@
 // (credentials: 'include' ya está seteado en api.ts) -- este cliente
 // nunca maneja el token directamente.
 
-import { api, APIError } from './api';
+import { api, APIError, getCsrfHeader } from './api';
 
 export interface OwnerProfile {
   fullName: string;
@@ -56,8 +56,7 @@ export const ownerAuthAPI = {
 };
 
 export const ownerApartmentsAPI = {
-  list: () =>
-    api.get<{ success: boolean; data: { apartments: Apartment[] } }>('/owner/apartments'),
+  list: () => api.get<{ success: boolean; data: { apartments: Apartment[] } }>('/owner/apartments'),
 
   getById: (id: string) =>
     api.get<{ success: boolean; data: Apartment }>(`/owner/apartments/${id}`),
@@ -66,26 +65,35 @@ export const ownerApartmentsAPI = {
     id: string,
     data: Partial<
       Pick<Apartment, 'description' | 'neighborhood' | 'bedrooms' | 'bathrooms' | 'amenities'>
-    >
-  ) => api.put<{ success: boolean; data: Apartment; message: string }>(`/owner/apartments/${id}`, data),
+    >,
+  ) =>
+    api.put<{ success: boolean; data: Apartment; message: string }>(
+      `/owner/apartments/${id}`,
+      data,
+    ),
 
   listPhotos: (id: string) =>
     api.get<{ success: boolean; data: { photos: ApartmentPhoto[] } }>(
-      `/owner/apartments/${id}/photos`
+      `/owner/apartments/${id}/photos`,
     ),
 
   uploadPhoto: async (id: string, file: File, altText?: string) => {
     const formData = new FormData();
     formData.append('photo', file);
-    if (altText) {formData.append('altText', altText);}
+    if (altText) {
+      formData.append('altText', altText);
+    }
 
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/owner/apartments/${id}/photos`,
-      { method: 'POST', body: formData, credentials: 'include' }
+      { method: 'POST', body: formData, credentials: 'include', headers: getCsrfHeader() },
     );
     const responseData = await res.json();
     if (!res.ok) {
-      throw new APIError(responseData?.message || responseData?.error || 'Error al subir la foto', res.status);
+      throw new APIError(
+        responseData?.message || responseData?.error || 'Error al subir la foto',
+        res.status,
+      );
     }
     return responseData as { success: boolean; data: { photo: ApartmentPhoto }; message: string };
   },
@@ -93,7 +101,7 @@ export const ownerApartmentsAPI = {
   setPrimaryPhoto: (photoId: string) =>
     api.patch<{ success: boolean; data: ApartmentPhoto; message: string }>(
       `/owner/apartments/photos/${photoId}`,
-      { isPrimary: true }
+      { isPrimary: true },
     ),
 
   deletePhoto: (photoId: string) =>

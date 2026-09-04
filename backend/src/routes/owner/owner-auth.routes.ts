@@ -15,8 +15,16 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../config/prisma';
-import { verifyPassword, hashPassword, generateToken, durationToMs, durationToSeconds } from '../../utils/encryption';
+import {
+  verifyPassword,
+  hashPassword,
+  generateToken,
+  durationToMs,
+  durationToSeconds,
+  generateCsrfToken,
+} from '../../utils/encryption';
 import { authenticateOwnerToken } from '../../middleware/auth';
+import { verifyCsrf } from '../../middleware/csrf';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
@@ -91,11 +99,23 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // ya corregido en admin-auth.routes.ts, reintroducido acá por ser una
     // implementación separada del mismo patrón de login.
     const isProd = process.env.NODE_ENV === 'production';
+    const cookieMaxAge = durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000);
     res.cookie('lch_owner', token, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000),
+      maxAge: cookieMaxAge,
+      path: '/',
+    });
+
+    // Cookie CSRF (patrón doble cookie, ver middleware/csrf.ts) -- mismo
+    // mecanismo que admin-auth.routes.ts, cookie propia para no pisar una
+    // sesión de admin en el mismo navegador.
+    res.cookie('lch_owner_csrf', generateCsrfToken(), {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: cookieMaxAge,
       path: '/',
     });
 
@@ -106,8 +126,8 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
           email: owner.email,
           mustChangePassword: owner.mustChangePassword,
         },
-        'Login exitoso'
-      )
+        'Login exitoso',
+      ),
     );
   } catch (error) {
     next(error);
@@ -119,6 +139,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
 router.post(
   '/change-password',
   authenticateOwnerToken,
+  verifyCsrf('lch_owner_csrf'),
   validate(ChangePasswordSchema),
   async (req, res, next) => {
     try {
@@ -142,32 +163,38 @@ router.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // ─── POST /owner-auth/logout ──────────────────────────────────────────────────
 
-router.post('/logout', authenticateOwnerToken, async (req, res, next) => {
-  try {
-    const authHeader = req.headers['authorization'];
-    const cookieToken = (req.cookies as Record<string, string> | undefined)?.['lch_owner'];
-    const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
+router.post(
+  '/logout',
+  authenticateOwnerToken,
+  verifyCsrf('lch_owner_csrf'),
+  async (req, res, next) => {
+    try {
+      const authHeader = req.headers['authorization'];
+      const cookieToken = (req.cookies as Record<string, string> | undefined)?.['lch_owner'];
+      const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
 
-    if (token) {
-      await redisCache.set(
-        `${REVOKED_PREFIX}${token}`,
-        '1',
-        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400)
-      );
+      if (token) {
+        await redisCache.set(
+          `${REVOKED_PREFIX}${token}`,
+          '1',
+          durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400),
+        );
+      }
+
+      res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });
+      res.clearCookie('lch_owner_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
+
+      logger.info('Logout de administrador', { ownerId: req.user?.ownerId });
+      res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
+    } catch (error) {
+      next(error);
     }
-
-    res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });
-
-    logger.info('Logout de administrador', { ownerId: req.user?.ownerId });
-    res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 export const ownerAuthRouter = router;
