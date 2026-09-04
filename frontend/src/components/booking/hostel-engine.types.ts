@@ -281,9 +281,9 @@ export const T = {
     timerLabel: 'Expira en',
     pixKey: 'Clave PIX: lapalandiarj@gmail.com',
     restNote: 'El resto (70%) se paga en el check-in, en efectivo o tarjeta.',
-    referralTitle: 'Recomendá a un amigo, ganá un descuento',
+    referralTitle: 'Recomienda a un amigo, gana un descuento',
     referralBody:
-      'Compartí este código: tu amigo tiene 10% de descuento y, cuando reserve, vos recibís otro código de 10% para tu próxima estadía.',
+      'Comparte este código: tu amigo tiene 10% de descuento y, cuando reserve, tú recibes otro código de 10% para tu próxima estadía.',
     referralCopy: 'Copiar código',
     referralCopied: '¡Copiado!',
     btnNewBooking: 'Nueva reserva',
