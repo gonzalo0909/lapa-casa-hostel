@@ -17,7 +17,8 @@ export const SiteFooter: React.FC<SiteFooterProps> = async ({ locale = 'pt' }) =
       <div className="max-w-5xl mx-auto px-4 text-center">
         <p className="font-semibold text-foreground tracking-wide">LAPA CASA</p>
         <p className="text-xs text-muted-foreground mt-1">{t('since')}</p>
-        <nav className="flex flex-wrap justify-center gap-4 mt-3">
+
+        <nav className="flex flex-wrap justify-center gap-4 mt-4">
           <Link href={`/${locale}/galeria`} className="text-xs text-primary hover:underline">
             {t('gallery')}
           </Link>
