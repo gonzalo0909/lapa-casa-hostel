@@ -2,10 +2,10 @@
  * File: lapa-casa-hostel/backend/src/routes/index.ts
  * Main API Routes Index
  * Lapa Casa Channel Manager
- * 
+ *
  * Centralizes all API route modules and applies global middleware
  * Implements versioning, rate limiting, and security headers
- * 
+ *
  * @module routes/index
  * @requires express
  */
@@ -26,6 +26,7 @@ import icalRouter from './ical/ical.routes';
 import otaWebhooksRouter from './webhooks/ota.routes';
 import { rateLimiter } from '../middleware/rate-limiter';
 import { authenticateToken, requireRole, authenticateOwnerToken } from '../middleware/auth';
+import { verifyCsrf } from '../middleware/csrf';
 import { logger } from '../utils/logger';
 import { ApiResponse } from '../utils/responses';
 
@@ -41,7 +42,7 @@ router.get('/health', (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     version: process.env.API_VERSION || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -60,10 +61,10 @@ router.get('/info', (req: Request, res: Response) => {
       availability: '/api/v1/availability',
       payments: '/api/v1/payments',
       rooms: '/api/v1/rooms',
-      admin: '/api/v1/admin'
+      admin: '/api/v1/admin',
     },
     documentation: '/api/docs',
-    support: 'lapalandiarj@gmail.com'
+    support: 'lapalandiarj@gmail.com',
   });
 });
 
@@ -73,7 +74,11 @@ router.get('/info', (req: Request, res: Response) => {
  * - availability: 120 req/min (10 apts × varios refreshes simultáneos)
  * - rooms/photos: 60 req/min
  */
-router.use('/availability', rateLimiter({ max: 120, windowMs: 60000, prefix: 'availability' }), availabilityRouter);
+router.use(
+  '/availability',
+  rateLimiter({ max: 120, windowMs: 60000, prefix: 'availability' }),
+  availabilityRouter,
+);
 router.use('/rooms', rateLimiter({ max: 60, windowMs: 60000, prefix: 'rooms' }), roomsRouter);
 router.use('/photos', rateLimiter({ max: 60, windowMs: 60000, prefix: 'photos' }), photosRouter);
 router.use('/offers', rateLimiter({ max: 30, windowMs: 60000, prefix: 'offers' }), offersRouter);
@@ -92,7 +97,11 @@ router.use('/webhooks', otaWebhooksRouter);
 /**
  * Semi-Protected Routes (Rate Limited)
  */
-router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000, prefix: 'bookings' }), bookingsRouter);
+router.use(
+  '/bookings',
+  rateLimiter({ max: 3, windowMs: 1000, prefix: 'bookings' }),
+  bookingsRouter,
+);
 
 /**
  * Payment Routes
@@ -100,24 +109,31 @@ router.use('/bookings', rateLimiter({ max: 3, windowMs: 1000, prefix: 'bookings'
  * El resto del router mantiene el límite estricto de 3/s.
  * Se aplica un único rateLimiter condicional para evitar que ambos se acumulen.
  */
-router.use('/payments', (req, res, next) => {
-  // GETs de polling de pago grupal (titular y miembro) → límite relajado
-  const isGroupPoll = req.method === 'GET' && (
-    /^\/group\/[^/]+$/.test(req.path) ||
-    /^\/group-member\/[^/]+$/.test(req.path)
-  );
-  const limiter = isGroupPoll
-    ? rateLimiter({ max: 60, windowMs: 60000, prefix: 'payments-poll' })
-    : rateLimiter({ max: 3, windowMs: 1000, prefix: 'payments' });
-  limiter(req, res, next);
-}, paymentsRouter);
+router.use(
+  '/payments',
+  (req, res, next) => {
+    // GETs de polling de pago grupal (titular y miembro) → límite relajado
+    const isGroupPoll =
+      req.method === 'GET' &&
+      (/^\/group\/[^/]+$/.test(req.path) || /^\/group-member\/[^/]+$/.test(req.path));
+    const limiter = isGroupPoll
+      ? rateLimiter({ max: 60, windowMs: 60000, prefix: 'payments-poll' })
+      : rateLimiter({ max: 3, windowMs: 1000, prefix: 'payments' });
+    limiter(req, res, next);
+  },
+  paymentsRouter,
+);
 
 /**
  * Admin Login (ventana4 bloque 2) — público, montado ANTES del
  * authenticateToken de abajo (si no, nadie podría loguearse para
  * conseguir el primer token). Rate limit estricto contra fuerza bruta.
  */
-router.use('/admin/login', rateLimiter({ max: 10, windowMs: 60000, prefix: 'admin-login' }), adminAuthRouter);
+router.use(
+  '/admin/login',
+  rateLimiter({ max: 10, windowMs: 60000, prefix: 'admin-login' }),
+  adminAuthRouter,
+);
 
 /**
  * Admin Routes (Authentication + rol admin requeridos)
@@ -134,7 +150,8 @@ router.use(
   rateLimiter({ max: 30, windowMs: 1000, prefix: 'admin' }),
   authenticateToken,
   requireRole(['admin']),
-  adminRouter
+  verifyCsrf('lch_admin_csrf'),
+  adminRouter,
 );
 
 /**
@@ -143,7 +160,11 @@ router.use(
  * Público, montado antes de authenticateOwnerToken por la misma razón
  * que /admin/login.
  */
-router.use('/owner/login', rateLimiter({ max: 10, windowMs: 60000, prefix: 'owner-login' }), ownerAuthRouter);
+router.use(
+  '/owner/login',
+  rateLimiter({ max: 10, windowMs: 60000, prefix: 'owner-login' }),
+  ownerAuthRouter,
+);
 
 /**
  * Owner Routes (Authentication + rol owner requeridos) — cada
@@ -154,7 +175,8 @@ router.use(
   '/owner',
   rateLimiter({ max: 30, windowMs: 1000, prefix: 'owner' }),
   authenticateOwnerToken,
-  ownerRouter
+  verifyCsrf('lch_owner_csrf'),
+  ownerRouter,
 );
 
 /**
@@ -162,9 +184,11 @@ router.use(
  */
 router.use('*', (req: Request, res: Response) => {
   logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json(ApiResponse.error('The requested endpoint does not exist', {
-    path: req.originalUrl,
-  }));
+  res.status(404).json(
+    ApiResponse.error('The requested endpoint does not exist', {
+      path: req.originalUrl,
+    }),
+  );
 });
 
 // Sección 8 auditoría 17 secciones: se elimina el error handler local que

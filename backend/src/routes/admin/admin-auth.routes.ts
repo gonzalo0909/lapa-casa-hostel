@@ -8,8 +8,15 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { verifyPassword, generateToken, durationToMs, durationToSeconds } from '../../utils/encryption';
+import {
+  verifyPassword,
+  generateToken,
+  durationToMs,
+  durationToSeconds,
+  generateCsrfToken,
+} from '../../utils/encryption';
 import { authenticateToken } from '../../middleware/auth';
+import { verifyCsrf } from '../../middleware/csrf';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
@@ -45,7 +52,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     const payload = {
       userId: 'admin',
       email: process.env.ADMIN_EMAIL || 'lapalandiarj@gmail.com',
-      role: 'admin' as const
+      role: 'admin' as const,
     };
 
     const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '24h');
@@ -55,11 +62,23 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // M-02: emitir el JWT como httpOnly cookie — inaccesible desde JS,
     // elimina el vector XSS de robo de token desde localStorage.
     const isProd = process.env.NODE_ENV === 'production';
+    const cookieMaxAge = durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000);
     res.cookie('lch_admin', token, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000),
+      maxAge: cookieMaxAge,
+      path: '/',
+    });
+
+    // Cookie CSRF (patrón doble cookie, ver middleware/csrf.ts) -- a
+    // propósito NO httpOnly, el frontend necesita leerla para reenviarla en
+    // el header x-csrf-token de cada request que modifica datos.
+    res.cookie('lch_admin_csrf', generateCsrfToken(), {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: cookieMaxAge,
       path: '/',
     });
 
@@ -80,12 +99,11 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // propia, para poder tener un access token de vida aún más corta sin
     // forzar reloguearse tan seguido) sigue pendiente -- requiere probarlo
     // con sesión de navegador real, no algo verificable solo desde el código.
-    res.status(200).json(
-      ApiResponse.success(
-        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
-        'Login exitoso'
-      )
-    );
+    res
+      .status(200)
+      .json(
+        ApiResponse.success({ expiresIn: process.env.JWT_EXPIRES_IN || '24h' }, 'Login exitoso'),
+      );
   } catch (error) {
     next(error);
   }
@@ -94,7 +112,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
 // M-03: logout — revoca el token actual y el refreshToken si se envía.
 // M-02: también limpia la cookie httpOnly (el token puede venir de ahí).
 // El token queda en lista negra en Redis hasta que expire naturalmente.
-router.post('/logout', authenticateToken, async (req, res, next) => {
+router.post('/logout', authenticateToken, verifyCsrf('lch_admin_csrf'), async (req, res, next) => {
   try {
     // El token puede llegar como Bearer header (scripts/API) o como cookie httpOnly (panel admin)
     const authHeader = req.headers['authorization'];
@@ -110,7 +128,7 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
       await redisCache.set(
         `${REVOKED_PREFIX}${token}`,
         '1',
-        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400)
+        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400),
       );
     }
 
@@ -125,6 +143,7 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
 
     // M-02: eliminar la cookie httpOnly del navegador
     res.clearCookie('lch_admin', { httpOnly: true, sameSite: 'strict', path: '/' });
+    res.clearCookie('lch_admin_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
 
     logger.info('Logout admin — token revocado');
     res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
