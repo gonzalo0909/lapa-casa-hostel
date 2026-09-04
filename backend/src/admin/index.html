@@ -17,8 +17,14 @@
       <label>Contraseña de administrador
         <input type="password" id="password" required autofocus>
       </label>
+      <label id="totp-field" class="hidden">Código de 2FA (app autenticadora)
+        <input type="text" id="totp-token" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
+      </label>
       <button type="submit">Entrar</button>
     </form>
+    <p style="margin-top:10px;font-size:13px;">
+      <a href="/admin/2fa-recovery.html">¿Perdiste el celular con la app de 2FA?</a>
+    </p>
   </div>
 </section>
 
