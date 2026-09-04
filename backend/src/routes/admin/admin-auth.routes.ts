@@ -21,9 +21,14 @@ import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 import { validate } from '../../middleware/validation';
+import { getAdminTotpConfig, disableAdminTotp } from './admin-2fa.routes';
+import { verifyTotpToken, hashBackupCode } from '../../utils/totp';
 
 const LoginSchema = z.object({
   password: z.string().min(1),
+  // Solo se exige si 2FA está activado (ver /admin/2fa) -- opcional para
+  // no romper el login de nadie que no lo prendió.
+  totpToken: z.string().optional(),
 });
 
 // M-03: prefijo para tokens revocados en Redis (TTL = expiración del token)
@@ -33,7 +38,7 @@ const router = Router();
 
 router.post('/', validate(LoginSchema), async (req, res, next) => {
   try {
-    const { password } = req.body as z.infer<typeof LoginSchema>;
+    const { password, totpToken } = req.body as z.infer<typeof LoginSchema>;
 
     const passwordHash = process.env.ADMIN_PASSWORD_HASH;
     if (!passwordHash) {
@@ -47,6 +52,28 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
       logger.warn('Intento de login admin fallido');
       res.status(401).json(ApiResponse.error('Credenciales inválidas'));
       return;
+    }
+
+    // 2FA opcional (idea #22, roadmap.html) -- solo se exige si el admin
+    // lo activó desde /admin/2fa. Código 'TOTP_REQUIRED' distinto de
+    // 'credenciales inválidas' para que el frontend sepa mostrar el
+    // segundo campo en vez de decir que la contraseña está mal.
+    const totpConfig = await getAdminTotpConfig();
+    if (totpConfig.enabled && totpConfig.secret) {
+      if (!totpToken) {
+        res
+          .status(401)
+          .json(ApiResponse.error('Se requiere el código de 2FA', undefined, 'TOTP_REQUIRED'));
+        return;
+      }
+      const totpValid = await verifyTotpToken(totpConfig.secret, totpToken);
+      if (!totpValid) {
+        logger.warn('Intento de login admin fallido -- código 2FA inválido');
+        res
+          .status(401)
+          .json(ApiResponse.error('Código de 2FA inválido', undefined, 'TOTP_INVALID'));
+        return;
+      }
     }
 
     const payload = {
@@ -103,6 +130,54 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
       .status(200)
       .json(
         ApiResponse.success({ expiresIn: process.env.JWT_EXPIRES_IN || '24h' }, 'Login exitoso'),
+      );
+  } catch (error) {
+    next(error);
+  }
+});
+
+const RecoverySchema = z.object({
+  password: z.string().min(1),
+  backupCode: z.string().min(1),
+});
+
+/**
+ * POST /admin/login/2fa-recovery — desactiva 2FA usando el código de
+ * respaldo, para el caso de perder el celular con la app y no poder
+ * completar el login normal. A propósito público (mismo rate limit que
+ * /admin/login): si tuviera que pasar por authenticateToken, la
+ * recuperación sería inútil justo en el escenario que la necesita.
+ * Requiere la contraseña Y el código de respaldo -- ninguno solo alcanza.
+ */
+router.post('/2fa-recovery', validate(RecoverySchema), async (req, res, next) => {
+  try {
+    const { password, backupCode } = req.body as z.infer<typeof RecoverySchema>;
+
+    const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+    if (!passwordHash || !(await verifyPassword(password, passwordHash))) {
+      logger.warn('Intento de recuperación de 2FA fallido -- contraseña inválida');
+      res.status(401).json(ApiResponse.error('Credenciales inválidas'));
+      return;
+    }
+
+    const totpConfig = await getAdminTotpConfig();
+    if (!totpConfig.enabled || !totpConfig.backupCodeHash) {
+      res.status(400).json(ApiResponse.error('2FA no está activado'));
+      return;
+    }
+
+    if (hashBackupCode(backupCode) !== totpConfig.backupCodeHash) {
+      logger.warn('Intento de recuperación de 2FA fallido -- código de respaldo inválido');
+      res.status(401).json(ApiResponse.error('Código de respaldo inválido'));
+      return;
+    }
+
+    await disableAdminTotp();
+    logger.info('2FA de admin desactivado por recuperación con código de respaldo');
+    res
+      .status(200)
+      .json(
+        ApiResponse.success(null, '2FA desactivado. Iniciá sesión de nuevo con tu contraseña.'),
       );
   } catch (error) {
     next(error);

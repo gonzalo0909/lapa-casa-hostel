@@ -32,6 +32,7 @@ import { roomTypePhotosRouter } from './room-type-photos.routes';
 import { apartmentOwnersRouter } from './apartment-owners.routes';
 import { dynamicPricingRouter } from './dynamic-pricing.routes';
 import { guestsRouter } from './guests.routes';
+import { admin2faRouter } from './admin-2fa.routes';
 import type { BookingWithGuest } from '../../services/email-service';
 
 const router = Router();
@@ -83,6 +84,11 @@ router.use('/dynamic-pricing', dynamicPricingRouter);
 router.use('/guests', guestsRouter);
 
 /**
+ * /admin/2fa — doble verificación (TOTP) opcional para el login de admin
+ */
+router.use('/2fa', admin2faRouter);
+
+/**
  * GET /admin/dashboard — KPIs del mes actual
  */
 router.get('/dashboard', async (req, res, next) => {
@@ -98,23 +104,29 @@ router.get('/dashboard', async (req, res, next) => {
     const [bookingStats, occupancy, revenue, channels, groups] = await Promise.all([
       bookingService.getBookingStats(
         `${year}-${String(month).padStart(2, '0')}-01`,
-        new Date(year, month, 0).toISOString().slice(0, 10)
+        new Date(year, month, 0).toISOString().slice(0, 10),
       ),
       statsService.getOccupancyStats(month, year),
       statsService.getRevenueStats(month, year),
       statsService.getChannelStats(month, year),
-      statsService.getGroupStats(month, year)
+      statsService.getGroupStats(month, year),
     ]);
 
     res.status(200).json(
-      ApiResponse.success({
-        period: { month, year },
-        bookings: bookingStats,
-        occupancy: { averagePercent: occupancy.averageOccupancyPercent, byRoom: occupancy.byRoom },
-        revenue,
-        channels,
-        groups
-      }, 'Dashboard data retrieved')
+      ApiResponse.success(
+        {
+          period: { month, year },
+          bookings: bookingStats,
+          occupancy: {
+            averagePercent: occupancy.averageOccupancyPercent,
+            byRoom: occupancy.byRoom,
+          },
+          revenue,
+          channels,
+          groups,
+        },
+        'Dashboard data retrieved',
+      ),
     );
   } catch (error) {
     next(error);
@@ -130,10 +142,22 @@ router.get('/bookings', async (req, res, next) => {
 
     const conditions: string[] = [];
     const params: any[] = [];
-    if (status) { params.push(status); conditions.push(`r.status = $${params.length}`); }
-    if (from) { params.push(from); conditions.push(`r.check_in_date >= $${params.length}::date`); }
-    if (to) { params.push(to); conditions.push(`r.check_in_date <= $${params.length}::date`); }
-    if (channel) { params.push(channel); conditions.push(`c.code = $${params.length}`); }
+    if (status) {
+      params.push(status);
+      conditions.push(`r.status = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      conditions.push(`r.check_in_date >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`r.check_in_date <= $${params.length}::date`);
+    }
+    if (channel) {
+      params.push(channel);
+      conditions.push(`c.code = $${params.length}`);
+    }
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const pageNum = Math.max(1, parseInt(page || '1', 10) || 1);
@@ -164,16 +188,19 @@ router.get('/bookings', async (req, res, next) => {
          ${where}
          ORDER BY r.created_at DESC
          LIMIT ${limitNum} OFFSET ${(pageNum - 1) * limitNum}`,
-        params
+        params,
       ),
-      query(`SELECT COUNT(*)::int AS total FROM reservations r JOIN channels c ON c.id = r.channel_id ${where}`, params)
+      query(
+        `SELECT COUNT(*)::int AS total FROM reservations r JOIN channels c ON c.id = r.channel_id ${where}`,
+        params,
+      ),
     ]);
 
     res.status(200).json(
       ApiResponse.success({
         bookings: dataResult.rows,
-        pagination: { page: pageNum, limit: limitNum, total: countResult.rows[0].total }
-      })
+        pagination: { page: pageNum, limit: limitNum, total: countResult.rows[0].total },
+      }),
     );
   } catch (error) {
     next(error);
@@ -189,8 +216,14 @@ router.get('/bookings/today', async (_req, res, next) => {
 
     const [checkIns, checkOuts, occ] = await Promise.all([
       query<{
-        id: string; confirmationNumber: string; guestName: string;
-        checkIn: string; checkOut: string; bedsCount: number; status: string; nights: number;
+        id: string;
+        confirmationNumber: string;
+        guestName: string;
+        checkIn: string;
+        checkOut: string;
+        bedsCount: number;
+        status: string;
+        nights: number;
       }>(
         `SELECT r.id,
                 r.reservation_number AS "confirmationNumber",
@@ -204,11 +237,17 @@ router.get('/bookings/today', async (_req, res, next) => {
          WHERE r.check_in_date = $1::date
            AND r.status IN ('confirmed', 'pending', 'checked-in')
          ORDER BY r.reservation_number ASC`,
-        [today]
+        [today],
       ),
       query<{
-        id: string; confirmationNumber: string; guestName: string;
-        checkIn: string; checkOut: string; bedsCount: number; status: string; nights: number;
+        id: string;
+        confirmationNumber: string;
+        guestName: string;
+        checkIn: string;
+        checkOut: string;
+        bedsCount: number;
+        status: string;
+        nights: number;
       }>(
         `SELECT r.id,
                 r.reservation_number AS "confirmationNumber",
@@ -222,7 +261,7 @@ router.get('/bookings/today', async (_req, res, next) => {
          WHERE r.check_out_date = $1::date
            AND r.status IN ('confirmed', 'checked-in', 'checked-out')
          ORDER BY r.reservation_number ASC`,
-        [today]
+        [today],
       ),
       query<{ occupied: number; total: number }>(
         `SELECT
@@ -232,19 +271,21 @@ router.get('/bookings/today', async (_req, res, next) => {
               AND r.check_in_date <= $1::date AND r.check_out_date > $1::date
            ) AS occupied,
            (SELECT COUNT(*)::int FROM beds) AS total`,
-        [today]
-      )
+        [today],
+      ),
     ]);
 
     const toBooking = (r: Record<string, any>) => ({ ...r, roomNames: [] as string[] });
     const occRow = occ.rows[0];
 
-    res.status(200).json(ApiResponse.success({
-      checkIns: checkIns.rows.map(toBooking),
-      checkOuts: checkOuts.rows.map(toBooking),
-      occupancyToday: occRow?.occupied ?? 0,
-      totalBeds: occRow?.total ?? 45,
-    }));
+    res.status(200).json(
+      ApiResponse.success({
+        checkIns: checkIns.rows.map(toBooking),
+        checkOuts: checkOuts.rows.map(toBooking),
+        occupancyToday: occRow?.occupied ?? 0,
+        totalBeds: occRow?.total ?? 45,
+      }),
+    );
   } catch (error) {
     next(error);
   }
@@ -260,8 +301,14 @@ router.get('/bookings/upcoming', async (req, res, next) => {
     const until = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 
     const result = await query<{
-      id: string; confirmationNumber: string; guestName: string;
-      checkIn: string; checkOut: string; bedsCount: number; status: string; nights: number;
+      id: string;
+      confirmationNumber: string;
+      guestName: string;
+      checkIn: string;
+      checkOut: string;
+      bedsCount: number;
+      status: string;
+      nights: number;
     }>(
       `SELECT r.id,
               r.reservation_number AS "confirmationNumber",
@@ -276,12 +323,14 @@ router.get('/bookings/upcoming', async (req, res, next) => {
          AND r.status IN ('confirmed', 'pending')
        ORDER BY r.check_in_date ASC
        LIMIT 50`,
-      [today, until]
+      [today, until],
     );
 
-    res.status(200).json(ApiResponse.success({
-      bookings: result.rows.map((r) => ({ ...r, roomNames: [] as string[] })),
-    }));
+    res.status(200).json(
+      ApiResponse.success({
+        bookings: result.rows.map((r) => ({ ...r, roomNames: [] as string[] })),
+      }),
+    );
   } catch (error) {
     next(error);
   }
@@ -297,9 +346,18 @@ router.get('/bookings/export', async (req, res, next) => {
 
     const conditions: string[] = [];
     const params: any[] = [];
-    if (status) { params.push(status); conditions.push(`r.status = $${params.length}`); }
-    if (from)   { params.push(from);   conditions.push(`r.check_in_date >= $${params.length}::date`); }
-    if (to)     { params.push(to);     conditions.push(`r.check_in_date <= $${params.length}::date`); }
+    if (status) {
+      params.push(status);
+      conditions.push(`r.status = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      conditions.push(`r.check_in_date >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`r.check_in_date <= $${params.length}::date`);
+    }
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const { rows } = await query(
@@ -325,24 +383,42 @@ router.get('/bookings/export', async (req, res, next) => {
        JOIN channels c ON c.id = r.channel_id
        ${where}
        ORDER BY r.check_in_date DESC, r.created_at DESC`,
-      params
+      params,
     );
 
     const escapeCell = (v: any): string => {
-      if (v == null) {return '';}
+      if (v == null) {
+        return '';
+      }
       const s = String(v);
-      return (s.includes(',') || s.includes('"') || s.includes('\n'))
+      return s.includes(',') || s.includes('"') || s.includes('\n')
         ? '"' + s.replace(/"/g, '""') + '"'
         : s;
     };
 
-    const headers = rows.length ? Object.keys(rows[0]!) : [
-      'Reserva','Huesped','Email','Telefono','Pais','Check-in','Check-out',
-      'Noches','Camas','Canal','Estado','Precio total','Deposito','Saldo pendiente','Notas','Creada'
-    ];
+    const headers = rows.length
+      ? Object.keys(rows[0]!)
+      : [
+          'Reserva',
+          'Huesped',
+          'Email',
+          'Telefono',
+          'Pais',
+          'Check-in',
+          'Check-out',
+          'Noches',
+          'Camas',
+          'Canal',
+          'Estado',
+          'Precio total',
+          'Deposito',
+          'Saldo pendiente',
+          'Notas',
+          'Creada',
+        ];
     const lines = [
       headers.join(','),
-      ...rows.map(row => headers.map(h => escapeCell(row[h])).join(','))
+      ...rows.map((row) => headers.map((h) => escapeCell(row[h])).join(',')),
     ];
     // BOM UTF-8 para que Excel abra sin problemas de encoding
     const csv = '﻿' + lines.join('\n');
@@ -351,7 +427,9 @@ router.get('/bookings/export', async (req, res, next) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="reservas-${date}.csv"`);
     res.send(csv);
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**
@@ -363,13 +441,15 @@ router.put('/bookings/:id', async (req, res, next) => {
     const body = req.body as Record<string, any>;
 
     const forbidden = ['checkIn', 'checkOut', 'check_in_date', 'check_out_date', 'rooms', 'status'];
-    const attempted = forbidden.filter(f => body[f] !== undefined);
+    const attempted = forbidden.filter((f) => body[f] !== undefined);
     if (attempted.length > 0) {
-      res.status(400).json(
-        ApiResponse.error(
-          `No se pueden modificar estos campos desde acá (saltearía el motor anti-overbooking): ${attempted.join(', ')}. Para cambiar fechas/habitaciones: cancelar y crear una reserva nueva. Para cambiar el status: usar los endpoints dedicados (confirmar/cancelar).`
-        )
-      );
+      res
+        .status(400)
+        .json(
+          ApiResponse.error(
+            `No se pueden modificar estos campos desde acá (saltearía el motor anti-overbooking): ${attempted.join(', ')}. Para cambiar fechas/habitaciones: cancelar y crear una reserva nueva. Para cambiar el status: usar los endpoints dedicados (confirmar/cancelar).`,
+          ),
+        );
       return;
     }
 
@@ -380,10 +460,18 @@ router.put('/bookings/:id', async (req, res, next) => {
     }
 
     const updateData: Record<string, any> = {};
-    if (body.specialRequests !== undefined) {updateData.special_requests = body.specialRequests;}
-    if (body.finalPrice !== undefined) {updateData.final_price = Number(body.finalPrice);}
-    if (body.depositAmount !== undefined) {updateData.deposit_amount = Number(body.depositAmount);}
-    if (body.remainingAmount !== undefined) {updateData.remaining_amount = Number(body.remainingAmount);}
+    if (body.specialRequests !== undefined) {
+      updateData.special_requests = body.specialRequests;
+    }
+    if (body.finalPrice !== undefined) {
+      updateData.final_price = Number(body.finalPrice);
+    }
+    if (body.depositAmount !== undefined) {
+      updateData.deposit_amount = Number(body.depositAmount);
+    }
+    if (body.remainingAmount !== undefined) {
+      updateData.remaining_amount = Number(body.remainingAmount);
+    }
 
     if (Object.keys(updateData).length > 0) {
       await bookingService.updateBooking(id, updateData);
@@ -391,9 +479,15 @@ router.put('/bookings/:id', async (req, res, next) => {
 
     if (body.guest) {
       const guestUpdate: Record<string, any> = {};
-      if (body.guest.fullName) {guestUpdate.full_name = body.guest.fullName;}
-      if (body.guest.phone) {guestUpdate.phone = body.guest.phone;}
-      if (body.guest.country) {guestUpdate.country = body.guest.country;}
+      if (body.guest.fullName) {
+        guestUpdate.full_name = body.guest.fullName;
+      }
+      if (body.guest.phone) {
+        guestUpdate.phone = body.guest.phone;
+      }
+      if (body.guest.country) {
+        guestUpdate.country = body.guest.country;
+      }
       if (Object.keys(guestUpdate).length > 0) {
         await bookingService.updateGuest(existing.guest_id, guestUpdate);
       }
@@ -406,7 +500,7 @@ router.put('/bookings/:id', async (req, res, next) => {
       reservation_id: id,
       guest_id: existing.guest_id,
       old_data: existing as unknown as Record<string, unknown>,
-      new_data: { ...updateData, guest: body.guest }
+      new_data: { ...updateData, guest: body.guest },
     });
 
     const updated = await bookingService.getBooking(id);
@@ -447,9 +541,13 @@ router.post('/bookings/:id/confirm', async (req, res, next) => {
     }
     const updated = await bookingService.confirmBooking(id);
     await auditLogService.log({
-      entity_type: 'reservation', entity_id: id, operation: 'ADMIN_FORCE_CONFIRM',
-      reservation_id: id, guest_id: existing.guest_id,
-      old_data: { status: existing.status }, new_data: { status: 'confirmed' }
+      entity_type: 'reservation',
+      entity_id: id,
+      operation: 'ADMIN_FORCE_CONFIRM',
+      reservation_id: id,
+      guest_id: existing.guest_id,
+      old_data: { status: existing.status },
+      new_data: { status: 'confirmed' },
     });
     res.status(200).json(ApiResponse.success(updated, 'Reserva confirmada'));
   } catch (error) {
@@ -463,12 +561,14 @@ router.post('/bookings/:id/confirm', async (req, res, next) => {
  * PUT /admin/group-discounts más abajo) porque depende del total de
  * camas de toda la reserva, no de un cuarto individual.
  */
-const RoomSettingsSchema = z.object({
-  basePrice: z.number().positive().optional(),
-  isFlexible: z.boolean().optional(),
-}).refine((v) => v.basePrice !== undefined || v.isFlexible !== undefined, {
-  message: 'Nada para actualizar: basePrice y/o isFlexible',
-});
+const RoomSettingsSchema = z
+  .object({
+    basePrice: z.number().positive().optional(),
+    isFlexible: z.boolean().optional(),
+  })
+  .refine((v) => v.basePrice !== undefined || v.isFlexible !== undefined, {
+    message: 'Nada para actualizar: basePrice y/o isFlexible',
+  });
 
 router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res, next) => {
   try {
@@ -477,13 +577,19 @@ router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res,
 
     const sets: string[] = [];
     const params: any[] = [];
-    if (basePrice !== undefined) { params.push(basePrice); sets.push(`base_price = $${params.length}`); }
-    if (isFlexible !== undefined) { params.push(isFlexible); sets.push(`is_flexible = $${params.length}`); }
+    if (basePrice !== undefined) {
+      params.push(basePrice);
+      sets.push(`base_price = $${params.length}`);
+    }
+    if (isFlexible !== undefined) {
+      params.push(isFlexible);
+      sets.push(`is_flexible = $${params.length}`);
+    }
     params.push(id);
 
     const { rows } = await query(
       `UPDATE room_types SET ${sets.join(', ')}, updated_at = now() WHERE id = $${params.length} RETURNING *`,
-      params
+      params,
     );
     if (rows.length === 0) {
       res.status(404).json(ApiResponse.error('Habitación no encontrada'));
@@ -491,8 +597,10 @@ router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res,
     }
 
     await auditLogService.log({
-      entity_type: 'room_type', entity_id: id, operation: 'ADMIN_UPDATE_SETTINGS',
-      new_data: { basePrice, isFlexible }
+      entity_type: 'room_type',
+      entity_id: id,
+      operation: 'ADMIN_UPDATE_SETTINGS',
+      new_data: { basePrice, isFlexible },
     });
 
     res.status(200).json(ApiResponse.success(rows[0], 'Habitación actualizada'));
@@ -506,21 +614,32 @@ router.put('/rooms/:id/settings', validate(RoomSettingsSchema), async (req, res,
  */
 router.get('/pricing', async (req, res, next) => {
   try {
-    const [ratePlans, carnivalConfig, groupDiscountTiers, cardSurcharge, luggageStorage] = await Promise.all([
-      query(`SELECT season_type, multiplier, min_nights, description FROM rate_plans ORDER BY season_type`),
-      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'carnival_dates'`),
-      query(`SELECT id, min_beds, percentage FROM group_discount_tiers ORDER BY min_beds`),
-      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`),
-      query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'luggage_storage'`)
-    ]);
+    const [ratePlans, carnivalConfig, groupDiscountTiers, cardSurcharge, luggageStorage] =
+      await Promise.all([
+        query(
+          `SELECT season_type, multiplier, min_nights, description FROM rate_plans ORDER BY season_type`,
+        ),
+        query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'carnival_dates'`),
+        query(`SELECT id, min_beds, percentage FROM group_discount_tiers ORDER BY min_beds`),
+        query<{ value: any }>(
+          `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`,
+        ),
+        query<{ value: any }>(`SELECT value FROM system_config WHERE key = 'luggage_storage'`),
+      ]);
     res.status(200).json(
       ApiResponse.success({
         ratePlans: ratePlans.rows,
         carnivalDates: carnivalConfig.rows[0]?.value ?? [],
         groupDiscountTiers: groupDiscountTiers.rows,
         cardSurchargePercent: cardSurcharge.rows[0]?.value ?? 10,
-        luggageStorage: luggageStorage.rows[0]?.value ?? { price: 30, currency: 'BRL', days: 'Todos los días', start_time: '08:00', end_time: '22:00' }
-      })
+        luggageStorage: luggageStorage.rows[0]?.value ?? {
+          price: 30,
+          currency: 'BRL',
+          days: 'Todos los días',
+          start_time: '08:00',
+          end_time: '22:00',
+        },
+      }),
     );
   } catch (error) {
     next(error);
@@ -538,19 +657,23 @@ const PricingUpdateSchema = z.object({
   // {year, start_date, end_date} (ver 0001_seed.sql y
   // get_season_type() en 0004_pricing_functions.sql, que itera el
   // array buscando en qué rango cae la fecha) -- no un mapa por año.
-  carnival: z.object({
-    year: z.number().int(),
-    startDate: z.string().trim().min(1),
-    endDate: z.string().trim().min(1),
-  }).optional(),
+  carnival: z
+    .object({
+      year: z.number().int(),
+      startDate: z.string().trim().min(1),
+      endDate: z.string().trim().min(1),
+    })
+    .optional(),
   cardSurchargePercent: z.number().min(0).max(100).optional(),
   // Guarda-equipaje (Malas/Guardavolumes): precio de la diaria (BRL), días en que se ofrece y franja horaria HH:MM.
-  luggageStorage: z.object({
-    price: z.number().min(0),
-    days: z.string().trim().min(1),
-    startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
-    endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
-  }).optional(),
+  luggageStorage: z
+    .object({
+      price: z.number().min(0),
+      days: z.string().trim().min(1),
+      startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
+      endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato esperado HH:MM'),
+    })
+    .optional(),
 });
 
 router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => {
@@ -563,12 +686,18 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
     if (seasonType && (multiplier !== undefined || minNights !== undefined)) {
       const sets: string[] = [];
       const params: any[] = [];
-      if (multiplier !== undefined) { params.push(multiplier); sets.push(`multiplier = $${params.length}`); }
-      if (minNights !== undefined) { params.push(minNights); sets.push(`min_nights = $${params.length}`); }
+      if (multiplier !== undefined) {
+        params.push(multiplier);
+        sets.push(`multiplier = $${params.length}`);
+      }
+      if (minNights !== undefined) {
+        params.push(minNights);
+        sets.push(`min_nights = $${params.length}`);
+      }
       params.push(seasonType);
       const { rows } = await query(
         `UPDATE rate_plans SET ${sets.join(', ')}, updated_at = now() WHERE season_type = $${params.length}::season_type RETURNING *`,
-        params
+        params,
       );
       if (rows.length === 0) {
         res.status(404).json(ApiResponse.error(`Temporada "${seasonType}" no encontrada`));
@@ -578,19 +707,19 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
     }
 
     if (carnival) {
-      const { rows: existingRows } = await query<{ value: Array<{ year: number; start_date: string; end_date: string }> }>(
-        `SELECT value FROM system_config WHERE key = 'carnival_dates'`
-      );
+      const { rows: existingRows } = await query<{
+        value: Array<{ year: number; start_date: string; end_date: string }>;
+      }>(`SELECT value FROM system_config WHERE key = 'carnival_dates'`);
       const currentValue = existingRows[0]?.value ?? [];
       // Reemplaza el rango existente de ese año (si lo había) en vez de acumular duplicados -- "mantenimiento anual" del Maestro.
       const nextValue = [
-        ...currentValue.filter(p => p.year !== carnival.year),
-        { year: carnival.year, start_date: carnival.startDate, end_date: carnival.endDate }
+        ...currentValue.filter((p) => p.year !== carnival.year),
+        { year: carnival.year, start_date: carnival.startDate, end_date: carnival.endDate },
       ].sort((a, b) => a.year - b.year);
 
       const { rows } = await query(
         `UPDATE system_config SET value = $1::jsonb, updated_at = now() WHERE key = 'carnival_dates' RETURNING *`,
-        [JSON.stringify(nextValue)]
+        [JSON.stringify(nextValue)],
       );
       updated.carnivalDates = rows[0];
     }
@@ -598,14 +727,14 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
     if (cardSurchargePercent !== undefined) {
       const { rows } = await query(
         `UPDATE system_config SET value = $1::jsonb, updated_at = now() WHERE key = 'card_surcharge_percent' RETURNING *`,
-        [JSON.stringify(cardSurchargePercent)]
+        [JSON.stringify(cardSurchargePercent)],
       );
       updated.cardSurchargePercent = rows[0];
     }
 
     if (luggageStorage) {
       const { rows: existingRows } = await query<{ value: { currency?: string } }>(
-        `SELECT value FROM system_config WHERE key = 'luggage_storage'`
+        `SELECT value FROM system_config WHERE key = 'luggage_storage'`,
       );
       const currency = existingRows[0]?.value?.currency ?? 'BRL';
       const nextValue = {
@@ -617,17 +746,28 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
       };
       const { rows } = await query(
         `UPDATE system_config SET value = $1::jsonb, updated_at = now() WHERE key = 'luggage_storage' RETURNING *`,
-        [JSON.stringify(nextValue)]
+        [JSON.stringify(nextValue)],
       );
       updated.luggageStorage = rows[0];
     }
 
     if (Object.keys(updated).length === 0) {
-      res.status(400).json(ApiResponse.error('Nada para actualizar: seasonType+multiplier/minNights, carnival, cardSurchargePercent, o luggageStorage'));
+      res
+        .status(400)
+        .json(
+          ApiResponse.error(
+            'Nada para actualizar: seasonType+multiplier/minNights, carnival, cardSurchargePercent, o luggageStorage',
+          ),
+        );
       return;
     }
 
-    await auditLogService.log({ entity_type: 'pricing_config', entity_id: 'global', operation: 'ADMIN_UPDATE_PRICING', new_data: updated });
+    await auditLogService.log({
+      entity_type: 'pricing_config',
+      entity_id: 'global',
+      operation: 'ADMIN_UPDATE_PRICING',
+      new_data: updated,
+    });
 
     res.status(200).json(ApiResponse.success(updated, 'Precios actualizados'));
   } catch (error) {
@@ -641,43 +781,57 @@ router.put('/pricing', validate(PricingUpdateSchema), async (req, res, next) => 
  * el descuento se evalua sobre el total de camas de TODA la reserva, no
  * por cuarto -- por eso es un ajuste global, no algo de room_types.
  */
-const GroupDiscountTierSchema = z.object({
-  minBeds: z.number().int().positive().optional(),
-  percentage: z.number().min(0).max(100).optional(),
-}).refine((v) => v.minBeds !== undefined || v.percentage !== undefined, {
-  message: 'Nada para actualizar: minBeds y/o percentage',
-});
+const GroupDiscountTierSchema = z
+  .object({
+    minBeds: z.number().int().positive().optional(),
+    percentage: z.number().min(0).max(100).optional(),
+  })
+  .refine((v) => v.minBeds !== undefined || v.percentage !== undefined, {
+    message: 'Nada para actualizar: minBeds y/o percentage',
+  });
 
-router.put('/group-discount-tiers/:id', validate(GroupDiscountTierSchema), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { minBeds, percentage } = req.body as z.infer<typeof GroupDiscountTierSchema>;
+router.put(
+  '/group-discount-tiers/:id',
+  validate(GroupDiscountTierSchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { minBeds, percentage } = req.body as z.infer<typeof GroupDiscountTierSchema>;
 
-    const sets: string[] = [];
-    const params: any[] = [];
-    if (minBeds !== undefined) { params.push(minBeds); sets.push(`min_beds = $${params.length}`); }
-    if (percentage !== undefined) { params.push(percentage); sets.push(`percentage = $${params.length}`); }
-    params.push(id);
+      const sets: string[] = [];
+      const params: any[] = [];
+      if (minBeds !== undefined) {
+        params.push(minBeds);
+        sets.push(`min_beds = $${params.length}`);
+      }
+      if (percentage !== undefined) {
+        params.push(percentage);
+        sets.push(`percentage = $${params.length}`);
+      }
+      params.push(id);
 
-    const { rows } = await query(
-      `UPDATE group_discount_tiers SET ${sets.join(', ')}, updated_at = now() WHERE id = $${params.length} RETURNING *`,
-      params
-    );
-    if (rows.length === 0) {
-      res.status(404).json(ApiResponse.error('Tramo de descuento no encontrado'));
-      return;
+      const { rows } = await query(
+        `UPDATE group_discount_tiers SET ${sets.join(', ')}, updated_at = now() WHERE id = $${params.length} RETURNING *`,
+        params,
+      );
+      if (rows.length === 0) {
+        res.status(404).json(ApiResponse.error('Tramo de descuento no encontrado'));
+        return;
+      }
+
+      await auditLogService.log({
+        entity_type: 'group_discount_tier',
+        entity_id: id,
+        operation: 'ADMIN_UPDATE_SETTINGS',
+        new_data: { minBeds, percentage },
+      });
+
+      res.status(200).json(ApiResponse.success(rows[0], 'Tramo de descuento actualizado'));
+    } catch (error) {
+      next(error);
     }
-
-    await auditLogService.log({
-      entity_type: 'group_discount_tier', entity_id: id, operation: 'ADMIN_UPDATE_SETTINGS',
-      new_data: { minBeds, percentage }
-    });
-
-    res.status(200).json(ApiResponse.success(rows[0], 'Tramo de descuento actualizado'));
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // ─── Ofertas / Descuentos ────────────────────────────────────────────────────
 
@@ -690,7 +844,7 @@ router.get('/offers', async (_req, res, next) => {
       `SELECT id, code, label, discount_percent, apartment_ids,
               valid_from::text, valid_to::text, is_active, created_at, updated_at
        FROM apartment_offers
-       ORDER BY created_at DESC`
+       ORDER BY created_at DESC`,
     );
     res.status(200).json(ApiResponse.success(rows));
   } catch (error) {
@@ -737,12 +891,14 @@ router.post('/offers', validate(CreateOfferSchema), async (req, res, next) => {
         validFrom ?? null,
         validTo ?? null,
         isActive ?? true,
-      ]
+      ],
     );
 
     await auditLogService.log({
-      entity_type: 'apartment_offer', entity_id: rows[0].id, operation: 'ADMIN_CREATE_OFFER',
-      new_data: rows[0]
+      entity_type: 'apartment_offer',
+      entity_id: rows[0].id,
+      operation: 'ADMIN_CREATE_OFFER',
+      new_data: rows[0],
     });
 
     res.status(201).json(ApiResponse.success(rows[0], 'Oferta creada'));
@@ -767,15 +923,30 @@ router.put('/offers/:id', validate(UpdateOfferSchema), async (req, res, next) =>
     const sets: string[] = [];
     const params: any[] = [];
 
-    if (label !== undefined) { params.push(label.trim()); sets.push(`label = $${params.length}`); }
-    if (discountPercent !== undefined) { params.push(discountPercent); sets.push(`discount_percent = $${params.length}`); }
+    if (label !== undefined) {
+      params.push(label.trim());
+      sets.push(`label = $${params.length}`);
+    }
+    if (discountPercent !== undefined) {
+      params.push(discountPercent);
+      sets.push(`discount_percent = $${params.length}`);
+    }
     if (apartmentIds !== undefined) {
       params.push(apartmentIds?.length ? apartmentIds : null);
       sets.push(`apartment_ids = $${params.length}`);
     }
-    if (validFrom !== undefined) { params.push(validFrom ?? null); sets.push(`valid_from = $${params.length}::date`); }
-    if (validTo !== undefined) { params.push(validTo ?? null); sets.push(`valid_to = $${params.length}::date`); }
-    if (isActive !== undefined) { params.push(isActive); sets.push(`is_active = $${params.length}`); }
+    if (validFrom !== undefined) {
+      params.push(validFrom ?? null);
+      sets.push(`valid_from = $${params.length}::date`);
+    }
+    if (validTo !== undefined) {
+      params.push(validTo ?? null);
+      sets.push(`valid_to = $${params.length}::date`);
+    }
+    if (isActive !== undefined) {
+      params.push(isActive);
+      sets.push(`is_active = $${params.length}`);
+    }
 
     if (sets.length === 0) {
       res.status(400).json(ApiResponse.error('Nada para actualizar'));
@@ -787,7 +958,7 @@ router.put('/offers/:id', validate(UpdateOfferSchema), async (req, res, next) =>
       `UPDATE apartment_offers SET ${sets.join(', ')}, updated_at = now()
        WHERE id = $${params.length}
        RETURNING id, code, label, discount_percent, apartment_ids, valid_from::text, valid_to::text, is_active, updated_at`,
-      params
+      params,
     );
 
     if (rows.length === 0) {
@@ -796,8 +967,10 @@ router.put('/offers/:id', validate(UpdateOfferSchema), async (req, res, next) =>
     }
 
     await auditLogService.log({
-      entity_type: 'apartment_offer', entity_id: id, operation: 'ADMIN_UPDATE_OFFER',
-      new_data: rows[0]
+      entity_type: 'apartment_offer',
+      entity_id: id,
+      operation: 'ADMIN_UPDATE_OFFER',
+      new_data: rows[0],
     });
 
     res.status(200).json(ApiResponse.success(rows[0], 'Oferta actualizada'));
@@ -812,17 +985,18 @@ router.put('/offers/:id', validate(UpdateOfferSchema), async (req, res, next) =>
 router.delete('/offers/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { rows } = await query(
-      `DELETE FROM apartment_offers WHERE id = $1 RETURNING id, code`,
-      [id]
-    );
+    const { rows } = await query(`DELETE FROM apartment_offers WHERE id = $1 RETURNING id, code`, [
+      id,
+    ]);
     if (rows.length === 0) {
       res.status(404).json(ApiResponse.error('Oferta no encontrada'));
       return;
     }
     await auditLogService.log({
-      entity_type: 'apartment_offer', entity_id: id, operation: 'ADMIN_DELETE_OFFER',
-      old_data: rows[0]
+      entity_type: 'apartment_offer',
+      entity_id: id,
+      operation: 'ADMIN_DELETE_OFFER',
+      old_data: rows[0],
     });
     res.status(200).json(ApiResponse.success({ deleted: rows[0] }, 'Oferta eliminada'));
   } catch (error) {
@@ -839,9 +1013,12 @@ router.get('/audit-logs', async (req, res, next) => {
   try {
     const { entityType, operation, from, to, page, limit } = req.query as Record<string, string>;
     const result = await auditLogService.listAll({
-      entityType, operation, dateFrom: from, dateTo: to,
+      entityType,
+      operation,
+      dateFrom: from,
+      dateTo: to,
       page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
     res.status(200).json(ApiResponse.success(result));
   } catch (error) {
@@ -915,7 +1092,14 @@ router.get('/stats/groups', async (req, res, next) => {
 router.post('/sync/sheets', async (req, res, next) => {
   try {
     const result = await fullExport();
-    res.status(200).json(ApiResponse.success(result, result.errors.length === 0 ? 'Sync completado' : 'Sync completado con errores'));
+    res
+      .status(200)
+      .json(
+        ApiResponse.success(
+          result,
+          result.errors.length === 0 ? 'Sync completado' : 'Sync completado con errores',
+        ),
+      );
   } catch (error) {
     next(error);
   }
@@ -932,8 +1116,8 @@ router.get('/health', async (req, res, next) => {
       ApiResponse.success({
         status: dbOk ? 'healthy' : 'degraded',
         uptime: process.uptime(),
-        database: dbOk ? 'connected' : 'disconnected'
-      })
+        database: dbOk ? 'connected' : 'disconnected',
+      }),
     );
   } catch (error) {
     next(error);

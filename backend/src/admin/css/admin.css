@@ -126,6 +126,7 @@ form.stack button:hover { opacity: 0.9; }
 .msg { padding: 10px 14px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
 .msg.success { background: #e6f6ea; color: var(--accent); }
 .msg.error { background: #fdeaea; color: var(--danger); }
+.msg.info { background: #e8f1fb; color: #2c4a8c; }
 .hidden { display: none !important; }
 
 .chart-row { display: flex; gap: 24px; flex-wrap: wrap; }

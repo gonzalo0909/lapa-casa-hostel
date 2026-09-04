@@ -38,7 +38,13 @@ async function requireAuth() {
 }
 
 function isLoginPage() {
-  return window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin/index.html');
+  // 2fa-recovery.html también es pre-sesión: un 401 ahí (contraseña o
+  // código de respaldo inválido) debe mostrar el error en la propia
+  // página, no mandar a /admin/index.html como si la sesión hubiera
+  // expirado.
+  return window.location.pathname.endsWith('/admin/')
+    || window.location.pathname.endsWith('/admin/index.html')
+    || window.location.pathname.endsWith('/admin/2fa-recovery.html');
 }
 
 async function apiFetch(path, options = {}) {
@@ -64,17 +70,22 @@ async function apiFetch(path, options = {}) {
 
   if (res.status === 401) {
     _sessionActive = false;
-    // En la página de login un 401 significa contraseña incorrecta — no redirigir.
+    // En la página de login un 401 significa contraseña incorrecta o 2FA
+    // pendiente (ver body.code, TOTP_REQUIRED/TOTP_INVALID) — no redirigir.
     // En cualquier otra página significa sesión vencida — redirigir al login.
     if (!isLoginPage()) {
       window.location.href = '/admin/index.html';
       throw new Error('Sesión expirada');
     }
-    throw new Error(body.error || 'Credenciales inválidas');
+    const err = new Error(body.error || 'Credenciales inválidas');
+    err.code = body.code;
+    throw err;
   }
 
   if (!res.ok || body.success === false) {
-    throw new Error(body.error || `Error ${res.status}`);
+    const err = new Error(body.error || `Error ${res.status}`);
+    err.code = body.code;
+    throw err;
   }
   return body.data;
 }
