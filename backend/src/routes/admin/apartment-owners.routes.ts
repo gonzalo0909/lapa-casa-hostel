@@ -169,6 +169,7 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
         passwordHash,
         mustChangePassword: true,
       },
+      omit: { passwordHash: true },
     });
 
     await auditLogService.log({
@@ -231,6 +232,7 @@ router.put('/:id', validate(UpdateOwnerSchema), async (req, res, next) => {
           ...(isActive !== undefined && { isActive }),
           ...(notes !== undefined && { notes }),
         },
+        omit: { passwordHash: true },
       });
     } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
