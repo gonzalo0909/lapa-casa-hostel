@@ -309,6 +309,7 @@ export const createBookingHandler = async (
         phone: bookingData.guest.phone,
         country: bookingData.guest.country,
         document: bookingData.guest.document,
+        language: bookingData.language || 'pt',
       },
       nights,
       totalBeds: totalBedsRequested,
