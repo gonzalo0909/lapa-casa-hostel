@@ -172,7 +172,7 @@ const CONTENT: Record<string, Content> = {
       'No pudimos cargar los precios en tiempo real ahora. Mirá los precios actualizados directo en el motor de reservas.',
     ctaTitle: 'Ver disponibilidad y reservar',
     ctaBody:
-      'Elegí tus fechas en el motor de reservas para ver el precio exacto de tu estadía, con el descuento de grupo ya aplicado.',
+      'Elige tus fechas en el motor de reservas para ver el precio exacto de tu estadía, con el descuento de grupo ya aplicado.',
     ctaBtn: 'Ver disponibilidad',
   },
   en: {
