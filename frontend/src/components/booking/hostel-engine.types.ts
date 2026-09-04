@@ -115,10 +115,9 @@ export const T = {
     rule6:
       'Camas beliches de três andares: não indicadas para maiores de 50 anos ou pessoas com mobilidade reduzida.',
     cancelBtn: 'Política de cancelamento',
-    cancelFree: 'Grátis',
-    cancelFreeText: 'Cancele até 48 horas antes do check-in — reembolso integral do depósito.',
     cancelNo: 'Não reembolsável',
-    cancelNoText: 'Cancelamento nas últimas 48 horas ou no-show — depósito retido.',
+    cancelNoText:
+      'O depósito pago na reserva não é reembolsável em caso de cancelamento ou no-show, independentemente da antecedência.',
     p4title: 'Resumo da reserva',
     p4sub: 'Revise antes de confirmar',
     sumDatesHead: 'Datas e Quartos',
@@ -256,10 +255,9 @@ export const T = {
     rule6:
       'Camas literas de tres pisos: no aptas para mayores de 50 años ni personas con movilidad reducida.',
     cancelBtn: 'Política de cancelación',
-    cancelFree: 'Gratis',
-    cancelFreeText: 'Cancela hasta 48 horas antes del check-in — reembolso total del depósito.',
     cancelNo: 'No reembolsable',
-    cancelNoText: 'Cancelación en las últimas 48 horas o no-show — depósito retenido.',
+    cancelNoText:
+      'El depósito abonado en la reserva no es reembolsable en caso de cancelación o no-show, sin importar la anticipación.',
     p4title: 'Resumen de la reserva',
     p4sub: 'Revisa antes de confirmar',
     sumDatesHead: 'Fechas y Cuartos',
@@ -396,10 +394,9 @@ export const T = {
     rule5: 'Smoking inside the hostel is not allowed.',
     rule6: 'Triple-decker bunk beds: not suitable for guests over 50 or with reduced mobility.',
     cancelBtn: 'Cancellation policy',
-    cancelFree: 'Free',
-    cancelFreeText: 'Cancel up to 48 hours before check-in — full deposit refund.',
     cancelNo: 'Non-refundable',
-    cancelNoText: 'Cancellation within 48 hours or no-show — deposit forfeited.',
+    cancelNoText:
+      'The deposit paid at booking is non-refundable in case of cancellation or no-show, regardless of notice.',
     p4title: 'Booking summary',
     p4sub: 'Review before confirming',
     sumDatesHead: 'Dates & Rooms',
@@ -537,10 +534,9 @@ export const T = {
     rule6:
       'Lits superposés à trois niveaux : déconseillés aux personnes de plus de 50 ans ou à mobilité réduite.',
     cancelBtn: "Politique d'annulation",
-    cancelFree: 'Gratuit',
-    cancelFreeText: "Annulez jusqu'à 48h avant le check-in — remboursement intégral du dépôt.",
     cancelNo: 'Non remboursable',
-    cancelNoText: 'Annulation dans les 48h ou no-show — dépôt conservé.',
+    cancelNoText:
+      "L'acompte versé lors de la réservation n'est pas remboursable en cas d'annulation ou de non-présentation, quel que soit le délai de préavis.",
     p4title: 'Récapitulatif de la réservation',
     p4sub: 'Vérifiez avant de confirmer',
     sumDatesHead: 'Dates et Chambres',
@@ -678,12 +674,9 @@ export const T = {
     rule6:
       'Dreistöckige Etagenbetten: nicht geeignet für Gäste über 50 oder mit eingeschränkter Mobilität.',
     cancelBtn: 'Stornierungsbedingungen',
-    cancelFree: 'Kostenlos',
-    cancelFreeText:
-      'Bis 48 Stunden vor dem Check-in stornieren — volle Rückerstattung der Anzahlung.',
     cancelNo: 'Nicht erstattungsfähig',
     cancelNoText:
-      'Stornierung in den letzten 48 Stunden oder No-Show — Anzahlung wird einbehalten.',
+      'Die bei der Buchung gezahlte Anzahlung ist bei Stornierung oder Nichterscheinen nicht erstattungsfähig, unabhängig von der Vorlaufzeit.',
     p4title: 'Buchungsübersicht',
     p4sub: 'Vor der Bestätigung prüfen',
     sumDatesHead: 'Daten & Zimmer',
@@ -821,10 +814,9 @@ export const T = {
     rule5: "Vietato fumare all'interno dell'hostel.",
     rule6: 'Letti a castello a tre livelli: non adatti a ospiti over 50 o con mobilità ridotta.',
     cancelBtn: 'Politica di cancellazione',
-    cancelFree: 'Gratuito',
-    cancelFreeText: "Cancella fino a 48 ore prima del check-in — rimborso completo dell'acconto.",
     cancelNo: 'Non rimborsabile',
-    cancelNoText: 'Cancellazione nelle ultime 48 ore o no-show — acconto trattenuto.',
+    cancelNoText:
+      'La caparra pagata al momento della prenotazione non è rimborsabile in caso di cancellazione o no-show, indipendentemente dal preavviso.',
     p4title: 'Riepilogo prenotazione',
     p4sub: 'Controlla prima di confermare',
     sumDatesHead: 'Date e Camere',
