@@ -66,12 +66,14 @@ const UpdateOwnerSchema = z.object({
 // (room_types, SQL crudo) en una sola pasada -- evita el N+1 de una
 // query por owner.
 async function attachApartments<T extends { id: string }>(owners: T[]) {
-  if (owners.length === 0) {return owners.map(o => ({ ...o, apartments: [] as unknown[] }));}
+  if (owners.length === 0) {
+    return owners.map((o) => ({ ...o, apartments: [] as unknown[] }));
+  }
   const { rows } = await query(
     `SELECT id, code, name, owner_id FROM room_types WHERE owner_id = ANY($1)`,
-    [owners.map(o => o.id)]
+    [owners.map((o) => o.id)],
   );
-  return owners.map(owner => ({
+  return owners.map((owner) => ({
     ...owner,
     apartments: rows
       .filter((r: any) => r.owner_id === owner.id)
@@ -83,7 +85,10 @@ async function attachApartments<T extends { id: string }>(owners: T[]) {
 
 router.get('/', async (_req, res, next) => {
   try {
-    const owners = await prisma.apartmentOwner.findMany({ orderBy: { fullName: 'asc' } });
+    const owners = await prisma.apartmentOwner.findMany({
+      orderBy: { fullName: 'asc' },
+      omit: { passwordHash: true },
+    });
     res.status(200).json(ApiResponse.success(await attachApartments(owners)));
   } catch (error) {
     next(error);
@@ -95,7 +100,10 @@ router.get('/', async (_req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const owner = await prisma.apartmentOwner.findUnique({ where: { id } });
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id },
+      omit: { passwordHash: true },
+    });
     if (!owner) {
       res.status(404).json(ApiResponse.error('Administrador no encontrado'));
       return;
@@ -111,8 +119,9 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
   try {
-    const { fullName, email, phone, commissionRate, payoutFeeRate, notes } =
-      req.body as z.infer<typeof CreateOwnerSchema>;
+    const { fullName, email, phone, commissionRate, payoutFeeRate, notes } = req.body as z.infer<
+      typeof CreateOwnerSchema
+    >;
 
     // 1. Crear cuenta Express en Stripe
     let stripeAccountId: string | null = null;
@@ -169,16 +178,24 @@ router.post('/', validate(CreateOwnerSchema), async (req, res, next) => {
       new_data: { fullName, email, stripeAccountId },
     });
 
-    logger.info('Administrador de apartamento creado', { ownerId: owner.id, email, stripeAccountId });
+    logger.info('Administrador de apartamento creado', {
+      ownerId: owner.id,
+      email,
+      stripeAccountId,
+    });
 
-    res.status(201).json(ApiResponse.success(
-      { ...owner, tempPassword },
-      'Administrador creado. Compartile la contraseña temporal (tempPassword) y el link de ' +
-      'onboarding de Stripe por fuera (WhatsApp/email) -- no vuelven a mostrarse. ' +
-      (onboardingUrl
-        ? ''
-        : 'Aún no se pudo generar el link de Stripe; use el endpoint /onboarding-link cuando esté disponible.')
-    ));
+    res
+      .status(201)
+      .json(
+        ApiResponse.success(
+          { ...owner, tempPassword },
+          'Administrador creado. Compartile la contraseña temporal (tempPassword) y el link de ' +
+            'onboarding de Stripe por fuera (WhatsApp/email) -- no vuelven a mostrarse. ' +
+            (onboardingUrl
+              ? ''
+              : 'Aún no se pudo generar el link de Stripe; use el endpoint /onboarding-link cuando esté disponible.'),
+        ),
+      );
   } catch (error: any) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       res.status(409).json(ApiResponse.error('Ya existe un administrador con ese email'));
@@ -287,7 +304,9 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
     }
 
     if (owner.onboardingStatus === 'active') {
-      res.status(400).json(ApiResponse.error('Este administrador ya completó el onboarding de Stripe'));
+      res
+        .status(400)
+        .json(ApiResponse.error('Este administrador ya completó el onboarding de Stripe'));
       return;
     }
 
@@ -322,11 +341,16 @@ router.post('/:id/onboarding-link', async (req, res, next) => {
       new_data: { stripeAccountId, expiresAt: linkResult.expiresAt },
     });
 
-    res.status(200).json(ApiResponse.success({
-      onboardingUrl: linkResult.url,
-      expiresAt: linkResult.expiresAt,
-      stripeAccountId,
-    }, 'Link de onboarding generado. Válido por 24 horas.'));
+    res.status(200).json(
+      ApiResponse.success(
+        {
+          onboardingUrl: linkResult.url,
+          expiresAt: linkResult.expiresAt,
+          stripeAccountId,
+        },
+        'Link de onboarding generado. Válido por 24 horas.',
+      ),
+    );
   } catch (error) {
     next(error);
   }
@@ -368,10 +392,14 @@ router.post('/:id/reset-password', async (req, res, next) => {
 
     logger.info('Contraseña de administrador reseteada', { ownerId: id });
 
-    res.status(200).json(ApiResponse.success(
-      { ...owner, tempPassword },
-      'Contraseña temporal generada. Compartila con el administrador por fuera -- no vuelve a mostrarse.'
-    ));
+    res
+      .status(200)
+      .json(
+        ApiResponse.success(
+          { ...owner, tempPassword },
+          'Contraseña temporal generada. Compartila con el administrador por fuera -- no vuelve a mostrarse.',
+        ),
+      );
   } catch (error) {
     next(error);
   }
@@ -395,11 +423,13 @@ router.get('/:id/status', async (req, res, next) => {
     }
 
     if (!owner.stripeAccountId) {
-      res.status(200).json(ApiResponse.success({
-        onboardingStatus: owner.onboardingStatus,
-        stripeStatus: null,
-        message: 'Aún no tiene cuenta Stripe asociada',
-      }));
+      res.status(200).json(
+        ApiResponse.success({
+          onboardingStatus: owner.onboardingStatus,
+          stripeStatus: null,
+          message: 'Aún no tiene cuenta Stripe asociada',
+        }),
+      );
       return;
     }
 
@@ -415,13 +445,19 @@ router.get('/:id/status', async (req, res, next) => {
 
     if (newStatus !== owner.onboardingStatus) {
       await prisma.apartmentOwner.update({ where: { id }, data: { onboardingStatus: newStatus } });
-      logger.info('Estado Stripe Connect actualizado', { ownerId: id, from: owner.onboardingStatus, to: newStatus });
+      logger.info('Estado Stripe Connect actualizado', {
+        ownerId: id,
+        from: owner.onboardingStatus,
+        to: newStatus,
+      });
     }
 
-    res.status(200).json(ApiResponse.success({
-      onboardingStatus: newStatus,
-      stripeStatus,
-    }));
+    res.status(200).json(
+      ApiResponse.success({
+        onboardingStatus: newStatus,
+        stripeStatus,
+      }),
+    );
   } catch (error) {
     next(error);
   }
@@ -450,11 +486,17 @@ router.put('/:id/assign-room/:roomId', async (req, res, next) => {
       `UPDATE room_types SET owner_id = $1, updated_at = now()
        WHERE id = $2 AND property_type = 'apartment'
        RETURNING id, code, name, property_type, owner_id`,
-      [id, roomId]
+      [id, roomId],
     );
 
     if (rows.length === 0) {
-      res.status(404).json(ApiResponse.error('Apartamento no encontrado (solo aplica a room_types de tipo apartment)'));
+      res
+        .status(404)
+        .json(
+          ApiResponse.error(
+            'Apartamento no encontrado (solo aplica a room_types de tipo apartment)',
+          ),
+        );
       return;
     }
 
@@ -481,11 +523,15 @@ router.delete('/:id/assign-room/:roomId', async (req, res, next) => {
       `UPDATE room_types SET owner_id = NULL, updated_at = now()
        WHERE id = $1 AND owner_id = $2
        RETURNING id, code, name`,
-      [roomId, id]
+      [roomId, id],
     );
 
     if (rows.length === 0) {
-      res.status(404).json(ApiResponse.error('Apartamento no encontrado o no está asignado a este administrador'));
+      res
+        .status(404)
+        .json(
+          ApiResponse.error('Apartamento no encontrado o no está asignado a este administrador'),
+        );
       return;
     }
 
