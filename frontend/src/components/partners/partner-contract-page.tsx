@@ -55,6 +55,125 @@ const PARTNER_INVITE: Record<string, { title: string; subtitle: string; cta: str
   }
 };
 
+// Historia comercial extendida -- el "por qué" antes de las cláusulas legales.
+// Copy trabajado a partir de un borrador del cliente, condensado en una sola
+// narrativa (el original repetía la misma idea en tres variaciones) y anclado
+// a hechos reales del contrato (cláusula 6: sin adhesión, sin mensualidad).
+const PARTNER_STORY: Record<string, { eyebrow: string; title: string; paragraphs: string[]; cta: string }> = {
+  pt: {
+    eyebrow: 'Por que a Lapa Casa',
+    title: 'O Rio não é só praia e cartão-postal.',
+    paragraphs: [
+      'É um bairro com ritmo próprio. O botequim da esquina. Uma vista que só existe daquela janela, àquela hora da tarde. É isso que seu apartamento tem para oferecer a quem vem de fora: não mais um quarto de hotel, mas um pedaço real da cidade.',
+      'Um apartamento vazio não é só uma renda que não entra. É uma rua que ninguém percorre naquela noite, uma varanda sem ninguém olhando o pôr do sol, uma cidade inteira que continua ali sem que ninguém de fora a esteja descobrindo daquele lugar exato.',
+      'Um taxista conta uma versão do Rio. Uma placa turística, outra. Quem mora ali, uma terceira — e é essa que a maioria dos viajantes procura sem saber que está procurando.',
+      'Seu apartamento pode ser essa terceira versão da cidade para alguém. Você não precisa fazer nada para isso acontecer: já está nas paredes, no bairro, em como você o montou.',
+      'O que falta é que ele chegue até a pessoa certa — alguém que vai aproveitar e cuidar, não só passar por ali. É isso que fazemos: encontramos essa pessoa, cuidamos do check-in, dos hóspedes, da limpeza e dos repasses, e devolvemos pra você só a parte simples — a renda, sem o atrito. Sem taxa de adesão, sem mensalidade: você paga uma comissão sobre o que já aconteceu, não sobre o que prometemos.',
+    ],
+    cta: 'Quando quiser, a gente conversa sobre o seu apartamento.',
+  },
+  es: {
+    eyebrow: 'Por qué Lapa Casa',
+    title: 'Río no es solo playas y postales.',
+    paragraphs: [
+      'Es un barrio con ritmo propio. El almacén de la esquina. Una vista que solo existe desde esa ventana, a esa hora de la tarde. Eso es lo que tu apartamento tiene para ofrecer a alguien que viene de afuera: no una habitación más, sino un pedazo real de la ciudad.',
+      'Un apartamento vacío no es solo un ingreso que no entra. Es una calle que esa noche nadie camina, un balcón sin nadie mirando el atardecer, una ciudad entera que sigue ahí sin que nadie de afuera la esté descubriendo desde ese lugar exacto.',
+      'Un taxista te cuenta una versión de Río. Un cartel turístico, otra. Alguien que vive ahí, una tercera — y esa es la que la mayoría de los viajeros busca sin saber que la está buscando.',
+      'Tu apartamento puede ser esa tercera versión de la ciudad para alguien. No hace falta que hagas nada para lograrlo: ya está en las paredes, en el barrio, en cómo lo armaste.',
+      'Lo que falta es que llegue a la persona correcta — alguien que lo va a disfrutar y cuidar, no solo a pasar por él. Eso es lo que hacemos nosotros: la encontramos, gestionamos el check-in, los huéspedes, la limpieza y los cobros, y te devolvemos solo la parte simple — el ingreso, sin la fricción. Sin costo de adhesión, sin mensualidad: cobrás una comisión sobre lo que ya sucedió, no sobre lo que prometemos.',
+    ],
+    cta: 'Cuando quieras, hablamos de tu apartamento.',
+  },
+  en: {
+    eyebrow: 'Why Lapa Casa',
+    title: "Rio isn't just beaches and postcards.",
+    paragraphs: [
+      "It's a neighborhood with its own rhythm. The corner store. A view that only exists from that window, at that hour. That's what your apartment has to offer someone from outside: not one more hotel room, but a real piece of the city.",
+      "An empty apartment isn't just income that doesn't come in. It's a street no one walks that night, a balcony with no one watching the sunset, a whole city still there while no one from outside discovers it from that exact spot.",
+      "A taxi driver tells you one version of Rio. A tourist sign, another. Someone who actually lives there, a third — and that's the one most travelers are looking for without knowing it.",
+      "Your apartment can be that third version of the city for someone. You don't have to do anything to make that happen — it's already in the walls, in the neighborhood, in how you put it together.",
+      "What's missing is for it to reach the right person — someone who'll enjoy and take care of it, not just pass through. That's what we do: we find that person, handle check-in, guests, cleaning, and payouts, and hand you back the simple part — the income, without the friction. No sign-up fee, no monthly charge: you pay a commission on what already happened, not on what we promise.",
+    ],
+    cta: "Whenever you're ready, let's talk about your apartment.",
+  },
+  fr: {
+    eyebrow: 'Pourquoi Lapa Casa',
+    title: 'Rio, ce ne sont pas que des plages et des cartes postales.',
+    paragraphs: [
+      "C'est un quartier avec son propre rythme. L'épicerie du coin. Une vue qui n'existe que depuis cette fenêtre, à cette heure-là. C'est ce que votre appartement offre à quelqu'un qui vient d'ailleurs : pas une chambre d'hôtel de plus, mais un vrai morceau de la ville.",
+      "Un appartement vide, ce n'est pas seulement un revenu qui manque. C'est une rue que personne ne traverse ce soir-là, un balcon sans personne pour regarder le coucher de soleil, une ville entière qui continue d'exister sans que personne, de l'extérieur, ne la découvre depuis cet endroit précis.",
+      "Un chauffeur de taxi raconte une version de Rio. Un panneau touristique, une autre. Quelqu'un qui y vit, une troisième — et c'est celle-là que la plupart des voyageurs cherchent sans le savoir.",
+      "Votre appartement peut être cette troisième version de la ville pour quelqu'un. Vous n'avez rien à faire pour ça : c'est déjà dans les murs, dans le quartier, dans la façon dont vous l'avez pensé.",
+      "Ce qui manque, c'est qu'il arrive à la bonne personne — quelqu'un qui va en profiter et en prendre soin, pas juste y passer. C'est ce qu'on fait : on trouve cette personne, on gère le check-in, les voyageurs, le ménage et les virements, et on vous rend la partie simple — le revenu, sans la friction. Aucun frais d'inscription, aucun abonnement : vous payez une commission sur ce qui s'est déjà passé, pas sur ce qu'on vous promet.",
+    ],
+    cta: 'Quand vous voulez, on parle de votre appartement.',
+  },
+  de: {
+    eyebrow: 'Warum Lapa Casa',
+    title: 'Rio ist nicht nur Strand und Postkarte.',
+    paragraphs: [
+      'Es ist ein Viertel mit eigenem Rhythmus. Der Laden an der Ecke. Ein Ausblick, den es nur von diesem Fenster aus, zu dieser Stunde gibt. Genau das hat Ihre Wohnung jemandem von außerhalb zu bieten: kein weiteres Hotelzimmer, sondern ein echtes Stück der Stadt.',
+      'Eine leere Wohnung bedeutet nicht nur entgangene Einnahmen. Es ist eine Straße, die in dieser Nacht niemand entlanggeht, ein Balkon, von dem aus niemand den Sonnenuntergang sieht, eine ganze Stadt, die weiter existiert, ohne dass jemand von außerhalb sie von genau diesem Punkt aus entdeckt.',
+      'Ein Taxifahrer erzählt eine Version von Rio. Ein Touristenschild, eine andere. Wer dort lebt, eine dritte — und genau die suchen die meisten Reisenden, ohne es zu wissen.',
+      'Ihre Wohnung kann für jemanden diese dritte Version der Stadt sein. Sie müssen dafür nichts tun: Es steckt schon in den Wänden, im Viertel, darin, wie Sie sie eingerichtet haben.',
+      'Was fehlt, ist, dass sie die richtige Person erreicht — jemanden, der sie genießt und pflegt, nicht nur durchreist. Genau das übernehmen wir: Wir finden diese Person, kümmern uns um Check-in, Gäste, Reinigung und Auszahlungen, und geben Ihnen den einfachen Teil zurück — die Einnahmen, ohne den Aufwand. Keine Anmeldegebühr, keine monatlichen Kosten: Sie zahlen eine Provision auf das, was bereits passiert ist, nicht auf ein Versprechen.',
+    ],
+    cta: 'Wann immer Sie möchten, sprechen wir über Ihre Wohnung.',
+  },
+  it: {
+    eyebrow: 'Perché Lapa Casa',
+    title: 'Rio non è solo spiagge e cartoline.',
+    paragraphs: [
+      "È un quartiere con un suo ritmo. L'emporio dell'angolo. Una vista che esiste solo da quella finestra, a quell'ora. Questo è ciò che il tuo appartamento ha da offrire a chi arriva da fuori: non un'altra camera d'albergo, ma un pezzo vero di città.",
+      'Un appartamento vuoto non è solo un mancato guadagno. È una strada che quella sera nessuno percorre, un balcone senza nessuno a guardare il tramonto, una città intera che continua a esistere senza che nessuno, da fuori, la stia scoprendo proprio da lì.',
+      "Un tassista racconta una versione di Rio. Un cartello turistico, un'altra. Chi ci vive, una terza — ed è proprio quella che la maggior parte dei viaggiatori cerca senza saperlo.",
+      "Il tuo appartamento può essere quella terza versione della città per qualcuno. Non devi fare nulla perché accada: è già nelle pareti, nel quartiere, in come l'hai arredato.",
+      'Manca solo che arrivi alla persona giusta — qualcuno che se lo goda e se ne prenda cura, non che ci passi soltanto. È questo che facciamo noi: troviamo quella persona, gestiamo check-in, ospiti, pulizie e pagamenti, e ti restituiamo la parte semplice — il guadagno, senza l\'attrito. Nessuna quota d\'iscrizione, nessun canone mensile: paghi una commissione su ciò che è già successo, non su ciò che promettiamo.',
+    ],
+    cta: 'Quando vuoi, parliamo del tuo appartamento.',
+  },
+};
+
+function PartnerStorySection({ locale }: { locale: string }) {
+  const story = PARTNER_STORY[locale] ?? PARTNER_STORY.pt!;
+
+  return (
+    <section
+      aria-label={story.title}
+      style={{ marginBottom: '2.5rem' }}
+    >
+      <div style={{
+        fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em',
+        color: '#2c5f8a', marginBottom: '.6rem', fontFamily: 'system-ui, sans-serif',
+      }}>
+        {story.eyebrow}
+      </div>
+
+      <h2 style={{
+        fontFamily: 'Georgia, serif', fontSize: 'clamp(1.4rem, 3.2vw, 1.9rem)',
+        fontWeight: 400, lineHeight: 1.25, margin: '0 0 1.1rem', color: '#1a2332',
+      }}>
+        {story.title}
+      </h2>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '.9rem' }}>
+        {story.paragraphs.map((p, i) => (
+          <p key={i} style={{ margin: 0, fontSize: '1rem', lineHeight: 1.75, color: '#374151' }}>
+            {p}
+          </p>
+        ))}
+      </div>
+
+      <p style={{
+        margin: '1.4rem 0 0', fontSize: '1.02rem', fontStyle: 'italic',
+        color: '#2c5f8a', fontFamily: 'Georgia, serif',
+      }}>
+        {story.cta}
+      </p>
+    </section>
+  );
+}
+
 const CLAUSES = [
   {
     id: 1,
@@ -449,6 +568,9 @@ export function PartnerContractPage({ locale }: Props) {
           {invite.cta}
         </a>
       </div>
+
+      {/* Historia comercial -- el "por qué" antes del contrato */}
+      <PartnerStorySection locale={locale} />
 
       {/* Header */}
       <div style={{ marginBottom: '2.5rem' }}>
