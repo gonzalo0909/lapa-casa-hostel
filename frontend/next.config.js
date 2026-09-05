@@ -10,6 +10,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 const createNextIntlPlugin = require('next-intl/plugin');
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+const { withSentryConfig } = require('@sentry/nextjs');
 
 // El frontend llama a la API por su URL absoluta (ver lib/api.ts,
 // NEXT_PUBLIC_API_URL) -- es otro origen (Render/dominio propio), no el
@@ -108,8 +109,14 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
+<<<<<<< HEAD
               `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net`,
               'frame-src https://js.stripe.com',
+=======
+              // ingest.sentry.io y o*.ingest.sentry.io: destino de los reportes de error
+              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://o0.ingest.sentry.io https://o1.ingest.sentry.io https://o2.ingest.sentry.io https://o3.ingest.sentry.io https://o4.ingest.sentry.io`,
+              "frame-src https://js.stripe.com",
+>>>>>>> origin/claude/organizar-por-prioridades-qye5yo
             ].join('; '),
           },
         ],
@@ -177,6 +184,7 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_MP_PUBLIC_KEY: process.env.NEXT_PUBLIC_MP_PUBLIC_KEY,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
 
   // Webpack configuration
@@ -263,4 +271,33 @@ const nextConfig = {
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
 };
 
-module.exports = withNextIntl(withBundleAnalyzer(nextConfig));
+module.exports = withSentryConfig(
+  withNextIntl(withBundleAnalyzer(nextConfig)),
+  {
+    // Sentry Webpack Plugin — sube source maps al crear el build de producción
+    // para que los stack traces en Sentry muestren el código real (no el minificado).
+    // org: slug de la organización en sentry.io (visible en la URL: lapa-casa-rio.sentry.io)
+    // project: nombre del proyecto Next.js creado en Sentry
+    org: 'lapa-casa-rio',
+    project: 'javascript-nextjs',
+
+    // No imprime la salida del plugin en el log de build — reduce ruido.
+    silent: !process.env.CI,
+
+    // Deshabilita source map upload en desarrollo local (solo en CI/prod).
+    sourcemaps: {
+      // No enviar los .map al bundle final del navegador — solo a Sentry.
+      deleteSourcemapsAfterUpload: true,
+    },
+
+    // Tunneling: enruta los reportes de Sentry a través del propio dominio
+    // del sitio (/monitoring) para evitar que bloqueadores de anuncios los
+    // filtren. El path /monitoring no colisiona con las rutas existentes.
+    tunnelRoute: '/monitoring',
+
+    // Desactiva automáticamente Sentry si NEXT_PUBLIC_SENTRY_DSN no está
+    // configurado — evita errores en entornos sin Sentry.
+    disableLogger: true,
+    automaticVercelMonitors: false,
+  }
+);

@@ -9,6 +9,7 @@ import { logger } from '@/utils/logger';
 import { environment } from '@/config/environment';
 import { corsOptions } from '@/config/cors';
 import { errorHandler } from '@/middleware/error-handler';
+import { Sentry } from '@/config/sentry';
 import { generalRateLimiter } from '@/middleware/rate-limiter';
 import { sanitizeInput } from '@/middleware/validation';
 import { authenticateToken, requireRole } from '@/middleware/auth';
@@ -215,6 +216,11 @@ app.use((req: Request, res: Response) => {
     method: req.method,
   }));
 });
+
+// API de Sentry v8+: setupExpressErrorHandler(app) registra el error handler
+// directamente sobre la instancia de Express — va ANTES del errorHandler propio
+// para capturar el stack completo antes de transformarlo en respuesta JSON.
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorHandler);
 
