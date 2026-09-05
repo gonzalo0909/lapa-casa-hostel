@@ -3,6 +3,7 @@
 // Panel de éxito tras confirmar la reserva: QR PIX o link de Stripe + timer de expiración.
 
 import React from 'react';
+import Image from 'next/image';
 import { CheckCircle2, CreditCard, Check } from 'lucide-react';
 import { PayMethod, Translations } from './hostel-engine.types';
 import { calcPrice, fmtMoney } from './hostel-engine.utils';
@@ -43,11 +44,13 @@ export function HostelSuccessPanel({
               <div className="he-pix-lbl">{t.pixDepLabel}</div>
               {pixData?.qrCodeBase64 ? (
                 /* QR real de Mercado Pago */
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={`data:image/png;base64,${pixData.qrCodeBase64}`}
                   alt="QR PIX"
                   className="he-pix-qr-img"
+                  width={180}
+                  height={180}
+                  unoptimized
                 />
               ) : (
                 /* fallback decorativo si MP no respondió */
