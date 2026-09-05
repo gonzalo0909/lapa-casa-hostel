@@ -109,10 +109,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // avisarle al huésped en la pantalla de éxito en vez de mostrar el QR
   // decorativo de relleno como si fuera uno real.
   const [paymentInitFailed, setPaymentInitFailed] = useState(false);
-  // paymentLinkError: falla al reintentar la generación del link (distinto de
-  // paymentInitFailed, que es el primer intento al confirmar la reserva).
-  const [paymentLinkError, setPaymentLinkError] = useState(false);
-  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ─ Estado del pago grupal ─
@@ -545,37 +541,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [reservationId, payMethod, form.country, t]);
-
-  // ─ Reintentar generación del link de pago si falló en la pantalla de éxito ─
-  const handleRetryPaymentLink = useCallback(async () => {
-    if (!reservationId || isRetryingPayment) return;
-    setIsRetryingPayment(true);
-    setPaymentLinkError(false);
-    try {
-      if (payMethod === 'pix') {
-        const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
-        const p = dep.data?.payment;
-        if (p?.qrCodeBase64 || p?.qrCode) {
-          setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
-        } else {
-          setPaymentLinkError(true);
-        }
-      } else {
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
-        const url: string | undefined = checkout.data?.url;
-        if (url) {
-          setStripeUrl(url);
-        } else {
-          setPaymentLinkError(true);
-        }
-      }
-    } catch (err: any) {
-      setPaymentLinkError(true);
-    } finally {
-      setIsRetryingPayment(false);
-    }
-  }, [reservationId, payMethod, isRetryingPayment]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -1022,9 +987,6 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             onSwitchMethod={form.country === 'BR' ? handleSwitchPayMethod : undefined}
             paymentInitFailed={paymentInitFailed}
             referralCode={ownReferralCode}
-            paymentLinkError={paymentLinkError}
-            isRetryingPayment={isRetryingPayment}
-            onRetryPaymentLink={handleRetryPaymentLink}
           />
         )}
 
