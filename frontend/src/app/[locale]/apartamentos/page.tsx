@@ -64,6 +64,10 @@ export default async function ApartmentsPage({ params }: { params: { locale: str
       {/* JSON-LD: área de servicio Rio de Janeiro, sin dirección física */}
       <StructuredData data={ApartmentServiceSchema} />
 
+      {/* h1 SSR visible para crawlers — el motor carga con ssr:false y su h1 no
+          está en el HTML inicial. sr-only evita duplicación visual una vez hidratado. */}
+      <h1 className="sr-only">Lapa Casa Apartamentos — Rio de Janeiro</h1>
+
       <ApartmentEngine locale={locale as 'pt' | 'es' | 'en'} />
 
       {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot) */}
