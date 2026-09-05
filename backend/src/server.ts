@@ -1,8 +1,4 @@
 // lapa-casa-hostel/backend/src/server.ts
-// IMPORTANTE: @/config/sentry debe ser el primer import para que Sentry
-// pueda instrumentar automáticamente Express, Prisma y http antes de que
-// cualquier otro módulo los cargue.
-import '@/config/sentry';
 
 import http from 'http';
 import app from './app';
