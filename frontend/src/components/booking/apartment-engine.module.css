@@ -4,15 +4,28 @@
  * lcacopia.html). CSS Module para no filtrar estas variables/clases al
  * resto del sitio (Hostel usa su propio tema).
  *
- * DECISIÓN (auditoría 17 secciones, sección 3): esta paleta (--bg, --fg,
- * --primary, etc. en .root) es una identidad visual propia del motor de
- * apartamentos, deliberadamente distinta de los tokens HSL de
- * tailwind.config.js y del tema de hostel-engine.styles.ts. No se conecta
- * a esos tokens: haría perder la identidad de marca de cada motor sin
- * ningún beneficio funcional, a cambio de reescribir ~530 líneas de CSS
- * que ya funcionan visualmente y sin forma de verificar visualmente la
- * migración en este entorno. Si en algún momento el motor de reservas se
- * migra a Tailwind puro, ahí sí conviene unificar.
+ * TOKENS DEL DESIGN-SYSTEM (auditoría sección 3):
+ *   MIGRADO:  .hero gradient #2C4A8C → var(--primary)  [azul marino local]
+ *   MIGRADO:  .heroBrand span #F0B429 → var(--accent)  [ámbar local]
+ *
+ *   TODO (tokens globales incompatibles con la paleta crema/marino del motor):
+ *   --bg: #FAF7F0          → sin equivalente exacto (--background global es crema más oscura)
+ *   --bg-subtle: #EEE9DC   → sin equivalente exacto (--muted global es diferente)
+ *   --bg-card: #FFFDF8     → sin equivalente exacto (--card global es similar pero no igual)
+ *   --fg: #1A1610          → sin equivalente exacto (--foreground global es verde oscuro)
+ *   --fg-muted: #6A6058    → sin equivalente exacto (--muted-foreground global es diferente)
+ *   --border: #D8D0BC      → sin equivalente exacto (--border global es similar)
+ *   --primary: #2C4A8C     → azul marino (--primary global es verde bosque, incompatible)
+ *   --primary-soft: #D5DFF5 → sin equivalente
+ *   --accent: #F0B429      → ámbar (--accent global es rosa 307°, incompatible)
+ *   --success-bg/fg        → sin equivalente exacto
+ *   --warn-bg/border/fg    → sin equivalente (no hay token warn en globals.css)
+ *   #F5E3C4/#8A5A2A        → colores carnaval (sin token)
+ *   #DBEBD9/#2C6E49        → colores baixa (sin token)
+ *   #FEE2E2/#991B1B        → rojo error/cancelación (--destructive global es rojo-marrón)
+ *   #86EFAC/#FCA5A5        → verde/rojo validación input (sin token)
+ *   #25D366/#1DAE55        → verde WhatsApp (color de marca externo)
+ *   #15803D/#14532D/#166534 → verdes banner promo (sin token)
  */
 .root {
   --bg: #FAF7F0; --bg-subtle: #EEE9DC; --bg-card: #FFFDF8;
@@ -38,7 +51,7 @@
 
 /* ── Hero ────────────────────────────────────────────── */
 .hero {
-  background: linear-gradient(160deg, #2C4A8C, #1E3578);
+  background: linear-gradient(160deg, var(--primary), #1E3578/* TODO: agregar token (azul marino oscuro hostel, variante de --primary local) */);
   color: #fff;
   padding: 3rem 2rem 3.4rem;
   text-align: center;
@@ -67,7 +80,7 @@
   z-index: 1;
   text-transform: none;
 }
-.heroBrand span { font-family: var(--font-cormorant), Georgia, serif; font-weight: 300; font-style: italic; text-transform: none; color: #F0B429; display: block; font-size: .62em; letter-spacing: .06em; margin-top: .12em; opacity: .95; }
+.heroBrand span { font-family: var(--font-cormorant), Georgia, serif; font-weight: 300; font-style: italic; text-transform: none; color: var(--accent); display: block; font-size: .62em; letter-spacing: .06em; margin-top: .12em; opacity: .95; }
 .heroSub { font-size: 1rem; color: rgba(255,255,255,.75); margin-bottom: 0; max-width: 520px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; line-height: 1.55; }
 .heroCta { display: inline-flex; align-items: center; gap: .5rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: .95rem 2.5rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: opacity .15s; position: relative; z-index: 1; }
 .heroCta:hover { opacity: .88; }
