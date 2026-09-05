@@ -25,6 +25,14 @@ interface JWTPayload {
   ownerId?: string;
 }
 
+// Sección 10 auditoría 17 secciones: los access y refresh tokens no deben
+// compartir el mismo TTL. Access token: vida corta (15 minutos) para
+// minimizar la ventana de ataque si se filtra. Refresh token: vida larga
+// (90 días) para no forzar re-login diario, almacenado en cookie httpOnly
+// separada y solo enviado al endpoint /refresh.
+export const ACCESS_TOKEN_TTL = '15m';
+export const REFRESH_TOKEN_TTL = '90d';
+
 const ENCRYPTION_CONFIG = {
   jwtExpiration: '24h',
 };
@@ -63,6 +71,14 @@ export const generateToken = (
     audience: 'lapa-casa-hostel-api',
   });
 };
+
+/**
+ * Genera un refresh token de larga duración (90 días).
+ * Debe almacenarse en una cookie httpOnly con path restringido al endpoint
+ * /refresh — nunca enviarse en el body de respuesta.
+ */
+export const generateRefreshToken = (payload: JWTPayload): string =>
+  generateToken(payload, REFRESH_TOKEN_TTL);
 
 /** Uso interno de verifyHmacSignature -- no se exporta, nada más lo necesita. */
 const generateHmacSignature = (data: string, secret: string): string =>

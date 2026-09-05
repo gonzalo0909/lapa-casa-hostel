@@ -2,10 +2,15 @@
 
 // lapa-casa-hostel/frontend/src/lib/use-owner-auth.ts
 //
-// Guard de autenticación para páginas de /owner. La sesión vive en la
-// cookie httpOnly `lch_owner` -- no hay token que leer en el cliente, así
-// que la única forma de saber si hay sesión válida es preguntarle al
-// backend (GET /owner/me) y reaccionar a un 401.
+// Guard de autenticación para páginas de /owner. La sesión vive en dos
+// cookies httpOnly emitidas por el backend:
+//   - lch_owner:         access token (15 min) — enviado a todas las rutas
+//   - lch_owner_refresh: refresh token (90 días) — solo enviado al endpoint
+//                        POST /owner/login/refresh
+//
+// No hay token que leer en el cliente. Para saber si la sesión es válida
+// se consulta GET /owner/me. Si devuelve 401 (access expirado), se intenta
+// renovar vía /refresh antes de redirigir al login.
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,9 +25,9 @@ export function useOwnerAuth() {
   useEffect(() => {
     let cancelled = false;
 
-    ownerAuthAPI
-      .me()
-      .then((res) => {
+    async function checkAuth() {
+      try {
+        const res = await ownerAuthAPI.me();
         if (cancelled) {return;}
         if (res.data.mustChangePassword) {
           router.replace('/owner/change-password');
@@ -30,15 +35,41 @@ export function useOwnerAuth() {
         }
         setProfile(res.data);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (cancelled) {return;}
+
+        // Si el access token expiró (401), intentar renovarlo con el refresh
+        // token antes de forzar re-login. Con access TTL de 15 minutos esto
+        // ocurrirá durante sesiones largas de trabajo — el usuario no debería
+        // perder su sesión por eso.
         if (err instanceof APIError && err.statusCode === 401) {
-          router.replace('/owner/login');
+          try {
+            await ownerAuthAPI.refresh();
+            if (cancelled) {return;}
+            // Reintentar /me con el nuevo access token (ya en cookie)
+            const retried = await ownerAuthAPI.me();
+            if (cancelled) {return;}
+            if (retried.data.mustChangePassword) {
+              router.replace('/owner/change-password');
+              return;
+            }
+            setProfile(retried.data);
+            setLoading(false);
+          } catch {
+            // Refresh también falló (token expirado, revocado o cuenta
+            // desactivada) — redirigir al login
+            if (!cancelled) {
+              router.replace('/owner/login');
+            }
+          }
           return;
         }
+
         setLoading(false);
-      });
+      }
+    }
+
+    checkAuth();
 
     return () => {
       cancelled = true;

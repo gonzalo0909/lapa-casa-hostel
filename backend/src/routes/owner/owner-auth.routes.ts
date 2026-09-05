@@ -14,9 +14,14 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../../config/prisma';
-import { verifyPassword, hashPassword, generateToken } from '../../utils/encryption';
+import {
+  verifyPassword, hashPassword, generateToken, generateRefreshToken,
+  ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
+} from '../../utils/encryption';
 import { authenticateOwnerToken } from '../../middleware/auth';
+import type { AuthPayload } from '../../middleware/auth';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
@@ -72,17 +77,33 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
       ownerId: owner.id,
     };
 
-    const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '24h');
+    // Sección 10 auditoría 17 secciones: access token de vida corta (15m)
+    // y refresh token de vida larga (90d) en cookie separada. El access
+    // token se renueva automáticamente vía POST /owner/login/refresh antes
+    // de redirigir al login. El refresh token solo viaja al endpoint de
+    // renovación -- nunca aparece en el body de respuesta ni en logs.
+    const accessToken = generateToken(payload, ACCESS_TOKEN_TTL);
+    const refreshToken = generateRefreshToken(payload);
 
     logger.info('Login de administrador exitoso', { ownerId: owner.id });
 
     const isProd = process.env.NODE_ENV === 'production';
-    res.cookie('lch_owner', token, {
+    // Cookie de access token: vida corta (15 min), enviada a todas las rutas
+    res.cookie('lch_owner', accessToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 15 * 60 * 1000,   // 15 minutos
       path: '/',
+    });
+    // Cookie de refresh token: vida larga (90 días), restringida al endpoint
+    // de renovación para minimizar la superficie de ataque
+    res.cookie('lch_owner_refresh', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: 90 * 24 * 60 * 60 * 1000,   // 90 días
+      path: '/api/v1/owner/login',
     });
 
     res.status(200).json(
@@ -95,6 +116,103 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
         'Login exitoso'
       )
     );
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── POST /owner-auth/refresh — renueva el access token con el refresh token ──
+//
+// Usa rotating refresh tokens: revoca el refresh token entrante y emite uno
+// nuevo, de modo que cada renovación invalida el token anterior. Esto limita
+// el daño si un refresh token viejo se filtra.
+
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const cookies = req.cookies as Record<string, string> | undefined;
+    const incomingRefresh = cookies?.['lch_owner_refresh'];
+
+    if (!incomingRefresh) {
+      res.status(401).json(ApiResponse.error('Refresh token requerido'));
+      return;
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      logger.error('JWT_SECRET no configurado — refresh rechazado');
+      res.status(500).json(ApiResponse.error('Server configuration error'));
+      return;
+    }
+
+    let decoded: AuthPayload;
+    try {
+      decoded = jwt.verify(incomingRefresh, secret, {
+        issuer: 'lapa-casa-hostel',
+        audience: 'lapa-casa-hostel-api',
+      }) as AuthPayload;
+    } catch (verifyErr) {
+      if (verifyErr instanceof jwt.TokenExpiredError) {
+        res.status(401).json(ApiResponse.error('Refresh token expirado — iniciá sesión nuevamente'));
+        return;
+      }
+      res.status(401).json(ApiResponse.error('Refresh token inválido'));
+      return;
+    }
+
+    if (decoded.role !== 'owner' || !decoded.ownerId) {
+      res.status(403).json(ApiResponse.error('Permisos insuficientes'));
+      return;
+    }
+
+    // Rechazar si el refresh token fue revocado (logout explícito o rotación previa)
+    const isRevoked = await redisCache.get(`${REVOKED_PREFIX}${incomingRefresh}`);
+    if (isRevoked) {
+      res.status(401).json(ApiResponse.error('Refresh token revocado'));
+      return;
+    }
+
+    // Verificar que la cuenta siga activa
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id: decoded.ownerId },
+      select: { isActive: true },
+    });
+    if (!owner || !owner.isActive) {
+      res.status(401).json(ApiResponse.error('Cuenta desactivada'));
+      return;
+    }
+
+    // Revocar el refresh token entrante (rotating refresh tokens)
+    const refreshTtlSeconds = 90 * 24 * 60 * 60;
+    await redisCache.set(`${REVOKED_PREFIX}${incomingRefresh}`, '1', refreshTtlSeconds);
+
+    // Emitir nuevos access + refresh tokens
+    const payload = {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: 'owner' as const,
+      ownerId: decoded.ownerId,
+    };
+    const newAccessToken = generateToken(payload, ACCESS_TOKEN_TTL);
+    const newRefreshToken = generateRefreshToken(payload);
+
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('lch_owner', newAccessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
+    res.cookie('lch_owner_refresh', newRefreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: 90 * 24 * 60 * 60 * 1000,
+      path: '/api/v1/owner/login',
+    });
+
+    logger.info('Access token de administrador renovado', { ownerId: decoded.ownerId });
+    res.status(200).json(ApiResponse.success(null, 'Token renovado'));
   } catch (error) {
     next(error);
   }
@@ -135,15 +253,22 @@ router.post(
 
 router.post('/logout', authenticateOwnerToken, async (req, res, next) => {
   try {
+    const cookies = req.cookies as Record<string, string> | undefined;
     const authHeader = req.headers['authorization'];
-    const cookieToken = (req.cookies as Record<string, string> | undefined)?.['lch_owner'];
-    const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
+    const accessToken = (authHeader && authHeader.split(' ')[1]) || cookies?.['lch_owner'];
+    const refreshToken = cookies?.['lch_owner_refresh'];
 
-    if (token) {
-      await redisCache.set(`${REVOKED_PREFIX}${token}`, '1', 86400);
+    // Revocar access token (TTL = 15 min, suficiente para que expire y Redis se limpie solo)
+    if (accessToken) {
+      await redisCache.set(`${REVOKED_PREFIX}${accessToken}`, '1', 15 * 60);
+    }
+    // Revocar refresh token (TTL = 90 días)
+    if (refreshToken) {
+      await redisCache.set(`${REVOKED_PREFIX}${refreshToken}`, '1', 90 * 24 * 60 * 60);
     }
 
     res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });
+    res.clearCookie('lch_owner_refresh', { httpOnly: true, sameSite: 'strict', path: '/api/v1/owner/login' });
 
     logger.info('Logout de administrador', { ownerId: req.user?.ownerId });
     res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
