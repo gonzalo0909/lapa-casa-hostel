@@ -7,6 +7,8 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { StructuredData, ApartmentServiceSchema } from '@/components/seo/structured-data';
+import { FAQSection } from '@/components/seo/faq-section';
+import { locales, defaultLocale, type Locale } from '@/i18n';
 
 // ApartmentEngine es un wizard 100% client-side: lazy-load sin SSR
 // para que su chunk no bloquee el HTML inicial de /apartamentos.
@@ -14,8 +16,6 @@ const ApartmentEngine = dynamic(
   () => import('@/components/booking/apartment-engine').then((m) => m.ApartmentEngine),
   { ssr: false },
 );
-import { FAQSection } from '@/components/seo/faq-section';
-import { locales, defaultLocale, type Locale } from '@/i18n';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 

@@ -8,6 +8,8 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FAQSection } from '@/components/seo/faq-section';
+import { StructuredData, OrganizationSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
+import { locales, defaultLocale, type Locale } from '@/i18n';
 
 // HostelEngine es un wizard 100% client-side (~26.6 kB): lazy-load sin SSR
 // para que su chunk no bloquee el HTML inicial de /hostel.
@@ -15,8 +17,6 @@ const HostelEngine = dynamic(
   () => import('@/components/booking/hostel-engine').then((m) => m.HostelEngine),
   { ssr: false },
 );
-import { StructuredData, OrganizationSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
-import { locales, defaultLocale, type Locale } from '@/i18n';
 
 // JSON-LD HowTo: cómo reservar en el hostel (AEO — motores de IA)
 const HowToBookSchema = {

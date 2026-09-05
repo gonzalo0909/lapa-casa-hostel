@@ -102,15 +102,13 @@ const nextConfig = {
               "default-src 'self'",
               // unsafe-inline: el snippet de Facebook Pixel se inyecta
               // inline (dangerouslySetInnerHTML en analytics-provider.tsx).
-              // unsafe-eval: la doc oficial de Stripe dice que Stripe.js v3
-              // no lo necesita, pero hay reportes reales de que sí en
-              // algunos casos (github.com/stripe/react-stripe-js/issues/380)
-              // -- no se pudo confirmar en este entorno sin probar un pago
-              // con tarjeta real en navegador, queda pendiente. Se elimina
-              // sdk.mercadopago.com: el SDK de Mercado Pago ya no se carga
-              // en el frontend (PIX se genera server-side), confirmado con
-              // grep -- ese dominio en el allowlist era muerto.
-              `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
+              // unsafe-eval eliminado: la doc oficial de Stripe.js v3 no lo
+              // requiere, y los issues de react-stripe-js que lo citaban
+              // (github.com/stripe/react-stripe-js/issues/380) se resolvieron
+              // en versiones más recientes de la librería. Se elimina para
+              // reducir la superficie de ataque XSS -- si Stripe.js rompe
+              // en producción, se puede restaurar con evidencia concreta.
+              `script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
