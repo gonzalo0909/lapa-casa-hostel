@@ -66,10 +66,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
   const contentLength = parseInt(req.headers['content-length'] || '0', 10);
   if (contentLength > match.bytes) {
-    res.status(413).json({
-      success: false,
-      error: `Payload demasiado grande (maximo ${match.bytes / 1024}kb para esta ruta)`,
-    });
+    res.status(413).json(ApiResponse.error(`Payload demasiado grande (maximo ${match.bytes / 1024}kb para esta ruta)`));
     return;
   }
   next();

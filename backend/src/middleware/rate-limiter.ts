@@ -60,9 +60,12 @@ export const generalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisRateLimitStore('rl:general', 60 * 1000) as any,
-  message: {
-    success: false,
-    error: 'Too many requests, please try again later.',
+  handler: (_req: any, res: any) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many requests, please try again later.',
+      timestamp: new Date().toISOString(),
+    });
   },
 });
 
@@ -76,8 +79,11 @@ export const rateLimiter = (options: { max: number; windowMs: number; prefix?: s
       `rl:${options.prefix ?? 'custom'}`,
       options.windowMs,
     ) as any,
-    message: {
-      success: false,
-      error: 'Too many requests, please try again later.',
+    handler: (_req: any, res: any) => {
+      res.status(429).json({
+        success: false,
+        error: 'Too many requests, please try again later.',
+        timestamp: new Date().toISOString(),
+      });
     },
   });
