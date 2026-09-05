@@ -4,9 +4,16 @@
 // dirección del hostel ni tiene acceso cruzado desde esta página.
 
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ApartmentEngine } from '@/components/booking/apartment-engine';
 import { StructuredData, ApartmentServiceSchema } from '@/components/seo/structured-data';
+
+// ApartmentEngine es un wizard 100% client-side: lazy-load sin SSR
+// para que su chunk no bloquee el HTML inicial de /apartamentos.
+const ApartmentEngine = dynamic(
+  () => import('@/components/booking/apartment-engine').then((m) => m.ApartmentEngine),
+  { ssr: false },
+);
 import { FAQSection } from '@/components/seo/faq-section';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
