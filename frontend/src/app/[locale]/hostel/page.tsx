@@ -5,9 +5,16 @@
 // Para pasar de uno a otro hay que volver al home (/).
 
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { HostelEngine } from '@/components/booking/hostel-engine';
 import { FAQSection } from '@/components/seo/faq-section';
+
+// HostelEngine es un wizard 100% client-side (~26.6 kB): lazy-load sin SSR
+// para que su chunk no bloquee el HTML inicial de /hostel.
+const HostelEngine = dynamic(
+  () => import('@/components/booking/hostel-engine').then((m) => m.HostelEngine),
+  { ssr: false },
+);
 import { StructuredData, OrganizationSchema, LocalBusinessSchema } from '@/components/seo/structured-data';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
