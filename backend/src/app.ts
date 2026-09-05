@@ -9,6 +9,7 @@ import { logger } from '@/utils/logger';
 import { environment } from '@/config/environment';
 import { corsOptions } from '@/config/cors';
 import { errorHandler } from '@/middleware/error-handler';
+import { Sentry } from '@/config/sentry';
 import { generalRateLimiter } from '@/middleware/rate-limiter';
 import { sanitizeInput } from '@/middleware/validation';
 import { authenticateToken, requireRole } from '@/middleware/auth';
@@ -206,6 +207,13 @@ app.use((req: Request, res: Response) => {
     method: req.method,
   }));
 });
+
+// El error handler de Sentry va ANTES del error handler propio para que
+// capture la excepción completa (con stack y contexto de request) antes
+// de que la transformemos en una respuesta JSON genérica.
+// Cast necesario: Sentry devuelve su propio tipo de middleware de error que
+// el compilador no infiere automáticamente como ErrorRequestHandler.
+app.use(Sentry.expressErrorHandler() as unknown as express.ErrorRequestHandler);
 
 app.use(errorHandler);
 
