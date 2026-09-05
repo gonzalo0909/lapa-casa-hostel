@@ -15,7 +15,6 @@
 // server si Sheets todavia no esta configurado.
 
 import { google, type sheets_v4 } from 'googleapis';
-import { JWT } from 'google-auth-library';
 import { logger } from '../../utils/logger';
 
 /**
@@ -93,10 +92,12 @@ export class SheetsClient {
       return;
     }
 
-    const auth = new JWT({
-      email,
-      key: privateKey.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: email,
+        private_key: privateKey.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     this.sheets = google.sheets({ version: 'v4', auth });
   }
