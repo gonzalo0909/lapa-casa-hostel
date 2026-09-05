@@ -237,13 +237,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             <span>{nights}</span>
           </div>
           {/* Season row removed: price already shows total, no need to expose internal multipliers */}
+          {/* Auditoría 17 secciones, sección 16: colores hex hardcodeados acá
+              (y `var(--text-muted, #666)`/`var(--border, #e5e7eb)` sin
+              envolver en hsl(), lo que los volvía inválidos como color y
+              siempre caían al hex de fallback) no reaccionaban al modo
+              oscuro -- reemplazados por las clases de Tailwind que sí
+              apuntan a los tokens HSL reales del tema. */}
           {appliedCoupon && (
             <>
-              <div className={styles.summaryRow} style={{ color: 'var(--text-muted, #666)' }}>
+              <div className={`${styles.summaryRow} text-muted-foreground`}>
                 <span>Precio original</span>
-                <span style={{ textDecoration: 'line-through' }}>R$ {totalPrice.toLocaleString('pt-BR')}</span>
+                <span className="line-through">R$ {totalPrice.toLocaleString('pt-BR')}</span>
               </div>
-              <div className={styles.summaryRow} style={{ color: '#16a34a', fontWeight: 600 }}>
+              <div className={`${styles.summaryRow} font-semibold text-success`}>
                 <span>🏷️ {appliedCoupon.label} ({appliedCoupon.discount_percent}% off)</span>
                 <span>−R$ {discountAmount.toLocaleString('pt-BR')}</span>
               </div>
@@ -257,25 +263,25 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
 
         {/* ── Cupón de descuento ──────────────────────────────────────────── */}
         {onValidateCoupon && (
-          <div style={{ marginTop: '12px', borderTop: '1px solid var(--border, #e5e7eb)', paddingTop: '12px' }}>
+          <div className="mt-3 border-t border-border pt-3">
             {appliedCoupon ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
-                <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>
-                  🏷️ Código <code style={{ background: '#dcfce7', padding: '1px 6px', borderRadius: '4px', fontSize: '12px' }}>{appliedCoupon.code}</code> aplicado
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-success/30 bg-success-light px-3.5 py-2.5">
+                <span className="text-[13px] font-semibold text-success">
+                  🏷️ Código <code className="rounded bg-success-light px-1.5 py-px text-xs">{appliedCoupon.code}</code> aplicado
                 </span>
                 <button
                   type="button"
                   onClick={() => { onCouponRemove?.(); setCouponError(null); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', fontSize: '18px', lineHeight: 1, padding: '0 2px' }}
+                  className="cursor-pointer border-0 bg-transparent px-0.5 text-lg leading-none text-success"
                   aria-label="Quitar cupón"
                 >×</button>
               </div>
             ) : (
               <div>
-                <label htmlFor="apt-coupon-code" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #6b7280)', marginBottom: '6px' }}>
+                <label htmlFor="apt-coupon-code" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
                   ¿Tenés un código de descuento?
                 </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2">
                   <input
                     id="apt-coupon-code"
                     type="text"
@@ -284,19 +290,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                     onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                     placeholder="CÓDIGO"
                     disabled={couponLoading}
-                    style={{ flex: 1, padding: '8px 12px', border: `1px solid ${couponError ? '#fca5a5' : 'var(--border, #e5e7eb)'}`, borderRadius: '6px', fontSize: '13px', fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none' }}
+                    className={`flex-1 rounded-md border px-3 py-2 font-mono text-[13px] uppercase outline-none ${couponError ? 'border-destructive' : 'border-border'}`}
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={couponLoading || !couponInput.trim()}
-                    style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: (couponLoading || !couponInput.trim()) ? 0.6 : 1 }}
+                    className={`rounded-md bg-info px-4 py-2 text-[13px] font-semibold text-white ${(couponLoading || !couponInput.trim()) ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
                   >
                     {couponLoading ? '…' : 'Aplicar'}
                   </button>
                 </div>
                 {couponError && (
-                  <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '5px' }}>{couponError}</div>
+                  <div className="mt-1 text-xs text-destructive">{couponError}</div>
                 )}
               </div>
             )}

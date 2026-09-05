@@ -8,38 +8,37 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { verifyPassword, generateToken } from '../../utils/encryption';
+import {
+  verifyPassword,
+  generateToken,
+  durationToMs,
+  durationToSeconds,
+  generateCsrfToken,
+} from '../../utils/encryption';
 import { authenticateToken } from '../../middleware/auth';
+import { verifyCsrf } from '../../middleware/csrf';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 import { validate } from '../../middleware/validation';
+import { getAdminTotpConfig, disableAdminTotp } from './admin-2fa.routes';
+import { verifyTotpToken, hashBackupCode } from '../../utils/totp';
 
 const LoginSchema = z.object({
   password: z.string().min(1),
+  // Solo se exige si 2FA está activado (ver /admin/2fa) -- opcional para
+  // no romper el login de nadie que no lo prendió.
+  totpToken: z.string().optional(),
 });
 
 // M-03: prefijo para tokens revocados en Redis (TTL = expiración del token)
 const REVOKED_PREFIX = 'revoked_token:';
 
-// Sección 8 auditoría 17 secciones: convierte '24h'/'7d'/'90d' (mismo
-// formato que ya usan JWT_EXPIRES_IN acá y en render.yaml) a milisegundos
-// para el maxAge de la cookie -- antes estaba fijo en 90 días sin importar
-// el TTL real configurado para el JWT, así que la cookie sobrevivía mucho
-// más que el token válido dentro de ella.
-function durationToMs(duration: string, fallbackMs: number): number {
-  const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
-  if (!match) {return fallbackMs;}
-  const value = Number(match[1]);
-  const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
-  return value * unitMs;
-}
-
 const router = Router();
 
 router.post('/', validate(LoginSchema), async (req, res, next) => {
   try {
-    const { password } = req.body as z.infer<typeof LoginSchema>;
+    const { password, totpToken } = req.body as z.infer<typeof LoginSchema>;
 
     const passwordHash = process.env.ADMIN_PASSWORD_HASH;
     if (!passwordHash) {
@@ -55,10 +54,32 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
       return;
     }
 
+    // 2FA opcional (idea #22, roadmap.html) -- solo se exige si el admin
+    // lo activó desde /admin/2fa. Código 'TOTP_REQUIRED' distinto de
+    // 'credenciales inválidas' para que el frontend sepa mostrar el
+    // segundo campo en vez de decir que la contraseña está mal.
+    const totpConfig = await getAdminTotpConfig();
+    if (totpConfig.enabled && totpConfig.secret) {
+      if (!totpToken) {
+        res
+          .status(401)
+          .json(ApiResponse.error('Se requiere el código de 2FA', undefined, 'TOTP_REQUIRED'));
+        return;
+      }
+      const totpValid = await verifyTotpToken(totpConfig.secret, totpToken);
+      if (!totpValid) {
+        logger.warn('Intento de login admin fallido -- código 2FA inválido');
+        res
+          .status(401)
+          .json(ApiResponse.error('Código de 2FA inválido', undefined, 'TOTP_INVALID'));
+        return;
+      }
+    }
+
     const payload = {
       userId: 'admin',
       email: process.env.ADMIN_EMAIL || 'lapalandiarj@gmail.com',
-      role: 'admin' as const
+      role: 'admin' as const,
     };
 
     const token = generateToken(payload, process.env.JWT_EXPIRES_IN || '24h');
@@ -68,11 +89,23 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // M-02: emitir el JWT como httpOnly cookie — inaccesible desde JS,
     // elimina el vector XSS de robo de token desde localStorage.
     const isProd = process.env.NODE_ENV === 'production';
+    const cookieMaxAge = durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000);
     res.cookie('lch_admin', token, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: durationToMs(process.env.JWT_EXPIRES_IN || '24h', 24 * 60 * 60 * 1000),
+      maxAge: cookieMaxAge,
+      path: '/',
+    });
+
+    // Cookie CSRF (patrón doble cookie, ver middleware/csrf.ts) -- a
+    // propósito NO httpOnly, el frontend necesita leerla para reenviarla en
+    // el header x-csrf-token de cada request que modifica datos.
+    res.cookie('lch_admin_csrf', generateCsrfToken(), {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: cookieMaxAge,
       path: '/',
     });
 
@@ -93,12 +126,59 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // propia, para poder tener un access token de vida aún más corta sin
     // forzar reloguearse tan seguido) sigue pendiente -- requiere probarlo
     // con sesión de navegador real, no algo verificable solo desde el código.
-    res.status(200).json(
-      ApiResponse.success(
-        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
-        'Login exitoso'
-      )
-    );
+    res
+      .status(200)
+      .json(
+        ApiResponse.success({ expiresIn: process.env.JWT_EXPIRES_IN || '24h' }, 'Login exitoso'),
+      );
+  } catch (error) {
+    next(error);
+  }
+});
+
+const RecoverySchema = z.object({
+  password: z.string().min(1),
+  backupCode: z.string().min(1),
+});
+
+/**
+ * POST /admin/login/2fa-recovery — desactiva 2FA usando el código de
+ * respaldo, para el caso de perder el celular con la app y no poder
+ * completar el login normal. A propósito público (mismo rate limit que
+ * /admin/login): si tuviera que pasar por authenticateToken, la
+ * recuperación sería inútil justo en el escenario que la necesita.
+ * Requiere la contraseña Y el código de respaldo -- ninguno solo alcanza.
+ */
+router.post('/2fa-recovery', validate(RecoverySchema), async (req, res, next) => {
+  try {
+    const { password, backupCode } = req.body as z.infer<typeof RecoverySchema>;
+
+    const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+    if (!passwordHash || !(await verifyPassword(password, passwordHash))) {
+      logger.warn('Intento de recuperación de 2FA fallido -- contraseña inválida');
+      res.status(401).json(ApiResponse.error('Credenciales inválidas'));
+      return;
+    }
+
+    const totpConfig = await getAdminTotpConfig();
+    if (!totpConfig.enabled || !totpConfig.backupCodeHash) {
+      res.status(400).json(ApiResponse.error('2FA no está activado'));
+      return;
+    }
+
+    if (hashBackupCode(backupCode) !== totpConfig.backupCodeHash) {
+      logger.warn('Intento de recuperación de 2FA fallido -- código de respaldo inválido');
+      res.status(401).json(ApiResponse.error('Código de respaldo inválido'));
+      return;
+    }
+
+    await disableAdminTotp();
+    logger.info('2FA de admin desactivado por recuperación con código de respaldo');
+    res
+      .status(200)
+      .json(
+        ApiResponse.success(null, '2FA desactivado. Iniciá sesión de nuevo con tu contraseña.'),
+      );
   } catch (error) {
     next(error);
   }
@@ -107,7 +187,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
 // M-03: logout — revoca el token actual y el refreshToken si se envía.
 // M-02: también limpia la cookie httpOnly (el token puede venir de ahí).
 // El token queda en lista negra en Redis hasta que expire naturalmente.
-router.post('/logout', authenticateToken, async (req, res, next) => {
+router.post('/logout', authenticateToken, verifyCsrf('lch_admin_csrf'), async (req, res, next) => {
   try {
     // El token puede llegar como Bearer header (scripts/API) o como cookie httpOnly (panel admin)
     const authHeader = req.headers['authorization'];
@@ -115,18 +195,30 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
     const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
 
     if (token) {
-      // TTL = 24h (access token) — suficiente para que expire y la entrada se limpie sola
-      await redisCache.set(`${REVOKED_PREFIX}${token}`, '1', 86400);
+      // TTL de la blacklist = TTL real del JWT (auditoría 17 secciones,
+      // sección 15): antes estaba fijo en 86400s (24h) sin importar
+      // JWT_EXPIRES_IN -- si ese valor se configura a más de 24h, el token
+      // "revocado" volvía a ser válido apenas la entrada de Redis expiraba,
+      // aunque el JWT real siguiera vigente.
+      await redisCache.set(
+        `${REVOKED_PREFIX}${token}`,
+        '1',
+        durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400),
+      );
     }
 
     const { refreshToken } = req.body as { refreshToken?: string };
     if (refreshToken) {
-      // TTL = 7d (refresh token)
+      // Vestigial: no existe ningún endpoint /refresh que emita ni consuma
+      // este token (ver comentario en el login de arriba) -- se mantiene el
+      // no-op por compatibilidad hacia atrás si algún cliente viejo todavía
+      // lo envía, sin agregarle lógica nueva.
       await redisCache.set(`${REVOKED_PREFIX}${refreshToken}`, '1', 7 * 86400);
     }
 
     // M-02: eliminar la cookie httpOnly del navegador
     res.clearCookie('lch_admin', { httpOnly: true, sameSite: 'strict', path: '/' });
+    res.clearCookie('lch_admin_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
 
     logger.info('Logout admin — token revocado');
     res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));

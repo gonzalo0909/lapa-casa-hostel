@@ -18,7 +18,7 @@ import { icalService } from '../../services/ical-service';
 import { ApiResponse } from '../../utils/responses';
 
 const router = Router();
-const exportLimiter = rateLimiter({ max: 100, windowMs: 60 * 60 * 1000 });
+const exportLimiter = rateLimiter({ max: 100, windowMs: 60 * 60 * 1000, prefix: 'ical-export' });
 
 const CreateFeedSchema = z.object({
   channelCode: z.enum(['direct', 'booking', 'hostelworld', 'airbnb', 'expedia']),

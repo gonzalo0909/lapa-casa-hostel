@@ -165,7 +165,7 @@ const CONTENT: Record<Locale, Content> = {
   en: {
     headline: 'Group Trips to Rio de Janeiro',
     intro:
-      'Organizing a group trip to Rio de Janeiro? Finding accommodation that fits everyone\'s budget, in the same place, with common areas to hang out can be tricky. At Lapa Casa Hostel in Santa Teresa, we\'ve thought it all through.',
+      "Organizing a group trip to Rio de Janeiro? Finding accommodation that fits everyone's budget, in the same place, with common areas to hang out can be tricky. At Lapa Casa Hostel in Santa Teresa, we've thought it all through.",
     sections: [
       {
         heading: 'Special Group Discounts',
@@ -180,7 +180,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         heading: 'Why Santa Teresa?',
-        body: 'Santa Teresa is Rio\'s most charming and bohemian neighborhood — the perfect base for a group:',
+        body: "Santa Teresa is Rio's most charming and bohemian neighborhood — the perfect base for a group:",
         bullets: [
           '10 minutes by tram to downtown Rio',
           'Close to Museum of Tomorrow, AquaRio, and Lapa nightlife',
@@ -191,7 +191,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         heading: 'Accommodation Options for Groups',
-        body: 'We offer flexible setups to fit your group\'s needs:',
+        body: "We offer flexible setups to fit your group's needs:",
         bullets: [
           'Mixed dorms (7–12 beds) — budget-friendly for smaller groups',
           'Female-only dorm — for women-only groups',
@@ -212,7 +212,7 @@ const CONTENT: Record<Locale, Content> = {
         ],
       },
       {
-        heading: 'What\'s Included',
+        heading: "What's Included",
         body: 'For all guests, regardless of accommodation type:',
         bullets: [
           'High-speed Wi-Fi throughout the hostel',
@@ -243,7 +243,7 @@ const CONTENT: Record<Locale, Content> = {
       {
         question: 'Can different members of the group check in at different times?',
         answer:
-          'Absolutely. We understand groups travel together but may arrive at different times. Just let us know in advance and we\'ll securely store luggage until everyone can officially check in.',
+          "Absolutely. We understand groups travel together but may arrive at different times. Just let us know in advance and we'll securely store luggage until everyone can officially check in.",
       },
       {
         question: 'Is there space for group meetings or dinners?',
@@ -339,12 +339,12 @@ const CONTENT: Record<Locale, Content> = {
       {
         question: '¿Pueden los miembros del grupo hacer check-in en horarios distintos?',
         answer:
-          'Por supuesto. Entendemos que los grupos viajan juntos pero pueden llegar en momentos distintos. Solo avisad con antelación y guardamos el equipaje con seguridad hasta que todos puedan hacer el check-in oficial.',
+          'Por supuesto. Entendemos que los grupos viajan juntos pero pueden llegar en momentos distintos. Solo avísanos con antelación y guardamos el equipaje con seguridad hasta que todos puedan hacer el check-in oficial.',
       },
       {
         question: '¿Hay espacio para reuniones o cenas de grupo?',
         answer:
-          'Tenemos un amplio espacio común y una terraza con vistas. Para grupos más grandes (15+ personas) que necesiten un espacio exclusivo para evento o reunión, consultad disponibilidad y condiciones por WhatsApp.',
+          'Tenemos un amplio espacio común y una terraza con vistas. Para grupos más grandes (15+ personas) que necesiten un espacio exclusivo para evento o reunión, consulta disponibilidad y condiciones por WhatsApp.',
       },
     ],
     ctaTitle: 'Organiza tu Grupo y Reserva Ya',
@@ -462,19 +462,19 @@ const CONTENT: Record<Locale, Content> = {
           '10% de réduction pour les groupes de 6 à 9 personnes',
           '15% de réduction pour les groupes de 10 personnes ou plus',
           'Devis personnalisé pour les groupes de plus de 20 personnes',
-          "Possibilité de réserver un dortoir entier en exclusivité pour votre groupe",
+          'Possibilité de réserver un dortoir entier en exclusivité pour votre groupe',
           'Appartements privés également disponibles',
         ],
       },
       {
         heading: 'Pourquoi Santa Teresa ?',
-        body: "Santa Teresa est le quartier le plus bohème et charmant de Rio — la base idéale pour un groupe :",
+        body: 'Santa Teresa est le quartier le plus bohème et charmant de Rio — la base idéale pour un groupe :',
         bullets: [
           'À 10 minutes en tram du centre-ville de Rio',
           'Près du Musée de Demain, AquaRio et Lapa (vie nocturne)',
           'Sûr, calme, avec une excellente scène gastronomique locale',
           'Vues panoramiques sur la baie de Guanabara et le centre historique',
-          "Art, culture, ateliers et galeries à chaque coin de rue",
+          'Art, culture, ateliers et galeries à chaque coin de rue',
         ],
       },
       {
@@ -500,12 +500,12 @@ const CONTENT: Record<Locale, Content> = {
         ],
       },
       {
-        heading: "Ce Qui Est Inclus",
+        heading: 'Ce Qui Est Inclus',
         body: "Pour tous les clients, quel que soit le type d'hébergement :",
         bullets: [
           "Wi-Fi haut débit dans tout l'hostel",
           'Cuisine commune entièrement équipée (réfrigérateur, cuisinière, micro-ondes)',
-          "Grand espace commun — parfait pour rassembler le groupe",
+          'Grand espace commun — parfait pour rassembler le groupe',
           'Casiers individuels avec cadenas',
           'Recommandations de visites et restaurants pour groupes',
           'Assistance en portugais, anglais, espagnol et français',
@@ -568,7 +568,7 @@ const CONTENT: Record<Locale, Content> = {
         bullets: [
           'A 10 minuti di tram (VLT) dal centro di Rio',
           'Vicino al Museo del Domani, AquaRio e Lapa (vita notturna)',
-          'Sicuro, tranquillo e con un\'ottima gastronomia locale',
+          "Sicuro, tranquillo e con un'ottima gastronomia locale",
           'Vista panoramica sulla Baia di Guanabara e il centro storico',
           'Cultura e arte a ogni angolo — atelier, gallerie, mercato artigianale',
         ],
@@ -591,7 +591,7 @@ const CONTENT: Record<Locale, Content> = {
           '1. Scrivici su WhatsApp con le date, il numero di persone e il tipo di camera',
           '2. Ricevi un preventivo personalizzato entro 2 ore',
           '3. Conferma con una caparra del 30% via PIX o carta',
-          '4. Il saldo si paga all\'arrivo — accettiamo PIX, carta di debito/credito',
+          "4. Il saldo si paga all'arrivo — accettiamo PIX, carta di debito/credito",
           '5. Check-in flessibile per gruppi — avvisando in anticipo',
         ],
       },
@@ -599,7 +599,7 @@ const CONTENT: Record<Locale, Content> = {
         heading: 'Cosa È Incluso',
         body: 'Per tutti gli ospiti, indipendentemente dal tipo di alloggio:',
         bullets: [
-          'Wi-Fi ad alta velocità in tutto l\'hostel',
+          "Wi-Fi ad alta velocità in tutto l'hostel",
           'Cucina condivisa attrezzata (frigorifero, fornelli, microonde)',
           'Ampio spazio comune — perfetto per riunire il gruppo',
           'Armadietti individuali con lucchetto',
@@ -622,7 +622,7 @@ const CONTENT: Record<Locale, Content> = {
       {
         question: 'Quali metodi di pagamento sono accettati per i gruppi?',
         answer:
-          'Accettiamo PIX (con sconto aggiuntivo), carta di credito (fino a 6 rate senza interessi) e carta di debito. Per i gruppi chiediamo una caparra del 30% alla conferma e il saldo all\'arrivo. Emettiamo fattura.',
+          "Accettiamo PIX (con sconto aggiuntivo), carta di credito (fino a 6 rate senza interessi) e carta di debito. Per i gruppi chiediamo una caparra del 30% alla conferma e il saldo all'arrivo. Emettiamo fattura.",
       },
       {
         question: 'È possibile fare il check-in in orari diversi per un gruppo?',
@@ -630,7 +630,7 @@ const CONTENT: Record<Locale, Content> = {
           'Sì, sappiamo che i gruppi viaggiano insieme ma arrivano in orari diversi. Basta avvisarci in anticipo e conserviamo i bagagli in sicurezza finché tutti non possono completare il check-in ufficiale.',
       },
       {
-        question: 'L\'hostel ha uno spazio per riunioni o cene di gruppo?',
+        question: "L'hostel ha uno spazio per riunioni o cene di gruppo?",
         answer:
           'Abbiamo un ampio spazio comune e una terrazza panoramica. Per gruppi più numerosi (15+ persone) che necessitano di uno spazio esclusivo per un evento o una riunione, verifica disponibilità e condizioni su WhatsApp.',
       },
@@ -731,8 +731,8 @@ function buildGroupHowToSchema(locale: Locale) {
     ],
     fr: [
       'Contactez-nous sur WhatsApp avec vos dates et nombre de personnes',
-      "Recevez un devis personnalisé en moins de 2 heures",
-      "Confirmez la réservation avec un acompte de 30%",
+      'Recevez un devis personnalisé en moins de 2 heures',
+      'Confirmez la réservation avec un acompte de 30%',
       "Le solde est payé à l'arrivée par PIX ou carte",
       'Profitez de votre séjour de groupe à Santa Teresa, Rio de Janeiro',
     ],
@@ -740,7 +740,7 @@ function buildGroupHowToSchema(locale: Locale) {
       'Scrivici su WhatsApp con le tue date e il numero di persone',
       'Ricevi il preventivo personalizzato entro 2 ore',
       'Conferma la prenotazione con una caparra del 30%',
-      'Il saldo si paga all\'arrivo via PIX o carta',
+      "Il saldo si paga all'arrivo via PIX o carta",
       'Goditi il tuo soggiorno di gruppo a Santa Teresa, Rio de Janeiro',
     ],
   };
@@ -760,14 +760,14 @@ function buildGroupHowToSchema(locale: Locale) {
       locale === 'pt'
         ? 'Passo a passo para reservar seu grupo no Lapa Casa Hostel em Santa Teresa, Rio de Janeiro'
         : locale === 'en'
-        ? 'Step-by-step guide to booking your group stay at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
-        : locale === 'es'
-        ? 'Guía paso a paso para reservar tu grupo en Lapa Casa Hostel en Santa Teresa, Río de Janeiro'
-        : locale === 'de'
-        ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
-        : locale === 'it'
-        ? 'Guida passo passo per prenotare il tuo gruppo al Lapa Casa Hostel a Santa Teresa, Rio de Janeiro'
-        : "Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Hostel à Santa Teresa, Rio de Janeiro",
+          ? 'Step-by-step guide to booking your group stay at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
+          : locale === 'es'
+            ? 'Guía paso a paso para reservar tu grupo en Lapa Casa Hostel en Santa Teresa, Río de Janeiro'
+            : locale === 'de'
+              ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
+              : locale === 'it'
+                ? 'Guida passo passo per prenotare il tuo gruppo al Lapa Casa Hostel a Santa Teresa, Rio de Janeiro'
+                : 'Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Hostel à Santa Teresa, Rio de Janeiro',
     step: (steps[locale] ?? []).map((text, i) => ({
       '@type': 'HowToStep',
       position: i + 1,
@@ -821,13 +821,20 @@ export async function generateMetadata({
       type: 'website',
       images: [{ url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: [`${SITE_URL}/og-image.jpg`] },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${SITE_URL}/og-image.jpg`],
+    },
   };
 }
 
 // ─── Page component ────────────────────────────────────────────────────────────
 export default async function GruposPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const c = CONTENT[locale]!;
@@ -850,7 +857,10 @@ export default async function GruposPage({ params }: { params: { locale: string 
           <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3 speakable">
             Lapa Casa Hostel · Santa Teresa · Rio de Janeiro
           </p>
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-5 speakable" data-speakable>
+          <h1
+            className="text-3xl md:text-5xl font-bold leading-tight mb-5 speakable"
+            data-speakable
+          >
             {c.headline}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8 speakable">
@@ -887,7 +897,9 @@ export default async function GruposPage({ params }: { params: { locale: string 
               <ul className="space-y-2">
                 {section.bullets.map((bullet, j) => (
                   <li key={j} className="flex items-start gap-2 text-foreground">
-                    <span className="text-primary mt-1 flex-shrink-0" aria-hidden="true">✓</span>
+                    <span className="text-primary mt-1 flex-shrink-0" aria-hidden="true">
+                      ✓
+                    </span>
                     <span>{bullet}</span>
                   </li>
                 ))}
@@ -902,21 +914,18 @@ export default async function GruposPage({ params }: { params: { locale: string 
             {locale === 'pt'
               ? 'Perguntas Frequentes sobre Grupos'
               : locale === 'en'
-              ? 'Frequently Asked Questions — Groups'
-              : locale === 'es'
-              ? 'Preguntas Frecuentes sobre Grupos'
-              : locale === 'de'
-              ? 'Häufige Fragen zu Gruppen'
-              : locale === 'it'
-              ? 'Domande Frequenti sui Gruppi'
-              : 'Questions Fréquentes sur les Groupes'}
+                ? 'Frequently Asked Questions — Groups'
+                : locale === 'es'
+                  ? 'Preguntas Frecuentes sobre Grupos'
+                  : locale === 'de'
+                    ? 'Häufige Fragen zu Gruppen'
+                    : locale === 'it'
+                      ? 'Domande Frequenti sui Gruppi'
+                      : 'Questions Fréquentes sur les Groupes'}
           </h2>
           <dl className="space-y-4">
             {c.faq.map((item, i) => (
-              <details
-                key={i}
-                className="group border border-border rounded-lg overflow-hidden"
-              >
+              <details key={i} className="group border border-border rounded-lg overflow-hidden">
                 <summary className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer font-medium text-foreground hover:bg-muted/40 transition-colors list-none">
                   <dt className="flex-1">{item.question}</dt>
                   <span
@@ -941,12 +950,17 @@ export default async function GruposPage({ params }: { params: { locale: string 
           href={`/${locale}/santa-teresa`}
           className="underline hover:text-foreground transition-colors"
         >
-          {locale === 'pt' ? '🗺️ Conheça Santa Teresa — o bairro onde estamos' :
-           locale === 'en' ? '🗺️ Discover Santa Teresa — our neighborhood' :
-           locale === 'es' ? '🗺️ Conoce Santa Teresa — el barrio donde estamos' :
-           locale === 'de' ? '🗺️ Santa Teresa entdecken — unser Stadtviertel' :
-           locale === 'it' ? '🗺️ Scopri Santa Teresa — il nostro quartiere' :
-           '🗺️ Découvrez Santa Teresa — notre quartier'}
+          {locale === 'pt'
+            ? '🗺️ Conheça Santa Teresa — o bairro onde estamos'
+            : locale === 'en'
+              ? '🗺️ Discover Santa Teresa — our neighborhood'
+              : locale === 'es'
+                ? '🗺️ Conoce Santa Teresa — el barrio donde estamos'
+                : locale === 'de'
+                  ? '🗺️ Santa Teresa entdecken — unser Stadtviertel'
+                  : locale === 'it'
+                    ? '🗺️ Scopri Santa Teresa — il nostro quartiere'
+                    : '🗺️ Découvrez Santa Teresa — notre quartier'}
         </a>
       </div>
 
@@ -986,7 +1000,10 @@ export default async function GruposPage({ params }: { params: { locale: string 
       </section>
 
       {/* Breadcrumb nav */}
-      <nav aria-label="breadcrumb" className="max-w-3xl mx-auto px-4 py-6 text-sm text-muted-foreground">
+      <nav
+        aria-label="breadcrumb"
+        className="max-w-3xl mx-auto px-4 py-6 text-sm text-muted-foreground"
+      >
         <ol className="flex items-center gap-2">
           <li>
             <a href={`/${locale}`} className="hover:text-foreground transition-colors">
@@ -998,14 +1015,14 @@ export default async function GruposPage({ params }: { params: { locale: string 
             {locale === 'pt'
               ? 'Grupos'
               : locale === 'en'
-              ? 'Groups'
-              : locale === 'es'
-              ? 'Grupos'
-              : locale === 'de'
-              ? 'Gruppen'
-              : locale === 'it'
-              ? 'Gruppi'
-              : 'Groupes'}
+                ? 'Groups'
+                : locale === 'es'
+                  ? 'Grupos'
+                  : locale === 'de'
+                    ? 'Gruppen'
+                    : locale === 'it'
+                      ? 'Gruppi'
+                      : 'Groupes'}
           </li>
         </ol>
       </nav>

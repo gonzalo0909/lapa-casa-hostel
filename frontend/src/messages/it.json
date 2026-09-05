@@ -54,6 +54,7 @@
     "gallery": "Diario dei Viaggiatori",
     "santaTeresa": "Santa Teresa",
     "grupos": "Prenotazioni di Gruppo",
+    "whatsapp": "Scrivici su WhatsApp",
     "privacy": "Privacy",
     "terms": "Termini"
   },
@@ -577,6 +578,10 @@
     "cancelPolicyTitle": "Politica di cancellazione",
     "cancelNoneBadge": "Nessun rimborso",
     "cancelNone": "La caparra pagata al momento della prenotazione <b>non è rimborsabile</b> in caso di cancellazione o no-show, indipendentemente dal preavviso.",
+    "referralTitle": "Consiglia un amico, ottieni uno sconto",
+    "referralBody": "Condividi questo codice: il tuo amico ha il 10% di sconto e, quando prenota, tu ricevi un altro codice del 10% per il tuo prossimo soggiorno.",
+    "referralCopy": "Copia codice",
+    "referralCopied": "Copiato!",
     "documentPlaceholder": "CPF, passaporto o doc. straniero",
     "docUploadTitle": "Foto del documento d'identità",
     "docUploadNote": "Invia una foto leggibile del tuo documento e di quello dell'accompagnatore (facoltativo). Accettato al check-in da qualsiasi amministratore.",

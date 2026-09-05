@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -8,21 +8,22 @@ import Script from 'next/script';
 import { locales, type Locale } from '@/i18n';
 import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
 import { CookieConsentProvider } from '@/components/legal/cookie-consent';
+import { WhatsAppFloatButton } from '@/components/layout/whatsapp-float-button';
 import '../globals.css';
 
 // display:'swap' evita el bloqueo de render en móviles (mejora CLS y FCP)
 const inter = Inter({
-  subsets:  ['latin'],
+  subsets: ['latin'],
   variable: '--font-inter',
-  display:  'swap',
-  preload:  true,
+  display: 'swap',
+  preload: true,
 });
 const poppins = Poppins({
-  subsets:  ['latin'],
-  weight:   ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-poppins',
-  display:  'swap',
-  preload:  true,
+  display: 'swap',
+  preload: false, // solo pre-cargamos Inter; Poppins se carga en diferido
 });
 // Fuente serif de marca (títulos "he-brand"/nombres de apartamento/h3) --
 // hostel-engine.styles.ts y apartment-engine.module.css ya referenciaban
@@ -30,15 +31,22 @@ const poppins = Poppins({
 // next/font: la variable no existía nunca, lo que invalida la propiedad
 // font-family entera en esas reglas (no cae a Georgia/serif como parecía).
 const cormorant = Cormorant_Garamond({
-  subsets:  ['latin'],
-  weight:   ['300', '400', '500', '600', '700'],
-  style:    ['normal', 'italic'],
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
   variable: '--font-cormorant',
-  display:  'swap',
-  preload:  false,
+  display: 'swap',
+  preload: false,
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
+
+// themeColor vive aparte de Metadata desde Next 14 -- mismo color que
+// manifest.json (idea #45, roadmap.html) para que la barra del navegador
+// en mobile combine con la app instalada.
+export const viewport: Viewport = {
+  themeColor: '#0ea5e9',
+};
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -63,9 +71,7 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     alternates: {
       canonical: `/${locale}`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `/${l}`]),
-      ),
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
     },
     openGraph: {
       title,
@@ -97,6 +103,14 @@ export async function generateMetadata({
       icon: '/favicon.ico',
       apple: '/apple-touch-icon.png',
     },
+    // Idea #45 (roadmap.html): PWA real instalable -- el manifest.json ya
+    // existía con contenido correcto, pero nada lo enlazaba desde el HTML
+    // (sin <link rel="manifest">, ningún navegador lo descubre, así que
+    // nunca aparecía el prompt de instalar). También referenciaba
+    // screenshots/, icons/ y una página /booking que nunca llegaron a
+    // existir -- se reescribió el manifest para que apunte solo a
+    // archivos y rutas reales.
+    manifest: '/manifest.json',
   };
 }
 
@@ -107,7 +121,9 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  if (!locales.includes(locale as Locale)) {notFound();}
+  if (!locales.includes(locale as Locale)) {
+    notFound();
+  }
 
   setRequestLocale(locale);
   const messages = await getMessages();
@@ -126,12 +142,12 @@ export default async function LocaleLayout({
                 useSearchParams(), si no toda página estática que pase por acá
                 (todas, este es el layout raíz) se ve forzada a render dinámico. */}
             <Suspense fallback={<>{children}</>}>
-              <AnalyticsProvider>
-                {children}
-              </AnalyticsProvider>
+              <AnalyticsProvider>{children}</AnalyticsProvider>
             </Suspense>
           </CookieConsentProvider>
         </NextIntlClientProvider>
+
+        <WhatsAppFloatButton locale={locale as Locale} />
 
         {/* Registro del Service Worker — mejora PWA y carga offline en móviles */}
         <Script id="sw-register" strategy="afterInteractive">
