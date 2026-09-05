@@ -22,7 +22,7 @@ const poppins = Poppins({
   weight:   ['400', '500', '600', '700'],
   variable: '--font-poppins',
   display:  'swap',
-  preload:  false, // solo pre-cargamos Inter; Poppins se carga en diferido
+  preload:  true,
 });
 // Fuente serif de marca (títulos "he-brand"/nombres de apartamento/h3) --
 // hostel-engine.styles.ts y apartment-engine.module.css ya referenciaban
