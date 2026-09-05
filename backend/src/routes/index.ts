@@ -69,6 +69,14 @@ router.get('/info', (req: Request, res: Response) => {
 });
 
 /**
+ * Debug Sentry Endpoint (solo en non-production o con header secreto)
+ * @route GET /debug-sentry
+ */
+router.get('/debug-sentry', (req: Request, res: Response) => {
+  throw new Error('[Sentry test] Error de prueba desde /debug-sentry — si ves esto en Sentry, está funcionando.');
+});
+
+/**
  * Public Routes (No Authentication Required)
  * Rate limits ampliados para soportar carga real de uso:
  * - availability: 120 req/min (10 apts × varios refreshes simultáneos)
