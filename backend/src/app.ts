@@ -208,12 +208,10 @@ app.use((req: Request, res: Response) => {
   }));
 });
 
-// El error handler de Sentry va ANTES del error handler propio para que
-// capture la excepción completa (con stack y contexto de request) antes
-// de que la transformemos en una respuesta JSON genérica.
-// Cast necesario: Sentry devuelve su propio tipo de middleware de error que
-// el compilador no infiere automáticamente como ErrorRequestHandler.
-app.use(Sentry.expressErrorHandler() as unknown as express.ErrorRequestHandler);
+// API de Sentry v8+: setupExpressErrorHandler(app) registra el error handler
+// directamente sobre la instancia de Express — va ANTES del errorHandler propio
+// para capturar el stack completo antes de transformarlo en respuesta JSON.
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorHandler);
 

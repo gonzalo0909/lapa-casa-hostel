@@ -267,8 +267,10 @@ module.exports = withSentryConfig(
   {
     // Sentry Webpack Plugin — sube source maps al crear el build de producción
     // para que los stack traces en Sentry muestren el código real (no el minificado).
-    org: 'lapa-casa-hostel',
-    project: 'lapa-frontend',
+    // org: slug de la organización en sentry.io (visible en la URL: lapa-casa-rio.sentry.io)
+    // project: nombre del proyecto Next.js creado en Sentry
+    org: 'lapa-casa-rio',
+    project: 'javascript-nextjs',
 
     // No imprime la salida del plugin en el log de build — reduce ruido.
     silent: !process.env.CI,
