@@ -29,7 +29,11 @@ class RedisRateLimitStore {
       if (current === 1) {
         await redisCache.expire(redisKey, ttlSec);
       }
-      return { totalHits: current, resetTime: new Date(Date.now() + ttlSec * 1000) };
+      // Upstash puede devolver 0 cuando supera su límite de requests en vez de
+      // lanzar una excepción — express-rate-limit exige totalHits >= 1, así que
+      // en ese caso fail-open (no bloqueamos tráfico legítimo).
+      const totalHits = typeof current === 'number' && current > 0 ? current : 1;
+      return { totalHits, resetTime: new Date(Date.now() + ttlSec * 1000) };
     } catch (err) {
       // Si Redis falla, fail-open con hit = 1 para no bloquear tráfico legítimo
       logger.error('RedisRateLimitStore.increment error', { err });
