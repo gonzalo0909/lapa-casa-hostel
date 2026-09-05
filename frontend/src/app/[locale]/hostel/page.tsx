@@ -111,6 +111,10 @@ export default async function HostelPage({ params }: { params: { locale: string 
       <StructuredData data={LocalBusinessSchema} />
       <StructuredData data={HowToBookSchema} />
 
+      {/* h1 SSR visible para crawlers — el motor carga con ssr:false y su h1 no
+          está en el HTML inicial. sr-only evita duplicación visual una vez hidratado. */}
+      <h1 className="sr-only">Lapa Casa Hostel — Santa Teresa, Rio de Janeiro</h1>
+
       <HostelEngine locale={locale} />
 
       {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot) */}
