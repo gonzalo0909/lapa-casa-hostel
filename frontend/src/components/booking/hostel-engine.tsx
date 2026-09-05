@@ -110,6 +110,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const price      = calcPrice(checkIn, checkOut, beds);
   const totalBeds  = Object.values(beds).reduce((s, n) => s + n, 0);
   const season     = getSeason(checkIn ?? TODAY.current);
+  // Recargo de tarjeta (10% por defecto; idealmente viene de system_config)
+  const cardSurchargeMult = 1.10;
 
   // Cuartos visibles (reveal progresivo)
   const visibleRooms = rooms.filter(r => {
@@ -671,6 +673,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
                 isWaLoading={isWaLoading}
                 onConfirm={handleConfirm}
                 onWaClick={handleWaClick}
+                cardSurchargeMult={cardSurchargeMult}
               />
             )}
 
