@@ -100,6 +100,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const [timerSecs, setTimerSecs] = useState(300);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingError, setBookingError] = useState('');
+<<<<<<< HEAD
   const [isWaLoading, setIsWaLoading] = useState(false);
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
   const [pixCopied, setPixCopied] = useState(false);
@@ -109,6 +110,17 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // avisarle al huésped en la pantalla de éxito en vez de mostrar el QR
   // decorativo de relleno como si fuera uno real.
   const [paymentInitFailed, setPaymentInitFailed] = useState(false);
+=======
+  const [isWaLoading, setIsWaLoading]   = useState(false);
+  const [pixData, setPixData]           = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
+  const [pixCopied, setPixCopied]       = useState(false);
+  const [stripeUrl, setStripeUrl]       = useState<string | null>(null);
+  // reservationId se guarda para poder reintentar la generación del QR/link
+  // de pago sin crear una reserva nueva si processDeposit/stripeCheckout falla.
+  const [reservationId, setReservationId] = useState('');
+  const [paymentLinkError, setPaymentLinkError] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+>>>>>>> origin/claude/hostel-payment-broken-de608w
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ─ Estado del pago grupal ─
@@ -458,31 +470,56 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const newReservationId: string = response.data?.booking?.id || response.data?.bookingId || '';
       const displayCode = newReservationId
         ? 'LCH-' + newReservationId.substring(0, 8).toUpperCase()
+<<<<<<< HEAD
         : 'LCH-' + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingCode(displayCode);
       setReservationId(newReservationId);
       setOwnReferralCode(response.data?.booking?.referralCode ?? null);
 
       setPaymentInitFailed(false);
+=======
+        : 'LCH-' + Math.random().toString(36).slice(2,8).toUpperCase();
+      setBookingCode(displayCode);
+      setReservationId(newReservationId);
+      setPaymentLinkError(false);
+      setPixData(null);
+      setStripeUrl(null);
+
+      // La reserva ya quedó creada acá -- si processDeposit/stripeCheckout
+      // falla de acá en más, NO hay que tragarse el error en silencio: antes
+      // este catch estaba vacío y el huésped caía igual en la pantalla de
+      // éxito sin QR real ni link de Stripe, sin ningún aviso ni forma de
+      // reintentar (ver handleRetryPaymentLink más abajo, que reusa la misma
+      // reservationId sin duplicar la reserva).
+>>>>>>> origin/claude/hostel-payment-broken-de608w
       if (payMethod === 'pix') {
-        // PIX: generar QR real via Mercado Pago
         try {
           const dep = await paymentAPI.processDeposit(newReservationId, 'mercadopago');
           const p = dep.data?.payment;
           if (p?.qrCodeBase64 || p?.qrCode) {
             setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
           } else {
+<<<<<<< HEAD
             setPaymentInitFailed(true);
           }
         } catch {
           // La reserva ya está confirmada -- se avisa en la pantalla de éxito,
           // no se corta el flujo.
           setPaymentInitFailed(true);
+=======
+            setPaymentLinkError(true);
+          }
+        } catch (err) {
+          console.error('processDeposit (PIX) failed', err);
+          setPaymentLinkError(true);
+>>>>>>> origin/claude/hostel-payment-broken-de608w
         }
         setPhase('success');
         startTimer();
       } else {
-        // Tarjeta: Stripe Checkout Session — se abre en nueva pestaña
+        // Tarjeta: Stripe Checkout Session — se abre en nueva pestaña (puede
+        // ser bloqueada por el navegador al no ser un gesto síncrono del
+        // usuario; por eso el link también queda visible en el panel de éxito).
         try {
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
           const checkout = await paymentAPI.stripeCheckout(newReservationId, origin);
@@ -490,11 +527,19 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
           if (url) {
             setStripeUrl(url);
             window.open(url, '_blank', 'noopener');
+          } else {
+            setPaymentLinkError(true);
           }
+<<<<<<< HEAD
           // Sin URL inmediata igual llega el link por e-mail (t.cardInstruction)
           // -- no es una falla real, a diferencia del catch de abajo.
         } catch {
           setPaymentInitFailed(true);
+=======
+        } catch (err) {
+          console.error('stripeCheckout failed', err);
+          setPaymentLinkError(true);
+>>>>>>> origin/claude/hostel-payment-broken-de608w
         }
         setPhase('success');
         startTimer();
@@ -541,6 +586,39 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       setIsProcessing(false);
     }
   }, [reservationId, payMethod, form.country, t]);
+
+  // ─ Reintentar generar el QR PIX / link de Stripe sin crear otra reserva ─
+  const handleRetryPaymentLink = useCallback(async () => {
+    if (!reservationId || isRetryingPayment) return;
+    setIsRetryingPayment(true);
+    setPaymentLinkError(false);
+    try {
+      if (payMethod === 'pix') {
+        const dep = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+        const p = dep.data?.payment;
+        if (p?.qrCodeBase64 || p?.qrCode) {
+          setPixData({ qrCode: p.qrCode ?? '', qrCodeBase64: p.qrCodeBase64 ?? '' });
+        } else {
+          setPaymentLinkError(true);
+        }
+      } else {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const checkout = await paymentAPI.stripeCheckout(reservationId, origin);
+        const url: string | undefined = checkout.data?.url;
+        if (url) {
+          setStripeUrl(url);
+          window.open(url, '_blank', 'noopener');
+        } else {
+          setPaymentLinkError(true);
+        }
+      }
+    } catch (err) {
+      console.error('handleRetryPaymentLink failed', err);
+      setPaymentLinkError(true);
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }, [reservationId, payMethod, isRetryingPayment]);
 
   // ─ Timer 5 minutos ─
   const startTimer = useCallback(() => {
@@ -984,9 +1062,15 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             stripeUrl={stripeUrl}
             timerStr={timerStr}
             onNewBooking={handleNewBooking}
+<<<<<<< HEAD
             onSwitchMethod={form.country === 'BR' ? handleSwitchPayMethod : undefined}
             paymentInitFailed={paymentInitFailed}
             referralCode={ownReferralCode}
+=======
+            paymentLinkError={paymentLinkError}
+            isRetryingPayment={isRetryingPayment}
+            onRetryPaymentLink={handleRetryPaymentLink}
+>>>>>>> origin/claude/hostel-payment-broken-de608w
           />
         )}
 
