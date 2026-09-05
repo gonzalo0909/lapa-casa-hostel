@@ -5,7 +5,8 @@
 'use client';
 
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface Props {
   locale: string;
@@ -123,6 +124,24 @@ export function PartnerContractPage({ locale }: Props) {
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '2.5rem 1.25rem 4rem', fontFamily: 'Georgia, serif' }}>
+      {/* Botón volver */}
+      <Link
+        href={`/${locale}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '.4rem',
+          marginBottom: '1.5rem',
+          fontSize: '.82rem',
+          color: '#6b7280',
+          textDecoration: 'none',
+          fontFamily: 'system-ui, sans-serif',
+        }}
+      >
+        <ArrowLeft size={14} />
+        Volver
+      </Link>
+
       <div style={{
         padding: '2.5rem 2rem 2.5rem',
         background: 'linear-gradient(160deg, #0f1c2e 0%, #1a2f4a 60%, #0e2236 100%)',
