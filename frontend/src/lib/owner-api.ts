@@ -53,6 +53,16 @@ export const ownerAuthAPI = {
   logout: () => api.post<{ success: boolean; message: string }>('/owner/login/logout'),
 
   me: () => api.get<{ success: boolean; data: OwnerProfile }>('/owner/me'),
+
+  /**
+   * Renueva el access token usando el refresh token en la cookie httpOnly
+   * `lch_owner_refresh`. El backend usa rotating refresh tokens: emite un
+   * nuevo par access+refresh y revoca el refresh entrante. Solo se llama
+   * cuando `/owner/me` devuelve 401 (token expirado) para no forzar
+   * re-login al usuario cada 15 minutos.
+   */
+  refresh: () =>
+    api.post<{ success: boolean; message: string }>('/owner/login/refresh'),
 };
 
 export const ownerApartmentsAPI = {
