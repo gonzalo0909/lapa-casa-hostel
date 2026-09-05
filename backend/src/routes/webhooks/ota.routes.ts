@@ -40,7 +40,7 @@ import { ApiResponse } from '../../utils/responses';
 import type { ChannelCode } from '../../types/database';
 
 const router = Router();
-const webhookLimiter = rateLimiter({ max: 120, windowMs: 60 * 1000 });
+const webhookLimiter = rateLimiter({ max: 120, windowMs: 60 * 1000, prefix: 'ota-webhook' });
 
 interface WebhookChannelConfig {
   channelCode: Extract<ChannelCode, 'booking' | 'expedia'>;

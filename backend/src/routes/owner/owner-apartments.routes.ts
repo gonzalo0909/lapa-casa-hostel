@@ -62,30 +62,37 @@ router.param('id', async (req, res, next, id) => {
   }
 });
 
-const UpdateApartmentSchema = z.object({
-  description: z.string().optional(),
-  neighborhood: z.string().optional(),
-  bedrooms: z.number().int().nullable().optional(),
-  bathrooms: z.number().int().nullable().optional(),
-  amenities: z.any().optional(),
-}).refine((v) => Object.values(v).some((x) => x !== undefined), {
-  message: 'Nada para actualizar',
-});
+const UpdateApartmentSchema = z
+  .object({
+    description: z.string().optional(),
+    neighborhood: z.string().optional(),
+    bedrooms: z.number().int().nullable().optional(),
+    bathrooms: z.number().int().nullable().optional(),
+    amenities: z.any().optional(),
+  })
+  .refine((v) => Object.values(v).some((x) => x !== undefined), {
+    message: 'Nada para actualizar',
+  });
 
 const UploadPhotoSchema = z.object({ altText: z.string().optional() });
 
-const PatchPhotoSchema = z.object({
-  isPrimary: z.boolean().optional(),
-  altText: z.string().optional(),
-  displayOrder: z.number().int().optional(),
-}).refine((v) => v.isPrimary !== undefined || v.altText !== undefined || v.displayOrder !== undefined, {
-  message: 'Nada para actualizar',
-});
+const PatchPhotoSchema = z
+  .object({
+    isPrimary: z.boolean().optional(),
+    altText: z.string().optional(),
+    displayOrder: z.number().int().optional(),
+  })
+  .refine(
+    (v) => v.isPrimary !== undefined || v.altText !== undefined || v.displayOrder !== undefined,
+    {
+      message: 'Nada para actualizar',
+    },
+  );
 
 const CreateReviewSchema = z.object({
   author_name: z.string().trim().min(1),
   platform: z.string().optional(),
-  rating: z.number(),
+  rating: z.number().min(1).max(5),
   comment: z.string().trim().min(1),
   review_date: z.string().optional(),
   is_published: z.boolean().optional(),
@@ -93,7 +100,7 @@ const CreateReviewSchema = z.object({
 
 const UpdateReviewSchema = CreateReviewSchema.partial().refine(
   (v) => Object.values(v).some((x) => x !== undefined),
-  { message: 'Nada para actualizar' }
+  { message: 'Nada para actualizar' },
 );
 
 const CreateBlockSchema = z.object({
@@ -135,7 +142,7 @@ router.get('/', async (req, res, next) => {
        FROM room_types
        WHERE owner_id = $1
        ORDER BY name ASC`,
-      [ownerId]
+      [ownerId],
     );
     res.status(200).json(ApiResponse.success({ apartments: rows }));
   } catch (error) {
@@ -152,7 +159,7 @@ router.get('/:id', async (req, res, next) => {
               bedrooms, bathrooms, amenities, external_rating, external_review_count,
               external_rating_label
        FROM room_types WHERE id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
     res.status(200).json(ApiResponse.success(rows[0]));
   } catch (error) {
@@ -169,24 +176,40 @@ router.get('/:id', async (req, res, next) => {
 router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { description, neighborhood, bedrooms, bathrooms, amenities } =
-      req.body as z.infer<typeof UpdateApartmentSchema>;
+    const { description, neighborhood, bedrooms, bathrooms, amenities } = req.body as z.infer<
+      typeof UpdateApartmentSchema
+    >;
 
     const sets: string[] = [];
     const params: any[] = [];
     const p = () => `$${params.length}`;
-    if (description !== undefined) { params.push(description); sets.push(`description = ${p()}`); }
-    if (neighborhood !== undefined) { params.push(neighborhood); sets.push(`neighborhood = ${p()}`); }
-    if (bedrooms !== undefined) { params.push(bedrooms); sets.push(`bedrooms = ${p()}`); }
-    if (bathrooms !== undefined) { params.push(bathrooms); sets.push(`bathrooms = ${p()}`); }
-    if (amenities !== undefined) { params.push(JSON.stringify(amenities)); sets.push(`amenities = ${p()}::jsonb`); }
+    if (description !== undefined) {
+      params.push(description);
+      sets.push(`description = ${p()}`);
+    }
+    if (neighborhood !== undefined) {
+      params.push(neighborhood);
+      sets.push(`neighborhood = ${p()}`);
+    }
+    if (bedrooms !== undefined) {
+      params.push(bedrooms);
+      sets.push(`bedrooms = ${p()}`);
+    }
+    if (bathrooms !== undefined) {
+      params.push(bathrooms);
+      sets.push(`bathrooms = ${p()}`);
+    }
+    if (amenities !== undefined) {
+      params.push(JSON.stringify(amenities));
+      sets.push(`amenities = ${p()}::jsonb`);
+    }
 
     params.push(id);
     const { rows } = await query(
       `UPDATE room_types SET ${sets.join(', ')}, updated_at = now()
        WHERE id = ${p()}
        RETURNING id, code, name, description, neighborhood, bedrooms, bathrooms, amenities`,
-      params
+      params,
     );
 
     await auditLogService.log({
@@ -210,7 +233,7 @@ router.get('/:id/photos', async (req, res, next) => {
       `SELECT id, image_url, display_order, is_primary, alt_text, created_at
        FROM room_type_photos WHERE room_type_id = $1
        ORDER BY display_order ASC, created_at ASC`,
-      [req.params.id]
+      [req.params.id],
     );
     res.status(200).json(ApiResponse.success({ photos: rows }));
   } catch (error) {
@@ -218,37 +241,42 @@ router.get('/:id/photos', async (req, res, next) => {
   }
 });
 
-router.post('/:id/photos', upload.single('photo'), validate(UploadPhotoSchema), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    if (!req.file) {
-      res.status(400).json(ApiResponse.error('Falta el archivo de imagen (campo "photo")'));
-      return;
-    }
-    const { altText } = req.body as z.infer<typeof UploadPhotoSchema>;
+router.post(
+  '/:id/photos',
+  upload.single('photo'),
+  validate(UploadPhotoSchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      if (!req.file) {
+        res.status(400).json(ApiResponse.error('Falta el archivo de imagen (campo "photo")'));
+        return;
+      }
+      const { altText } = req.body as z.infer<typeof UploadPhotoSchema>;
 
-    const { rows: existing } = await query(
-      `SELECT COUNT(*)::int AS total FROM room_type_photos WHERE room_type_id = $1`,
-      [id]
-    );
-    const isPrimary = existing[0]!.total === 0;
-    const displayOrder = existing[0]!.total;
+      const { rows: existing } = await query(
+        `SELECT COUNT(*)::int AS total FROM room_type_photos WHERE room_type_id = $1`,
+        [id],
+      );
+      const isPrimary = existing[0]!.total === 0;
+      const displayOrder = existing[0]!.total;
 
-    const uploaded = await uploadApartmentPhoto(req.file.buffer);
+      const uploaded = await uploadApartmentPhoto(req.file.buffer);
 
-    const { rows } = await query(
-      `INSERT INTO room_type_photos
+      const { rows } = await query(
+        `INSERT INTO room_type_photos
          (room_type_id, image_url, cloudinary_public_id, display_order, is_primary, alt_text)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, image_url, display_order, is_primary, alt_text, created_at`,
-      [id, uploaded.url, uploaded.publicId, displayOrder, isPrimary, altText ?? null]
-    );
+        [id, uploaded.url, uploaded.publicId, displayOrder, isPrimary, altText ?? null],
+      );
 
-    res.status(201).json(ApiResponse.success({ photo: rows[0] }, 'Foto subida'));
-  } catch (error) {
-    next(error);
-  }
-});
+      res.status(201).json(ApiResponse.success({ photo: rows[0] }, 'Foto subida'));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.patch('/photos/:photoId', validate(PatchPhotoSchema), async (req, res, next) => {
   try {
@@ -266,22 +294,31 @@ router.patch('/photos/:photoId', validate(PatchPhotoSchema), async (req, res, ne
       await query(
         `UPDATE room_type_photos SET is_primary = false, updated_at = now()
          WHERE room_type_id = $1 AND is_primary = true`,
-        [roomTypeId]
+        [roomTypeId],
       );
     }
 
     const sets: string[] = [];
     const params: any[] = [];
-    if (isPrimary !== undefined) { params.push(isPrimary); sets.push(`is_primary = $${params.length}`); }
-    if (altText !== undefined) { params.push(altText || null); sets.push(`alt_text = $${params.length}`); }
-    if (displayOrder !== undefined) { params.push(displayOrder); sets.push(`display_order = $${params.length}`); }
+    if (isPrimary !== undefined) {
+      params.push(isPrimary);
+      sets.push(`is_primary = $${params.length}`);
+    }
+    if (altText !== undefined) {
+      params.push(altText || null);
+      sets.push(`alt_text = $${params.length}`);
+    }
+    if (displayOrder !== undefined) {
+      params.push(displayOrder);
+      sets.push(`display_order = $${params.length}`);
+    }
 
     params.push(photoId);
     const { rows } = await query(
       `UPDATE room_type_photos SET ${sets.join(', ')}, updated_at = now()
        WHERE id = $${params.length}
        RETURNING id, image_url, display_order, is_primary, alt_text`,
-      params
+      params,
     );
 
     res.status(200).json(ApiResponse.success({ photo: rows[0] }, 'Foto actualizada'));
@@ -302,7 +339,7 @@ router.delete('/photos/:photoId', async (req, res, next) => {
 
     const { rows } = await query(
       `SELECT cloudinary_public_id, is_primary FROM room_type_photos WHERE id = $1`,
-      [photoId]
+      [photoId],
     );
     const photo = rows[0]!;
 
@@ -320,7 +357,7 @@ router.delete('/photos/:photoId', async (req, res, next) => {
            ORDER BY display_order ASC, created_at ASC
            LIMIT 1
          )`,
-        [roomTypeId]
+        [roomTypeId],
       );
     }
 
@@ -339,7 +376,7 @@ router.get('/:id/reviews', async (req, res, next) => {
               review_date::text, is_published, created_at
        FROM apartment_reviews WHERE room_type_id = $1
        ORDER BY review_date DESC, created_at DESC`,
-      [req.params.id]
+      [req.params.id],
     );
     res.status(200).json(ApiResponse.success(rows));
   } catch (error) {
@@ -357,7 +394,15 @@ router.post('/:id/reviews', validate(CreateReviewSchema), async (req, res, next)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, author_name, platform, rating, comment,
                  review_date::text, is_published, created_at`,
-      [req.params.id, author_name.trim(), platform || 'Admin', rating, comment.trim(), review_date || null, is_published ?? true]
+      [
+        req.params.id,
+        author_name.trim(),
+        platform || 'Admin',
+        rating,
+        comment.trim(),
+        review_date || new Date().toISOString().slice(0, 10),
+        is_published ?? true,
+      ],
     );
     res.status(201).json(ApiResponse.success(rows[0], 'Reseña creada'));
   } catch (error) {
@@ -379,19 +424,37 @@ router.put('/reviews/:reviewId', validate(UpdateReviewSchema), async (req, res, 
     const sets: string[] = [];
     const params: any[] = [];
     const p = () => `$${params.length}`;
-    if (author_name !== undefined) { params.push(author_name.trim()); sets.push(`author_name = ${p()}`); }
-    if (platform !== undefined) { params.push(platform || 'Admin'); sets.push(`platform = ${p()}`); }
-    if (rating !== undefined) { params.push(rating); sets.push(`rating = ${p()}`); }
-    if (comment !== undefined) { params.push(comment.trim()); sets.push(`comment = ${p()}`); }
-    if (review_date !== undefined) { params.push(review_date || null); sets.push(`review_date = ${p()}`); }
-    if (is_published !== undefined) { params.push(is_published); sets.push(`is_published = ${p()}`); }
+    if (author_name !== undefined) {
+      params.push(author_name.trim());
+      sets.push(`author_name = ${p()}`);
+    }
+    if (platform !== undefined) {
+      params.push(platform || 'Admin');
+      sets.push(`platform = ${p()}`);
+    }
+    if (rating !== undefined) {
+      params.push(rating);
+      sets.push(`rating = ${p()}`);
+    }
+    if (comment !== undefined) {
+      params.push(comment.trim());
+      sets.push(`comment = ${p()}`);
+    }
+    if (review_date !== undefined) {
+      params.push(review_date || null);
+      sets.push(`review_date = ${p()}`);
+    }
+    if (is_published !== undefined) {
+      params.push(is_published);
+      sets.push(`is_published = ${p()}`);
+    }
 
     params.push(reviewId);
     const { rows } = await query(
       `UPDATE apartment_reviews SET ${sets.join(', ')}, updated_at = now()
        WHERE id = ${p()}
        RETURNING id, author_name, platform, rating, comment, review_date::text, is_published, created_at`,
-      params
+      params,
     );
     res.status(200).json(ApiResponse.success(rows[0], 'Reseña actualizada'));
   } catch (error) {
@@ -422,7 +485,7 @@ router.get('/:id/blocks', async (req, res, next) => {
       `SELECT id, start_date::text, end_date::text, block_type, reason, notes, created_at
        FROM room_blocks WHERE room_type_id = $1
        ORDER BY start_date DESC`,
-      [req.params.id]
+      [req.params.id],
     );
     res.status(200).json(ApiResponse.success(rows));
   } catch (error) {
@@ -432,13 +495,40 @@ router.get('/:id/blocks', async (req, res, next) => {
 
 router.post('/:id/blocks', validate(CreateBlockSchema), async (req, res, next) => {
   try {
-    const { start_date, end_date, block_type, reason, notes } =
-      req.body as z.infer<typeof CreateBlockSchema>;
+    const { start_date, end_date, block_type, reason, notes } = req.body as z.infer<
+      typeof CreateBlockSchema
+    >;
+
+    // Auditoría 17 secciones, sección 2: antes solo validaba
+    // start_date < end_date -- un owner podía bloquear fechas con una
+    // reserva confirmada ya activa ahí, sin aviso. Mismo patrón de join
+    // que date-blocker.ts (reservations → reservation_beds → beds).
+    const { rows: conflicts } = await query(
+      `SELECT r.id, g.full_name AS guest_name, rb.check_in::text, rb.check_out::text
+       FROM reservations r
+       JOIN guests g ON g.id = r.guest_id
+       JOIN reservation_beds rb ON rb.reservation_id = r.id
+       JOIN beds b ON b.id = rb.bed_id
+       WHERE b.room_type_id = $1 AND r.status IN ('confirmed', 'pending_payment')
+         AND rb.check_in < $3 AND rb.check_out > $2`,
+      [req.params.id, start_date, end_date],
+    );
+    if (conflicts.length > 0) {
+      res
+        .status(409)
+        .json(
+          ApiResponse.error(
+            `No se puede bloquear: hay ${conflicts.length} reserva(s) confirmada(s) en ese rango de fechas`,
+          ),
+        );
+      return;
+    }
+
     const { rows } = await query(
       `INSERT INTO room_blocks (room_type_id, start_date, end_date, block_type, reason, notes)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, start_date::text, end_date::text, block_type, reason, notes, created_at`,
-      [req.params.id, start_date, end_date, block_type || 'other', reason ?? null, notes ?? null]
+      [req.params.id, start_date, end_date, block_type || 'other', reason ?? null, notes ?? null],
     );
     res.status(201).json(ApiResponse.success(rows[0], 'Bloqueo creado'));
   } catch (error: any) {
@@ -470,7 +560,7 @@ router.delete('/blocks/:blockId', async (req, res, next) => {
 router.get('/:id/pricing', async (req, res, next) => {
   try {
     const all = await dynamicPricingService.getUnitConfigs();
-    const config = all.find(u => u.room_type_id === req.params.id) ?? null;
+    const config = all.find((u) => u.room_type_id === req.params.id) ?? null;
     res.status(200).json(ApiResponse.success(config));
   } catch (error) {
     next(error);
@@ -479,8 +569,9 @@ router.get('/:id/pricing', async (req, res, next) => {
 
 router.put('/:id/pricing', validate(UnitConfigSchema), async (req, res, next) => {
   try {
-    const { min_price_brl, max_price_brl, bot_enabled, notes } =
-      req.body as z.infer<typeof UnitConfigSchema>;
+    const { min_price_brl, max_price_brl, bot_enabled, notes } = req.body as z.infer<
+      typeof UnitConfigSchema
+    >;
     const updated = await dynamicPricingService.upsertUnitConfig(req.params.id, {
       min_price_brl: min_price_brl ?? null,
       max_price_brl: max_price_brl ?? null,

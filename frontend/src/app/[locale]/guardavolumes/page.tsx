@@ -18,16 +18,25 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530';
 
-const DEFAULT_LUGGAGE_STORAGE = { price: 30, days: 'Todos los días', startTime: '08:00', endTime: '22:00' };
+const DEFAULT_LUGGAGE_STORAGE = {
+  price: 30,
+  days: 'Todos los días',
+  startTime: '08:00',
+  endTime: '22:00',
+};
 
 /** Editable desde /admin/pricing.html (system_config.luggage_storage). */
 async function getLuggageStorage(): Promise<typeof DEFAULT_LUGGAGE_STORAGE> {
   try {
     const res = await fetch(`${API_URL}/rooms`, { next: { revalidate: 300 } });
-    if (!res.ok) {return DEFAULT_LUGGAGE_STORAGE;}
+    if (!res.ok) {
+      return DEFAULT_LUGGAGE_STORAGE;
+    }
     const json = await res.json();
     const ls = json?.data?.policies?.luggageStorage;
-    if (!ls || typeof ls.price !== 'number' || !ls.days || !ls.startTime || !ls.endTime) {return DEFAULT_LUGGAGE_STORAGE;}
+    if (!ls || typeof ls.price !== 'number' || !ls.days || !ls.startTime || !ls.endTime) {
+      return DEFAULT_LUGGAGE_STORAGE;
+    }
     return { price: ls.price, days: ls.days, startTime: ls.startTime, endTime: ls.endTime };
   } catch {
     return DEFAULT_LUGGAGE_STORAGE;
@@ -41,7 +50,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   setRequestLocale(locale);
   const title = 'Guarda-equipaje en Santa Teresa — Malas/Guardavolumes | Lapa Casa';
-  const description = 'Dejá tu equipaje en Lapa Casa Hostel, Santa Teresa, aunque no te hospedes acá. Antes del check-in, antes de viajar, o de paso por Rio de Janeiro.';
+  const description =
+    'Deja tu equipaje en Lapa Casa Hostel, Santa Teresa, aunque no te hospedes acá. Antes del check-in, antes de viajar, o de paso por Rio de Janeiro.';
   return {
     title,
     description,
@@ -63,24 +73,26 @@ export async function generateMetadata({
 const USE_CASES = [
   {
     title: 'Llegaste antes del check-in',
-    text: 'Tu vuelo aterrizó temprano y el cuarto todavía no está listo. Dejá la mochila y salí a caminar Santa Teresa con las manos libres.',
+    text: 'Tu vuelo aterrizó temprano y el cuarto todavía no está listo. Deja la mochila y sal a caminar Santa Teresa con las manos libres.',
   },
   {
     title: 'Te vas de viaje a la noche',
-    text: 'Hiciste el check-out pero tu vuelo o bus sale recién de noche. Guardá el equipaje y aprovechá el día en Rio sin cargar nada.',
+    text: 'Hiciste el check-out pero tu vuelo o bus sale recién de noche. Guarda el equipaje y aprovecha el día en Rio sin cargar nada.',
   },
   {
     title: 'Estás de paso por el barrio',
-    text: 'No te hospedás en Lapa Casa, pero estás recorriendo Santa Teresa con la mala a cuestas. Te la guardamos mientras conocés el barrio.',
+    text: 'No te hospedas en Lapa Casa, pero estás recorriendo Santa Teresa con la maleta a cuestas. Te la guardamos mientras conoces el barrio.',
   },
   {
     title: 'Cambiaste de alojamiento',
-    text: 'Salís de un hotel y entrás a otro más tarde, en cualquier punto de Rio. Dejá el equipaje acá y movete liviano por la ciudad.',
+    text: 'Sales de un hotel y entras a otro más tarde, en cualquier punto de Rio. Deja el equipaje aquí y muévete ligero por la ciudad.',
   },
 ];
 
 export default async function GuardavolumesPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
   const luggageStorage = await getLuggageStorage();
 
@@ -88,7 +100,8 @@ export default async function GuardavolumesPage({ params }: { params: { locale: 
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: 'Guarda-equipaje Lapa Casa — Santa Teresa',
-    description: 'Guarda-equipaje abierto a cualquier huésped en Rio de Janeiro, no solo a huéspedes del hostel.',
+    description:
+      'Guarda-equipaje abierto a cualquier huésped en Rio de Janeiro, no solo a huéspedes del hostel.',
     provider: { '@type': 'LodgingBusiness', name: 'Lapa Casa', url: SITE_URL },
     areaServed: { '@type': 'City', name: 'Rio de Janeiro', addressCountry: 'BR' },
     offers: {
@@ -117,11 +130,12 @@ export default async function GuardavolumesPage({ params }: { params: { locale: 
             Santa Teresa · Rio de Janeiro
           </p>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-6 leading-tight">
-            ¿Tenés que dejar la mala en algún lado?
+            ¿Tienes que dejar la maleta en algún lado?
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-            No hace falta ser huésped de Lapa Casa. Te guardamos el equipaje en Santa Teresa estés yendo, viniendo,
-            o simplemente dando una vuelta por Rio — para que camines liviano y disfrutes el día sin cargar nada.
+            No hace falta ser huésped de Lapa Casa. Te guardamos el equipaje en Santa Teresa estés
+            yendo, viniendo, o simplemente dando una vuelta por Rio — para que camines liviano y
+            disfrutes el día sin cargar nada.
           </p>
         </div>
       </section>
@@ -144,7 +158,9 @@ export default async function GuardavolumesPage({ params }: { params: { locale: 
             </span>
             <div>
               <div className="text-xs uppercase tracking-wide text-muted-foreground">Horario</div>
-              <div className="text-lg font-semibold text-foreground">{luggageStorage.startTime} a {luggageStorage.endTime}</div>
+              <div className="text-lg font-semibold text-foreground">
+                {luggageStorage.startTime} a {luggageStorage.endTime}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -179,10 +195,10 @@ export default async function GuardavolumesPage({ params }: { params: { locale: 
         <section className="py-12">
           <div className="bg-card border border-border rounded-xl p-8">
             <h2 className="text-2xl font-display font-semibold text-foreground mb-3">
-              Dejá la mala y salí a disfrutar Rio
+              Deja la maleta y sal a disfrutar Rio
             </h2>
             <p className="text-muted-foreground mb-6">
-              Escribinos por WhatsApp y coordinamos el horario de entrega y retiro.
+              Escríbenos por WhatsApp y coordinamos el horario de entrega y retiro.
             </p>
             <div className="flex flex-wrap gap-3">
               <a

@@ -4,18 +4,11 @@
 // dirección del hostel ni tiene acceso cruzado desde esta página.
 
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ApartmentEngine } from '@/components/booking/apartment-engine-lazy';
 import { StructuredData, ApartmentServiceSchema } from '@/components/seo/structured-data';
 import { FAQSection } from '@/components/seo/faq-section';
 import { locales, defaultLocale, type Locale } from '@/i18n';
-
-// ApartmentEngine es un wizard 100% client-side: lazy-load sin SSR
-// para que su chunk no bloquee el HTML inicial de /apartamentos.
-const ApartmentEngine = dynamic(
-  () => import('@/components/booking/apartment-engine').then((m) => m.ApartmentEngine),
-  { ssr: false },
-);
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 
@@ -34,9 +27,7 @@ export async function generateMetadata({
     // Sin noindex — Google debe indexar /apartamentos con su propio SEO
     alternates: {
       canonical: `${SITE_URL}/${locale}/apartamentos`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${SITE_URL}/${l}/apartamentos`]),
-      ),
+      languages: Object.fromEntries(locales.map((l) => [l, `${SITE_URL}/${l}/apartamentos`])),
     },
     openGraph: {
       title,
@@ -52,9 +43,9 @@ export async function generateMetadata({
 }
 
 export default async function ApartmentsPage({ params }: { params: { locale: string } }) {
-  const locale = (locales.includes(params.locale as Locale)
-    ? params.locale
-    : defaultLocale) as Locale;
+  const locale = (
+    locales.includes(params.locale as Locale) ? params.locale : defaultLocale
+  ) as Locale;
   setRequestLocale(locale);
 
   // Sin PropertyTabs — el huésped de apartamentos no ve el tab de hostel
@@ -63,10 +54,6 @@ export default async function ApartmentsPage({ params }: { params: { locale: str
     <main>
       {/* JSON-LD: área de servicio Rio de Janeiro, sin dirección física */}
       <StructuredData data={ApartmentServiceSchema} />
-
-      {/* h1 SSR visible para crawlers — el motor carga con ssr:false y su h1 no
-          está en el HTML inicial. sr-only evita duplicación visual una vez hidratado. */}
-      <h1 className="sr-only">Lapa Casa Apartamentos — Rio de Janeiro</h1>
 
       <ApartmentEngine locale={locale as 'pt' | 'es' | 'en'} />
 

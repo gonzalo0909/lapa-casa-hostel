@@ -123,6 +123,11 @@ export class ICalParser {
       for (const eventKey in events) {
         const event = events[eventKey];
 
+        // node-ical 0.27+ tipa el acceso por índice como possibly undefined.
+        if (!event) {
+          continue;
+        }
+
         // Only process VEVENT types
         if (event.type !== 'VEVENT') {
           continue;

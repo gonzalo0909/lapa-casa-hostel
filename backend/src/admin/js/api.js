@@ -6,6 +6,12 @@
 
 const API_BASE = '/api/v1';
 
+/** Lee el valor de una cookie no-httpOnly por nombre (para el token CSRF). */
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 // M-02: ya no usamos localStorage para el token.
 // La presencia de sesión se detecta consultando un endpoint ligero.
 let _sessionActive = null; // null = desconocido, true/false = verificado
@@ -32,11 +38,27 @@ async function requireAuth() {
 }
 
 function isLoginPage() {
-  return window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin/index.html');
+  // 2fa-recovery.html también es pre-sesión: un 401 ahí (contraseña o
+  // código de respaldo inválido) debe mostrar el error en la propia
+  // página, no mandar a /admin/index.html como si la sesión hubiera
+  // expirado.
+  return window.location.pathname.endsWith('/admin/')
+    || window.location.pathname.endsWith('/admin/index.html')
+    || window.location.pathname.endsWith('/admin/2fa-recovery.html');
 }
 
 async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+
+  // CSRF (patrón doble cookie, ver backend/src/middleware/csrf.ts): en
+  // requests que modifican datos hay que reenviar el token de la cookie
+  // lch_admin_csrf (no-httpOnly, la emite el login) en este header. GET no
+  // lo necesita -- el middleware solo lo exige en métodos que escriben.
+  const method = (options.method || 'GET').toUpperCase();
+  if (method !== 'GET') {
+    const csrfToken = getCookie('lch_admin_csrf');
+    if (csrfToken) {headers['x-csrf-token'] = csrfToken;}
+  }
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -48,17 +70,22 @@ async function apiFetch(path, options = {}) {
 
   if (res.status === 401) {
     _sessionActive = false;
-    // En la página de login un 401 significa contraseña incorrecta — no redirigir.
+    // En la página de login un 401 significa contraseña incorrecta o 2FA
+    // pendiente (ver body.code, TOTP_REQUIRED/TOTP_INVALID) — no redirigir.
     // En cualquier otra página significa sesión vencida — redirigir al login.
     if (!isLoginPage()) {
       window.location.href = '/admin/index.html';
       throw new Error('Sesión expirada');
     }
-    throw new Error(body.error || 'Credenciales inválidas');
+    const err = new Error(body.error || 'Credenciales inválidas');
+    err.code = body.code;
+    throw err;
   }
 
   if (!res.ok || body.success === false) {
-    throw new Error(body.error || `Error ${res.status}`);
+    const err = new Error(body.error || `Error ${res.status}`);
+    err.code = body.code;
+    throw err;
   }
   return body.data;
 }
@@ -72,10 +99,14 @@ async function logout() {
     // catch-all silenciosamente (el catch de abajo se comía el error), la
     // cookie httpOnly nunca se limpiaba del lado del servidor y el token
     // jamás se revocaba en Redis pese al comentario de la línea de abajo.
+    const csrfToken = getCookie('lch_admin_csrf');
     await fetch(`${API_BASE}/admin/login/logout`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+      },
     });
   } catch {
     // continuar con el redirect aunque falle la revocación

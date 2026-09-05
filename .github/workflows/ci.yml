@@ -7,6 +7,9 @@ on:
     branches: [definitivo2026]
 
 jobs:
+  # Auditoría 17 secciones, sección 10: node-version del job de backend
+  # bumpeado a 22 porque node-ical@0.27+ (fix de seguridad, ver
+  # package.json) lo exige -- ver también Dockerfile (node:22-alpine).
   backend:
     name: Backend — type-check, lint, build, test
     runs-on: ubuntu-latest
@@ -40,7 +43,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: backend/package-lock.json
 

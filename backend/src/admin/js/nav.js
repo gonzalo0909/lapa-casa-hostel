@@ -34,7 +34,8 @@ function renderNav(activePage) {
     { href: '/admin/photos.html', label: 'Fotos huésp.', page: 'photos' },
     { href: '/admin/gallery.html', label: 'Galería', page: 'gallery' },
     { href: '/admin/ical.html', label: 'iCal / OTAs', page: 'ical' },
-    { href: '/admin/blacklist.html', label: 'Lista negra', page: 'blacklist' }
+    { href: '/admin/blacklist.html', label: 'Lista negra', page: 'blacklist' },
+    { href: '/admin/security.html', label: 'Seguridad', page: 'security' }
   ];
 
   const linksHtml = links.map(l =>

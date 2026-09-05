@@ -2,10 +2,10 @@
 
 /**
  * API Client Library
- * 
+ *
  * HTTP client for Lapa Casa backend API.
  * Handles requests, responses, errors, and authentication.
- * 
+ *
  * @module lib/api
  */
 
@@ -16,18 +16,42 @@ const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
   timeout: 30000,
   retryAttempts: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 } as const;
 
 /**
  * API error class
  */
+/**
+ * Lee el valor de una cookie no-httpOnly por nombre (para el token CSRF
+ * del panel de administradores de apartamento, ver owner-auth.routes.ts).
+ * Solo funciona client-side -- `document` no existe en SSR, pero este
+ * cliente solo se usa desde componentes de cliente ('use client').
+ */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match?.[1] !== undefined ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Para los pocos requests que arman su propio FormData en vez de pasar por
+ * `request()` de arriba (ver owner-api.ts uploadPhoto) -- mismo token,
+ * mismo header, expuesto acá para no duplicar la lectura de la cookie.
+ */
+export function getCsrfHeader(): Record<string, string> {
+  const csrfToken = getCookie('lch_owner_csrf');
+  return csrfToken ? { 'x-csrf-token': csrfToken } : {};
+}
+
 export class APIError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
     public code?: string,
-    public details?: any
+    public details?: any,
   ) {
     super(message);
     this.name = 'APIError';
@@ -64,29 +88,26 @@ export interface APIResponse<T = any> {
 
 /**
  * Make HTTP request with retry logic
- * 
+ *
  * @param endpoint - API endpoint
  * @param options - Request options
  * @returns Response data
  */
-async function request<T = any>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
+async function request<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const {
     method = 'GET',
     body,
     headers = {},
     timeout = API_CONFIG.timeout,
     retry = true,
-    token
+    token,
   } = options;
 
   const url = `${API_CONFIG.baseURL}${endpoint}`;
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...headers
+    ...headers,
   };
 
   // Agrega Bearer token solo si se pasa explícitamente. El panel admin real
@@ -98,10 +119,21 @@ async function request<T = any>(
     requestHeaders['Authorization'] = `Bearer ${token}`;
   }
 
+  // CSRF (patrón doble cookie, ver backend/src/middleware/csrf.ts): solo
+  // aplica a las requests autenticadas del panel de administradores de
+  // apartamento (cookie lch_owner_csrf). Las rutas públicas de reservas/
+  // pagos no tienen esta cookie, así que el header simplemente no se manda.
+  if (method !== 'GET') {
+    const csrfToken = getCookie('lch_owner_csrf');
+    if (csrfToken) {
+      requestHeaders['x-csrf-token'] = csrfToken;
+    }
+  }
+
   const requestOptions: RequestInit = {
     method,
     headers: requestHeaders,
-    credentials: 'include'
+    credentials: 'include',
   };
 
   if (body && method !== 'GET') {
@@ -118,7 +150,7 @@ async function request<T = any>(
 
       const response = await fetch(url, {
         ...requestOptions,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -138,7 +170,7 @@ async function request<T = any>(
           responseData?.message || responseData?.error || 'Request failed',
           response.status,
           responseData?.code,
-          responseData
+          responseData,
         );
       }
 
@@ -151,9 +183,7 @@ async function request<T = any>(
       }
 
       if (attempt < maxAttempts - 1) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, API_CONFIG.retryDelay * (attempt + 1))
-        );
+        await new Promise((resolve) => setTimeout(resolve, API_CONFIG.retryDelay * (attempt + 1)));
         continue;
       }
 
@@ -196,7 +226,7 @@ export const api = {
    * DELETE request
    */
   delete: <T = any>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
-    request<T>(endpoint, { ...options, method: 'DELETE' })
+    request<T>(endpoint, { ...options, method: 'DELETE' }),
 };
 
 /**
@@ -232,7 +262,7 @@ export const bookingAPI = {
     language?: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it';
     source?: string;
     guestGender?: 'mixed' | 'female';
-    /** Código de oferta/cupón de descuento (apartamentos). */
+    /** Código de oferta/cupón de descuento -- apartamentos y referidos (idea #49), también válido para el hostel. */
     offerCode?: string;
   }) => api.post('/bookings', data),
 
@@ -255,7 +285,7 @@ export const bookingAPI = {
   /**
    * Confirmation details (número de confirmación, QR, instrucciones de check-in)
    */
-  getConfirmation: (bookingId: string) => api.get(`/bookings/${bookingId}/confirmation`)
+  getConfirmation: (bookingId: string) => api.get(`/bookings/${bookingId}/confirmation`),
 };
 
 /**
@@ -266,7 +296,9 @@ export const availabilityAPI = {
    * Check availability for date range (devuelve las 5 habitaciones reales + pricing)
    */
   check: (params: { checkIn: string; checkOut: string; beds: number }) =>
-    api.get(`/availability/check?checkIn=${params.checkIn}&checkOut=${params.checkOut}&beds=${params.beds}`),
+    api.get(
+      `/availability/check?checkIn=${params.checkIn}&checkOut=${params.checkOut}&beds=${params.beds}`,
+    ),
 
   /**
    * Get single room availability. roomId = room_types.id real (UUID).
@@ -278,14 +310,19 @@ export const availabilityAPI = {
    * Monthly calendar of occupancy
    */
   getCalendar: (params: { month: string; roomId?: string }) =>
-    api.get(`/availability/calendar?month=${params.month}${params.roomId ? `&roomId=${params.roomId}` : ''}`),
+    api.get(
+      `/availability/calendar?month=${params.month}${params.roomId ? `&roomId=${params.roomId}` : ''}`,
+    ),
 
   /**
    * Precio real (temporada + descuento de grupo real, no un cálculo del
    * navegador) para los cuartos/camas que el huésped ya eligió.
    */
-  quote: (data: { checkIn: string; checkOut: string; rooms: Array<{ roomId: string; bedsCount: number }> }) =>
-    api.post('/availability/quote', data),
+  quote: (data: {
+    checkIn: string;
+    checkOut: string;
+    rooms: Array<{ roomId: string; bedsCount: number }>;
+  }) => api.post('/availability/quote', data),
 
   /**
    * Disponibilidad de los 10 apartamentos para el rango de fechas indicado.
@@ -323,8 +360,11 @@ export const paymentAPI = {
   /**
    * Process the deposit shortcut for a reservation
    */
-  processDeposit: (reservationId: string, provider: 'stripe' | 'mercadopago', installments?: number) =>
-    api.post('/payments/deposit', { reservationId, provider, installments }),
+  processDeposit: (
+    reservationId: string,
+    provider: 'stripe' | 'mercadopago',
+    installments?: number,
+  ) => api.post('/payments/deposit', { reservationId, provider, installments }),
 
   /**
    * Get payment status
@@ -345,8 +385,12 @@ export const paymentAPI = {
   /**
    * Genera un link de Stripe para el flujo WhatsApp (sin reserva previa)
    */
-  stripeWaLink: (amountBRL: number, description: string, guestEmail?: string, frontendUrl?: string) =>
-    api.post('/payments/stripe-wa-link', { amountBRL, description, guestEmail, frontendUrl }),
+  stripeWaLink: (
+    amountBRL: number,
+    description: string,
+    guestEmail?: string,
+    frontendUrl?: string,
+  ) => api.post('/payments/stripe-wa-link', { amountBRL, description, guestEmail, frontendUrl }),
 
   /**
    * Crea una sesión de pago grupal — el titular organiza y todos pagan via un único link compartible
@@ -357,30 +401,16 @@ export const paymentAPI = {
     totalBeds: number;
     nights: number;
     guestGender?: 'mixed' | 'female' | 'male';
-    titular: { full_name: string; email: string; phone?: string; country?: string; language?: string };
+    titular: {
+      full_name: string;
+      email: string;
+      phone?: string;
+      country?: string;
+      language?: string;
+    };
     specialRequests?: string;
     appBaseUrl?: string;
   }) => api.post('/payments/group-session', data),
-};
-
-/**
- * Rooms API endpoints — alineados con backend/src/routes/rooms/
- */
-export const roomsAPI = {
-  /**
-   * List all rooms (las 5 reales) + info del hostel, precios base, descuentos, políticas
-   */
-  list: () => api.get('/rooms'),
-
-  /**
-   * Get room by real room_types.id UUID
-   */
-  getById: (roomId: string) => api.get(`/rooms/${roomId}`),
-
-  /**
-   * Flexible-7 conversion status/prediction for a date
-   */
-  getFlexibleStatus: (date: string) => api.get(`/rooms/flexible/status?date=${date}`)
 };
 
 /**
@@ -389,7 +419,7 @@ export const roomsAPI = {
  * la carga es exclusiva del admin (backend/src/admin/photos.html).
  */
 export const photosAPI = {
-  list: () => api.get('/photos')
+  list: () => api.get('/photos'),
 };
 
 /**
@@ -397,7 +427,11 @@ export const photosAPI = {
  * Ruta pública: POST /api/v1/offers/validate
  */
 export const offersAPI = {
-  validate: (code: string, apartmentId: string, checkIn: string) =>
+  // apartmentId opcional -- el hostel también usa este endpoint para
+  // validar códigos de referido (idea #49), sin apartamento asociado.
+  // El backend (POST /offers/validate) ya trata apartmentId como
+  // opcional, solo el tipo acá no lo reflejaba.
+  validate: (code: string, apartmentId: string | undefined, checkIn: string) =>
     api.post('/offers/validate', { code, apartmentId, checkIn }),
 };
 
@@ -406,26 +440,52 @@ export const offersAPI = {
  * Ruta pública: POST /api/v1/partners/contact
  */
 export const partnersAPI = {
-  contact: (data: { name: string; email: string; phone?: string; property: string; message?: string }) =>
-    api.post('/partners/contact', data),
+  contact: (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    property: string;
+    message?: string;
+  }) => api.post('/partners/contact', data),
 };
 
 /**
  * Handle API errors globally
- * 
+ *
  * @param error - Error object
  * @returns Formatted error message
  */
 const GENERIC_ERROR_TEXT: Record<string, { timeout: string; unexpected: string }> = {
-  pt: { timeout: 'A conexão demorou demais. Tente novamente.', unexpected: 'Ocorreu um erro inesperado. Tente novamente.' },
-  es: { timeout: 'La conexión demoró demasiado. Intentá de nuevo.', unexpected: 'Ocurrió un error inesperado. Intentá de nuevo.' },
-  en: { timeout: 'The connection timed out. Please try again.', unexpected: 'An unexpected error occurred. Please try again.' },
-  fr: { timeout: 'La connexion a pris trop de temps. Réessayez.', unexpected: 'Une erreur inattendue est survenue. Réessayez.' },
-  de: { timeout: 'Die Verbindung hat zu lange gedauert. Bitte versuchen Sie es erneut.', unexpected: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.' },
-  it: { timeout: 'La connessione ha impiegato troppo tempo. Riprova.', unexpected: 'Si è verificato un errore imprevisto. Riprova.' },
+  pt: {
+    timeout: 'A conexão demorou demais. Tente novamente.',
+    unexpected: 'Ocorreu um erro inesperado. Tente novamente.',
+  },
+  es: {
+    timeout: 'La conexión demoró demasiado. Intentá de nuevo.',
+    unexpected: 'Ocurrió un error inesperado. Intentá de nuevo.',
+  },
+  en: {
+    timeout: 'The connection timed out. Please try again.',
+    unexpected: 'An unexpected error occurred. Please try again.',
+  },
+  fr: {
+    timeout: 'La connexion a pris trop de temps. Réessayez.',
+    unexpected: 'Une erreur inattendue est survenue. Réessayez.',
+  },
+  de: {
+    timeout: 'Die Verbindung hat zu lange gedauert. Bitte versuchen Sie es erneut.',
+    unexpected: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+  },
+  it: {
+    timeout: 'La connessione ha impiegato troppo tempo. Riprova.',
+    unexpected: 'Si è verificato un errore imprevisto. Riprova.',
+  },
 };
 
-export function handleAPIError(error: unknown, locale: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it' = 'pt'): string {
+export function handleAPIError(
+  error: unknown,
+  locale: 'pt' | 'es' | 'en' | 'fr' | 'de' | 'it' = 'pt',
+): string {
   const text = GENERIC_ERROR_TEXT[locale] ?? GENERIC_ERROR_TEXT.pt!;
 
   if (error instanceof APIError) {
@@ -442,30 +502,7 @@ export function handleAPIError(error: unknown, locale: 'pt' | 'es' | 'en' | 'fr'
   return text.unexpected;
 }
 
-/**
- * Check if error is network error
- * 
- * @param error - Error object
- * @returns True if network error
- */
-export function isNetworkError(error: unknown): boolean {
-  if (error instanceof TypeError) {
-    return error.message.includes('fetch') || error.message.includes('network');
-  }
-  return false;
-}
-
-/**
- * Check if error is timeout error
- * 
- * @param error - Error object
- * @returns True if timeout error
- */
-export function isTimeoutError(error: unknown): boolean {
-  if (error instanceof Error) {
-    return error.name === 'AbortError';
-  }
-  return false;
-}
-
-export default api;
+// FIX (auditoría 17 secciones, sección 13): se eliminan roomsAPI,
+// isNetworkError, isTimeoutError y el `export default api` (duplicaba el
+// export nombrado `api` de arriba) -- sin ningún import externo, verificado
+// con knip + grep manual.

@@ -35,23 +35,52 @@ export class GuestRepository {
       phone?: string | null;
       country?: string | null;
       language?: string | null;
+      /** CPF o pasaporte, sin normalizar -- ver nota más abajo. */
+      document?: string | null;
     },
-    client?: PoolClient
+    client?: PoolClient,
   ): Promise<Guest> {
     const run = client
       ? (text: string, params: unknown[]) => client.query<Guest>(text, params)
       : (text: string, params: unknown[]) => query<Guest>(text, params);
+    // FIX (2026-09-04): guests.document_number nunca se escribía en ningún
+    // lugar del backend -- la lista negra de huéspedes (bookings/
+    // create-booking.ts, anyDocumentBlocked()) compara CPFs contra esta
+    // columna, así que nunca podía coincidir con nadie y el bloqueo no
+    // tenía ningún efecto real. Se normaliza igual que normalizeCPF() en
+    // create-booking.ts (solo dígitos); si tiene letras se guarda como
+    // pasaporte tal cual, sin normalizar.
+    const documentNumber = data.document
+      ? /[a-zA-Z]/.test(data.document)
+        ? data.document.trim()
+        : data.document.replace(/\D/g, '')
+      : null;
+    const documentType = data.document
+      ? /[a-zA-Z]/.test(data.document)
+        ? 'passaporte'
+        : 'CPF'
+      : null;
     const { rows } = await run(
-      `INSERT INTO guests (full_name, email, phone, country, language)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO guests (full_name, email, phone, country, language, document_number, document_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (email) DO UPDATE SET
-         full_name  = EXCLUDED.full_name,
-         phone      = COALESCE(EXCLUDED.phone, guests.phone),
-         country    = COALESCE(EXCLUDED.country, guests.country),
-         language   = COALESCE(EXCLUDED.language, guests.language),
-         updated_at = now()
+         full_name       = EXCLUDED.full_name,
+         phone           = COALESCE(EXCLUDED.phone, guests.phone),
+         country         = COALESCE(EXCLUDED.country, guests.country),
+         language        = COALESCE(EXCLUDED.language, guests.language),
+         document_number = COALESCE(EXCLUDED.document_number, guests.document_number),
+         document_type   = COALESCE(EXCLUDED.document_type, guests.document_type),
+         updated_at      = now()
        RETURNING *`,
-      [data.full_name, data.email, data.phone ?? null, data.country ?? null, data.language ?? null]
+      [
+        data.full_name,
+        data.email,
+        data.phone ?? null,
+        data.country ?? null,
+        data.language ?? null,
+        documentNumber,
+        documentType,
+      ],
     );
     return rows[0];
   }
@@ -65,22 +94,29 @@ export class GuestRepository {
            updated_at = now()
        WHERE id = $1
        RETURNING *`,
-      [id, photo.url, photo.publicId]
+      [id, photo.url, photo.publicId],
     );
-    if (!rows[0]) {throw new Error('Guest not found');}
+    if (!rows[0]) {
+      throw new Error('Guest not found');
+    }
     return rows[0];
   }
 
-  async update(id: string, data: Partial<{
-    full_name: string;
-    phone: string;
-    country: string;
-    language: string;
-  }>): Promise<Guest> {
+  async update(
+    id: string,
+    data: Partial<{
+      full_name: string;
+      phone: string;
+      country: string;
+      language: string;
+    }>,
+  ): Promise<Guest> {
     const entries = Object.entries(data).filter(([, v]) => v !== undefined);
     if (entries.length === 0) {
       const { rows } = await query<Guest>(`SELECT * FROM guests WHERE id = $1`, [id]);
-      if (!rows[0]) {throw new Error('Guest not found');}
+      if (!rows[0]) {
+        throw new Error('Guest not found');
+      }
       return rows[0];
     }
     const sets = entries.map(([key], i) => `${key} = $${i + 1}`);
@@ -88,9 +124,11 @@ export class GuestRepository {
     values.push(id);
     const { rows } = await query<Guest>(
       `UPDATE guests SET ${sets.join(', ')}, updated_at = now() WHERE id = $${values.length} RETURNING *`,
-      values
+      values,
     );
-    if (!rows[0]) {throw new Error('Guest not found');}
+    if (!rows[0]) {
+      throw new Error('Guest not found');
+    }
     return rows[0];
   }
 }

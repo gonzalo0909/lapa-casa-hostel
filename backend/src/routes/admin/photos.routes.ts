@@ -11,6 +11,7 @@ import multer from 'multer';
 import { z } from 'zod';
 import { query } from '../../config/database';
 import { uploadGuestPhoto, deleteGuestPhoto } from '../../lib/cloudinary/cloudinary-client';
+import { isRealImage } from '../../utils/validate-image-bytes';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
 import { validate } from '../../middleware/validation';
@@ -74,6 +75,13 @@ router.post('/', upload.single('photo'), validate(UploadGuestPhotoSchema), async
   try {
     if (!req.file) {
       res.status(400).json(ApiResponse.error('Falta el archivo de imagen (campo "photo")'));
+      return;
+    }
+    // Auditoría 17 secciones, sección 15: multer.fileFilter solo vio el
+    // Content-Type declarado; acá ya tenemos el buffer real, así que se
+    // valida contra los magic bytes reales antes de subir a Cloudinary.
+    if (!isRealImage(req.file.buffer)) {
+      res.status(400).json(ApiResponse.error('El archivo no es una imagen válida'));
       return;
     }
 

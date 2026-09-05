@@ -59,12 +59,57 @@ export const generateTempPassword = (length = 12): string => {
   return result;
 };
 
+// Mismo alfabeto legible que generateTempPassword, pero solo mayúsculas --
+// apartment_offers.code se compara siempre en mayúsculas (ver
+// create-booking.ts/offers.routes.ts, .toUpperCase() antes del match), un
+// código de referido con minúsculas generaría confusión al compartirlo a
+// mano sin ningún beneficio real.
+const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+/** Código de referido -- prefijo fijo para que se distinga a simple vista de un cupón armado a mano por el admin. */
+export function generateReferralCode(): string {
+  const bytes = crypto.randomBytes(6);
+  let suffix = '';
+  for (let i = 0; i < 6; i++) {
+    suffix += REFERRAL_CODE_ALPHABET[bytes[i] % REFERRAL_CODE_ALPHABET.length];
+  }
+  return `REF-${suffix}`;
+}
+
+// Convierte '24h'/'7d'/'90d' (mismo formato que JWT_EXPIRES_IN) a ms/segundos.
+// Compartido entre admin-auth.routes.ts y owner-auth.routes.ts para que un
+// TTL de cookie/blacklist no pueda quedar corregido en un panel y
+// desactualizado en el otro (auditoría 17 secciones, hallazgo sección 15).
+export function durationToMs(duration: string, fallbackMs: number): number {
+  const match = /^(\d+)(d|h|m)$/.exec(duration.trim());
+  if (!match) {
+    return fallbackMs;
+  }
+  const value = Number(match[1]);
+  const unitMs = { d: 86400000, h: 3600000, m: 60000 }[match[2] as 'd' | 'h' | 'm'];
+  return value * unitMs;
+}
+
+export function durationToSeconds(duration: string, fallbackSeconds: number): number {
+  return Math.floor(durationToMs(duration, fallbackSeconds * 1000) / 1000);
+}
+
+// Token del patrón "doble cookie" para CSRF (ver middleware/csrf.ts) --
+// random, sin relación con el JWT de sesión, se emite en el login como
+// cookie NO httpOnly para que el frontend lo pueda leer y reenviar en un
+// header en cada request que modifica datos.
+export function generateCsrfToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
 export const generateToken = (
   payload: JWTPayload,
-  expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration
+  expiresIn: string = ENCRYPTION_CONFIG.jwtExpiration,
 ): string => {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {throw new Error('JWT_SECRET not configured');}
+  if (!secret) {
+    throw new Error('JWT_SECRET not configured');
+  }
   return (jwt.sign as any)(payload, secret, {
     expiresIn,
     issuer: 'lapa-casa-hostel',

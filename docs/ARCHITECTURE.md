@@ -6,7 +6,7 @@
                       ┌─────────────────────┐
    Booking.com  ─────▶│                      │
    Hostelworld  ──────▶   Backend (Node/     │◀────▶  Supabase (Postgres 17,
-   Airbnb       ──────▶   Express, Render)   │         sa-east-1)
+   Airbnb       ──────▶   Express, Fly.io)   │         sa-east-1)
    Expedia      ─────▶│                      │         - 17 tablas
                       └──────────┬───────────┘         - EXCLUDE constraint
                                  │                      - funciones SQL
@@ -14,21 +14,32 @@
                        │                    │
                   BullMQ workers      Panel admin
                  (proceso aparte,     (estático, servido
-                  requiere Redis)      en /admin)
+                  Fly.io, requiere     en /admin)
+                  Redis)
                        │
               Redis (Upstash) — cache +
               colas + rate limiting
+
+   Frontend (Next.js, motor de reservas real) y landing estática:
+   Render, procesos aparte del backend. Ver docs/DEPLOY.md.
 ```
 
 - **Backend**: Node/Express, un solo proceso HTTP (`src/server.ts` → `src/app.ts`).
+  Corre en Fly.io desde 2026-09-02 (antes en Render — ver `render.yaml` y
+  `docs/DEPLOY.md` para el detalle de la migración).
 - **Workers**: proceso separado (`src/workers/index.ts`, `npm run worker`), consume
   las colas BullMQ. Sin `REDIS_URL` no arranca — el servidor HTTP sigue funcionando
-  igual (reservas se siguen creando), pero nada asíncrono se procesa.
+  igual (reservas se siguen creando), pero nada asíncrono se procesa. También en
+  Fly.io, como VM separada sin `[http_service]` (no recibe tráfico HTTP directo).
 - **Base de datos**: Supabase (Postgres real), única fuente de verdad. `availability_cache`
   es dato derivado, recalculable — nunca se lee como fuente de verdad en decisiones de
   negocio.
-- **Landing estática**: `public/landing/` servida en el dominio raíz mientras no existe
-  el frontend de reservas de Fase 2 (`frontend/`, Next.js, sin páginas todavía).
+- **Frontend**: `frontend/` (Next.js App Router) ya tiene el motor de reservas real
+  (hostel + apartamentos) conectado a la API, en 6 idiomas. Corre en Render, proceso
+  separado del backend.
+- **Landing estática**: `public/landing/` servida en el dominio raíz (info de contacto
+  + links directos a las OTAs) mientras el dueño decide pasar el dominio raíz al
+  frontend real. También en Render.
 
 ## Requisito crítico #6: SQL como única implementación de negocio
 
@@ -114,8 +125,9 @@ claves distintos a lo que el proveedor firmó). Ver `routes/webhooks/ota.routes.
 
 ## Observabilidad (Ventana 6)
 
-- `GET /health`: chequeo mínimo (solo DB), es el que usa Render como
-  `healthCheckPath` — tiene que responder rápido.
+- `GET /health`: chequeo mínimo (solo DB), es el que usa Fly.io como
+  healthcheck (`[[http_service.checks]]` en `backend/fly.toml`) — tiene que
+  responder rápido.
 - `GET /api/health`: chequeo extendido (DB, Redis, colas BullMQ, Stripe/MP/email
   configurados) — `src/monitoring/health.ts`.
 - `GET /api/metrics`: requests/min, latencia, tasa de error, en memoria por proceso —

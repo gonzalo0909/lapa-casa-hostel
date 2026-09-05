@@ -24,13 +24,25 @@ function renderBarChart(containerId, items, opts = {}) {
 async function handleLogin(event) {
   event.preventDefault();
   const password = document.getElementById('password').value;
+  const totpToken = document.getElementById('totp-token').value;
   try {
     // M-02: el servidor emite la cookie httpOnly en la respuesta — no hay
     // token en el body, la sesión queda activa automáticamente.
-    await apiFetch('/admin/login', { method: 'POST', body: JSON.stringify({ password }) });
+    await apiFetch('/admin/login', {
+      method: 'POST',
+      body: JSON.stringify(totpToken ? { password, totpToken } : { password }),
+    });
     _sessionActive = true;
     initDashboard();
   } catch (err) {
+    // TOTP_REQUIRED: contraseña correcta, falta el código -- se muestra el
+    // campo sin decir "credenciales inválidas" (la contraseña SÍ era correcta).
+    if (err.code === 'TOTP_REQUIRED') {
+      document.getElementById('totp-field').classList.remove('hidden');
+      document.getElementById('totp-token').focus();
+      showMsg('login-msg', 'Ingresá el código de 6 dígitos de tu app autenticadora.', 'info');
+      return;
+    }
     showMsg('login-msg', err.message, 'error');
   }
 }
