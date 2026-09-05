@@ -30,7 +30,7 @@
     "sharp": "^0.35.4",
     "tailwind-merge": "^2.4.0",
     "typescript": "^5.5.4",
-    "zustand": "^4.5.4"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^14.2.5",
