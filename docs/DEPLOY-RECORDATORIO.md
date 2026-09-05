@@ -34,7 +34,8 @@ Todo se hace desde el dashboard web de Fly (fly.io/dashboard), sin instalar nada
    `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `MP_ACCESS_TOKEN`,
    `MP_WEBHOOK_SECRET`, `RESEND_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`,
    `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
-   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`.
+   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`,
+   `SENTRY_DSN` (proyecto `lapa-backend` en sentry.io → Settings → Client Keys).
    **`DATABASE_CA_CERT` ya no hace falta** — es código (`backend/src/config/supabase-ca.ts`), no secreto.
 5. Settings → **Auto-Deploy on push**, rama `definitivo2026` — cada push despliega solo
 6. Certificates → agregar `api.lapacasario.com`, cargar los registros DNS que muestra en Porkbun
@@ -49,6 +50,7 @@ y `www.lapacasario.com` como Custom Domains apuntando ahí. Variables clave:
 ```
 NEXT_PUBLIC_API_URL=https://api.lapacasario.com/api/v1
 NEXT_PUBLIC_SITE_URL=https://www.lapacasario.com
+NEXT_PUBLIC_SENTRY_DSN=https://...@o....ingest.sentry.io/...   # Proyecto lapa-frontend en sentry.io
 ```
 
 Cuando se migre a Vercel: nuevo proyecto ahí con las mismas variables, y cambiar
