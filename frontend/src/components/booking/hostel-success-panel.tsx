@@ -30,6 +30,12 @@ interface HostelSuccessPanelProps {
   paymentInitFailed?: boolean;
   /** Código de referido propio, generado al confirmar (idea #49, roadmap.html). */
   referralCode?: string | null;
+  /** Error al generar el link de pago con tarjeta — habilita botón de reintento. */
+  paymentLinkError?: boolean;
+  /** Indica que se está reintentando la generación del link de pago. */
+  isRetryingPayment?: boolean;
+  /** Callback para reintentar la generación del link de pago con tarjeta. */
+  onRetryPaymentLink?: () => void;
 }
 
 export function HostelSuccessPanel({
@@ -46,6 +52,9 @@ export function HostelSuccessPanel({
   onSwitchMethod,
   paymentInitFailed,
   referralCode,
+  paymentLinkError,
+  isRetryingPayment,
+  onRetryPaymentLink,
 }: HostelSuccessPanelProps) {
   const [referralCopied, setReferralCopied] = useState(false);
   const handleReferralCopy = () => {
@@ -132,6 +141,11 @@ export function HostelSuccessPanel({
               </div>
               <div className="he-pix-amt">{price ? fmtMoney(price.deposit) : ''}</div>
               {paymentInitFailed && <div className="he-min-warn">{t.payInitFailedMsg}</div>}
+              {paymentLinkError && !stripeUrl && (
+                <div className="he-min-warn" style={{ marginBottom: '.6rem' }}>
+                  {t.paymentLinkErrorMsg}
+                </div>
+              )}
               {stripeUrl ? (
                 <a
                   href={stripeUrl}
@@ -142,16 +156,29 @@ export function HostelSuccessPanel({
                   {t.cardGoToPayment ?? 'Ir al pago con tarjeta →'}
                 </a>
               ) : !paymentInitFailed ? (
-                <div
-                  style={{
-                    fontSize: '.72rem',
-                    color: 'rgba(255,255,255,.7)',
-                    marginTop: '.2rem',
-                    textAlign: 'center',
-                  }}
-                >
-                  {t.cardInstruction}
-                </div>
+                <>
+                  <div
+                    style={{
+                      fontSize: '.72rem',
+                      color: 'rgba(255,255,255,.7)',
+                      marginTop: '.2rem',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {t.cardInstruction}
+                  </div>
+                  {paymentLinkError && onRetryPaymentLink && (
+                    <button
+                      type="button"
+                      className="he-btn-confirm"
+                      style={{ marginTop: '.75rem' }}
+                      disabled={isRetryingPayment}
+                      onClick={onRetryPaymentLink}
+                    >
+                      {isRetryingPayment ? '...' : 'Reintentar'}
+                    </button>
+                  )}
+                </>
               ) : null}
               <div className="he-timer">
                 {t.timerLabel}: <strong>{timerStr}</strong>
