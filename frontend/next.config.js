@@ -111,7 +111,7 @@ const nextConfig = {
               "img-src 'self' data: https:",
               "font-src 'self' data:",
               // ingest.sentry.io y o*.ingest.sentry.io: destino de los reportes de error
-              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://o0.ingest.sentry.io https://o1.ingest.sentry.io https://o2.ingest.sentry.io https://o3.ingest.sentry.io https://o4.ingest.sentry.io`,
+              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://o0.ingest.sentry.io https://o1.ingest.sentry.io https://o2.ingest.sentry.io https://o3.ingest.sentry.io https://o4.ingest.sentry.io https://*.ingest.us.sentry.io`,
               "frame-src https://js.stripe.com",
             ].join('; '),
           },
