@@ -89,7 +89,7 @@ const upload = multer({
 router.get('/', async (_req, res, next) => {
   try {
     const { rows } = await query(
-      `SELECT rt.id, rt.code, rt.name, rt.capacity, rt.base_price,
+      `SELECT rt.id, rt.code, rt.name, rt.capacity, rt.base_price, rt.owner_id,
               COUNT(rtp.id)::int AS photo_count,
               (SELECT rtp2.image_url FROM room_type_photos rtp2
                WHERE rtp2.room_type_id = rt.id AND rtp2.is_primary = true LIMIT 1) AS primary_photo
