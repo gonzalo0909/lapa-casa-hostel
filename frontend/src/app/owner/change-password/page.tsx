@@ -6,14 +6,14 @@
 // (mustChangePassword=true en owner_apartments -- ver owner-auth.routes.ts).
 // También queda accesible después para cambiarla cuando quiera.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ownerAuthAPI } from '@/lib/owner-api';
-import { handleAPIError } from '@/lib/api';
+import { handleAPIError, APIError } from '@/lib/api';
 
 export default function OwnerChangePasswordPage() {
   const router = useRouter();
@@ -21,6 +21,13 @@ export default function OwnerChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Verificar sesión al montar — si no hay token válido, redirigir al login
+  useEffect(() => {
+    ownerAuthAPI.me().catch(() => {
+      router.replace('/owner/login');
+    });
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +47,10 @@ export default function OwnerChangePasswordPage() {
       await ownerAuthAPI.changePassword(newPassword);
       router.push('/owner');
     } catch (err) {
+      if (err instanceof APIError && err.statusCode === 401) {
+        router.replace('/owner/login');
+        return;
+      }
       setError(handleAPIError(err, 'pt'));
     } finally {
       setLoading(false);
