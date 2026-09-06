@@ -173,6 +173,9 @@ export const HOSTEL_ENGINE_CSS = `
 .he-pix-qr-img{width:128px;height:128px;border-radius:6px;border:3px solid #fff;display:block}
 .he-pix-copy-btn{font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.35em .8em;border-radius:6px;border:1.5px solid #7BC47F;background:transparent;color:#7BC47F;cursor:pointer;transition:background .12s,color .12s}
 .he-pix-copy-btn:hover{background:#7BC47F;color:#0D1C12}
+.he-pix-copy-btn:disabled{opacity:.6;cursor:default}
+.he-pix-qr-error{width:180px;padding:.75rem;background:rgba(220,38,38,.12);border:1.5px solid rgba(248,113,113,.5);border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:.5rem;color:#FCA5A5}
+.he-pix-qr-error p{font-size:.7rem;line-height:1.3;text-align:center;margin:0;color:rgba(255,255,255,.85)}
 .he-pix-key{font-size:.65rem;color:rgba(255,255,255,.55);margin-top:-.1rem}
 .he-stripe-link{font-size:.78rem;font-weight:700;padding:.4em 1em;border-radius:8px;background:#635BFF;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:background .12s}
 .he-stripe-link:hover{background:#7B74FF}

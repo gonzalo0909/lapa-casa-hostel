@@ -146,6 +146,8 @@ export const T = {
     btnChangeMethod: 'Trocar forma de pagamento',
     payInitFailedMsg:
       'Sua reserva está confirmada, mas não conseguimos gerar o código de pagamento agora. Tente novamente ou fale conosco pelo WhatsApp.',
+    paymentLinkErrorMsg:
+      'Não conseguimos gerar o link de pagamento. Tente novamente ou fale conosco pelo WhatsApp.',
     expiredTitle: 'Reserva não concluída',
     expiredSub: 'O tempo expirou. As vagas foram liberadas.',
     btnTryAgain: 'Tentar novamente',
@@ -291,6 +293,8 @@ export const T = {
     btnChangeMethod: 'Cambiar forma de pago',
     payInitFailedMsg:
       'Tu reserva está confirmada, pero no pudimos generar el código de pago ahora. Probá de nuevo o escribinos por WhatsApp.',
+    paymentLinkErrorMsg:
+      'No pudimos generar el enlace de pago. Intentá de nuevo o escribinos por WhatsApp.',
     expiredTitle: 'Reserva no concretada',
     expiredSub: 'El tiempo expiró. Los espacios fueron liberados.',
     btnTryAgain: 'Intentar de nuevo',
@@ -435,6 +439,8 @@ export const T = {
     btnChangeMethod: 'Change payment method',
     payInitFailedMsg:
       'Your booking is confirmed, but we could not generate the payment code right now. Try again or contact us on WhatsApp.',
+    paymentLinkErrorMsg:
+      'We could not generate the payment link. Please try again or contact us on WhatsApp.',
     expiredTitle: 'Booking not completed',
     expiredSub: 'Time expired. The beds have been released.',
     btnTryAgain: 'Try again',
@@ -580,6 +586,8 @@ export const T = {
     btnChangeMethod: 'Changer de moyen de paiement',
     payInitFailedMsg:
       "Votre réservation est confirmée, mais nous n'avons pas pu générer le code de paiement pour le moment. Réessayez ou contactez-nous sur WhatsApp.",
+    paymentLinkErrorMsg:
+      "Nous n'avons pas pu générer le lien de paiement. Réessayez ou contactez-nous sur WhatsApp.",
     expiredTitle: 'Réservation non finalisée',
     expiredSub: 'Le délai est expiré. Les lits ont été libérés.',
     btnTryAgain: 'Réessayer',
@@ -725,6 +733,8 @@ export const T = {
     btnChangeMethod: 'Zahlungsmethode ändern',
     payInitFailedMsg:
       'Ihre Buchung ist bestätigt, aber wir konnten den Zahlungscode gerade nicht erstellen. Versuchen Sie es erneut oder kontaktieren Sie uns per WhatsApp.',
+    paymentLinkErrorMsg:
+      'Wir konnten den Zahlungslink nicht erstellen. Versuchen Sie es erneut oder kontaktieren Sie uns per WhatsApp.',
     expiredTitle: 'Buchung nicht abgeschlossen',
     expiredSub: 'Zeit abgelaufen. Die Betten wurden freigegeben.',
     btnTryAgain: 'Erneut versuchen',
@@ -870,6 +880,8 @@ export const T = {
     btnChangeMethod: 'Cambia metodo di pagamento',
     payInitFailedMsg:
       'La tua prenotazione è confermata, ma al momento non siamo riusciti a generare il codice di pagamento. Riprova o scrivici su WhatsApp.',
+    paymentLinkErrorMsg:
+      'Non siamo riusciti a generare il link di pagamento. Riprova o scrivici su WhatsApp.',
     expiredTitle: 'Prenotazione non completata',
     expiredSub: 'Il tempo è scaduto. I posti sono stati liberati.',
     btnTryAgain: 'Riprova',
