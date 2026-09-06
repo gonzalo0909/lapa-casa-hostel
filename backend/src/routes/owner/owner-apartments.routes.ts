@@ -23,7 +23,7 @@ import { Router, type Request } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import { query } from '../../config/database';
-import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/supabase/storage-client';
+import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/cloudinary/cloudinary-client';
 import { dynamicPricingService } from '../../services/dynamic-pricing-service';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
@@ -284,7 +284,7 @@ router.post(
 
       let uploaded: { url: string; publicId: string };
       try {
-        uploaded = await uploadApartmentPhoto(req.file.buffer, req.file.mimetype);
+        uploaded = await uploadApartmentPhoto(req.file.buffer);
       } catch (uploadErr: any) {
         // Devolver el motivo real al cliente (evita que se enmascare como
         // "An unexpected error occurred" por el error handler de producción).
