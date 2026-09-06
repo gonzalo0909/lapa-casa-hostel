@@ -282,7 +282,20 @@ router.post(
       const isPrimary = existing[0]!.total === 0;
       const displayOrder = existing[0]!.total;
 
-      const uploaded = await uploadApartmentPhoto(req.file.buffer);
+      let uploaded: { url: string; publicId: string };
+      try {
+        uploaded = await uploadApartmentPhoto(req.file.buffer);
+      } catch (uploadErr: any) {
+        // Devolver el motivo real al cliente (evita que se enmascare como
+        // "An unexpected error occurred" por el error handler de producción).
+        // Se sanitiza: solo se expone el mensaje de la librería, no el stack.
+        const msg: string =
+          uploadErr?.message === 'Cloudinary no está configurado'
+            ? 'El servicio de fotos no está configurado en el servidor. Contacte al administrador.'
+            : uploadErr?.message || 'Error al subir la foto. Inténtelo de nuevo.';
+        res.status(422).json(ApiResponse.error(msg));
+        return;
+      }
 
       const { rows } = await query(
         `INSERT INTO room_type_photos
