@@ -23,7 +23,7 @@ import { Router, type Request } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import { query } from '../../config/database';
-import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/cloudinary/cloudinary-client';
+import { uploadApartmentPhoto, deleteApartmentPhoto } from '../../lib/supabase/storage-client';
 import { dynamicPricingService } from '../../services/dynamic-pricing-service';
 import { auditLogService } from '../../services/audit-log-service';
 import { ApiResponse } from '../../utils/responses';
@@ -284,15 +284,12 @@ router.post(
 
       let uploaded: { url: string; publicId: string };
       try {
-        uploaded = await uploadApartmentPhoto(req.file.buffer);
+        uploaded = await uploadApartmentPhoto(req.file.buffer, req.file.mimetype);
       } catch (uploadErr: any) {
         // Devolver el motivo real al cliente (evita que se enmascare como
         // "An unexpected error occurred" por el error handler de producción).
         // Se sanitiza: solo se expone el mensaje de la librería, no el stack.
-        const msg: string =
-          uploadErr?.message === 'Cloudinary no está configurado'
-            ? 'El servicio de fotos no está configurado en el servidor. Contacte al administrador.'
-            : uploadErr?.message || 'Error al subir la foto. Inténtelo de nuevo.';
+        const msg: string = uploadErr?.message || 'Error al subir la foto. Inténtelo de nuevo.';
         res.status(422).json(ApiResponse.error(msg));
         return;
       }
