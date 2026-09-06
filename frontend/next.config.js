@@ -105,7 +105,8 @@ const nextConfig = {
               // en versiones más recientes de la librería. Se elimina para
               // reducir la superficie de ataque XSS -- si Stripe.js rompe
               // en producción, se puede restaurar con evidencia concreta.
-              `script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
+              // blob: requerido por el web-worker interno de Sentry para enviar eventos
+              `script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
