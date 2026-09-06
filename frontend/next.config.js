@@ -285,11 +285,6 @@ module.exports = withSentryConfig(
       deleteSourcemapsAfterUpload: true,
     },
 
-    // Tunneling: enruta los reportes de Sentry a través del propio dominio
-    // del sitio (/monitoring) para evitar que bloqueadores de anuncios los
-    // filtren. El path /monitoring no colisiona con las rutas existentes.
-    tunnelRoute: '/monitoring',
-
     // Desactiva automáticamente Sentry si NEXT_PUBLIC_SENTRY_DSN no está
     // configurado — evita errores en entornos sin Sentry.
     disableLogger: true,
