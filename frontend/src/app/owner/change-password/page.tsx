@@ -10,10 +10,13 @@
 // puede fallar por razones transitorias (cookie aún no propagada al momento
 // de la primera render post-login, error de red, etc.) y generar un redirect
 // a /login que el usuario vive como "el formulario aparece y desaparece".
-// La protección real está en el propio endpoint POST /owner/login/change-password:
-// si el token no es válido devuelve 401 y el handler del submit lo captura y
-// redirige al login -- exactamente igual al comportamiento esperado, sin
-// el falso-negativo que causaba el chequeo preventivo.
+//
+// Si el POST de cambio devuelve 401 (access token expirado o inválido), se
+// intenta renovar vía /refresh antes de redirigir al login: el acceso token
+// dura 15 minutos pero el formulario podría mostrarse justo antes del vence
+// (en /owner/* protegido) o el navegador no propagó la cookie a tiempo tras
+// el redirect del login. El refresh token dura 90 días y es la salvaguarda
+// en ambos casos.
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -50,7 +53,19 @@ export default function OwnerChangePasswordPage() {
       router.push('/owner');
     } catch (err) {
       if (err instanceof APIError && err.statusCode === 401) {
-        router.replace('/owner/login');
+        // Intentar renovar el access token con el refresh token antes de
+        // forzar re-login. Cubre el caso en que el access token vence justo
+        // mientras el usuario rellena el formulario o la cookie tarda en
+        // propagarse tras el redirect del login.
+        try {
+          await ownerAuthAPI.refresh();
+          await ownerAuthAPI.changePassword(newPassword);
+          router.push('/owner');
+        } catch {
+          // Refresh también falló (refresh token expirado/revocado o cuenta
+          // desactivada) → no hay sesión recuperable, volver al login.
+          router.replace('/owner/login');
+        }
         return;
       }
       setError(handleAPIError(err, 'pt'));

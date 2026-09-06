@@ -118,6 +118,11 @@ export const corsOptions: CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
   // Allowed headers
+  // x-csrf-token: requerido por el patrón doble cookie del panel de owners
+  // (ver backend/src/middleware/csrf.ts y frontend/src/lib/api.ts) -- el
+  // frontend lo incluye en cada request no-GET una vez que recibe la cookie
+  // lch_owner_csrf del login. Sin este header en la lista, el preflight CORS
+  // falla para todos los POST/PUT/DELETE del panel y nunca llegan al servidor.
   allowedHeaders: [
     'Content-Type',
     'Authorization',
@@ -126,7 +131,8 @@ export const corsOptions: CorsOptions = {
     'Accept',
     'Accept-Language',
     'Cache-Control',
-    'Pragma'
+    'Pragma',
+    'x-csrf-token',
   ],
 
   // Exposed headers (accessible to client)
