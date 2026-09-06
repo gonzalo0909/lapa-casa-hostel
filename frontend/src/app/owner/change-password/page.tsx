@@ -3,10 +3,19 @@
 // lapa-casa-hostel/frontend/src/app/owner/change-password/page.tsx
 //
 // Cambio de contraseña obligatorio la primera vez que el dueño entra
-// (mustChangePassword=true en owner_apartments -- ver owner-auth.routes.ts).
+// (mustChangePassword=true en apartment_owners -- ver owner-auth.routes.ts).
 // También queda accesible después para cambiarla cuando quiera.
+//
+// No se valida la sesión al montar con un GET /owner/me porque ese llamado
+// puede fallar por razones transitorias (cookie aún no propagada al momento
+// de la primera render post-login, error de red, etc.) y generar un redirect
+// a /login que el usuario vive como "el formulario aparece y desaparece".
+// La protección real está en el propio endpoint POST /owner/login/change-password:
+// si el token no es válido devuelve 401 y el handler del submit lo captura y
+// redirige al login -- exactamente igual al comportamiento esperado, sin
+// el falso-negativo que causaba el chequeo preventivo.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,13 +30,6 @@ export default function OwnerChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Verificar sesión al montar — si no hay token válido, redirigir al login
-  useEffect(() => {
-    ownerAuthAPI.me().catch(() => {
-      router.replace('/owner/login');
-    });
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
