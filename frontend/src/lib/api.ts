@@ -37,12 +37,41 @@ function getCookie(name: string): string | null {
 }
 
 /**
+ * Persiste el CSRF token en localStorage (cross-origin: el backend está en
+ * un dominio distinto al frontend en producción, por lo que document.cookie
+ * no puede leer la cookie lch_owner_csrf del dominio de la API). Se llama
+ * automáticamente desde request() cuando la respuesta incluye csrfToken.
+ */
+function storeCsrfToken(token: string): void {
+  try {
+    localStorage.setItem('lch_owner_csrf', token);
+  } catch {
+    // localStorage no disponible (modo privado extremo, etc.) -- degradación
+    // silenciosa: la cookie seguirá intentándose como fallback.
+  }
+}
+
+/**
+ * Lee el CSRF token: primero localStorage (configuración cross-origin con
+ * el backend en Fly.io), después la cookie (same-origin / local dev).
+ */
+function readCsrfToken(): string | null {
+  try {
+    const fromStorage = localStorage.getItem('lch_owner_csrf');
+    if (fromStorage) return fromStorage;
+  } catch {
+    // localStorage inaccesible -- caer al cookie
+  }
+  return getCookie('lch_owner_csrf');
+}
+
+/**
  * Para los pocos requests que arman su propio FormData en vez de pasar por
  * `request()` de arriba (ver owner-api.ts uploadPhoto) -- mismo token,
  * mismo header, expuesto acá para no duplicar la lectura de la cookie.
  */
 export function getCsrfHeader(): Record<string, string> {
-  const csrfToken = getCookie('lch_owner_csrf');
+  const csrfToken = readCsrfToken();
   return csrfToken ? { 'x-csrf-token': csrfToken } : {};
 }
 
@@ -121,10 +150,12 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
   // CSRF (patrón doble cookie, ver backend/src/middleware/csrf.ts): solo
   // aplica a las requests autenticadas del panel de administradores de
-  // apartamento (cookie lch_owner_csrf). Las rutas públicas de reservas/
-  // pagos no tienen esta cookie, así que el header simplemente no se manda.
+  // apartamento. En producción el token se lee de localStorage (el backend
+  // está en otro dominio y document.cookie no puede leer sus cookies). En
+  // local dev cae al cookie como fallback. Las rutas públicas de reservas/
+  // pagos no tienen este token, así que el header simplemente no se manda.
   if (method !== 'GET') {
-    const csrfToken = getCookie('lch_owner_csrf');
+    const csrfToken = readCsrfToken();
     if (csrfToken) {
       requestHeaders['x-csrf-token'] = csrfToken;
     }
@@ -172,6 +203,16 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
           responseData?.code,
           responseData,
         );
+      }
+
+      // Si la respuesta incluye un csrfToken (login / refresh del panel de
+      // owners), persistirlo en localStorage para usarlo como header en los
+      // siguientes requests. Esto resuelve el caso cross-origin donde el
+      // frontend (lapacasario.com) no puede leer cookies del backend (Fly.io).
+      const csrfInResponse =
+        (responseData as any)?.data?.csrfToken ?? (responseData as any)?.csrfToken;
+      if (typeof csrfInResponse === 'string' && csrfInResponse.length > 0) {
+        storeCsrfToken(csrfInResponse);
       }
 
       return responseData as T;

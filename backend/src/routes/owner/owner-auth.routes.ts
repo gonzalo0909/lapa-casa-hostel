@@ -89,11 +89,22 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
 
     const isProd = process.env.NODE_ENV === 'production';
     const refreshMaxAge = 90 * 24 * 60 * 60 * 1000; // 90 días
+
+    // SameSite=None (+ Secure) en producción porque el frontend (lapacasario.com /
+    // Vercel) y el backend (Fly.io) son cross-site: con SameSite=Strict/Lax el
+    // navegador bloquea el envío de estas cookies en las requests fetch del panel.
+    // SameSite=Lax en desarrollo (localhost es same-site y no admite None sin HTTPS).
+    // La protección CSRF se mantiene: el token también se devuelve en el body para
+    // que el frontend lo guarde en localStorage (acceso JS same-origin) y lo envíe
+    // como header; un atacante cross-site puede forzar el envío de la cookie pero
+    // no puede leer localStorage del dominio víctima para forjar el header.
+    const cookieSameSite = isProd ? 'none' : 'lax';
+
     // Cookie de access token: vida corta (15 min), enviada a todas las rutas
     res.cookie('lch_owner', accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: 15 * 60 * 1000,   // 15 minutos
       path: '/',
     });
@@ -102,18 +113,19 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     res.cookie('lch_owner_refresh', refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: refreshMaxAge,
       path: '/api/v1/owner/login',
     });
-    // Cookie CSRF (patrón doble cookie, ver middleware/csrf.ts) -- a
-    // propósito NO httpOnly: el frontend la lee y la reenvía como
-    // x-csrf-token en cada request que modifica datos (PUT/POST/DELETE
-    // bajo /owner). Sin esta cookie todas esas rutas devuelven 403.
-    res.cookie('lch_owner_csrf', generateCsrfToken(), {
+    // Cookie CSRF -- también devuelta en el body (ver abajo). El frontend la
+    // guarda en localStorage y la reenvía como x-csrf-token en cada
+    // PUT/POST/DELETE del panel (ver lib/api.ts). La cookie sigue siendo la
+    // fuente de verdad que el backend compara con el header.
+    const csrfToken = generateCsrfToken();
+    res.cookie('lch_owner_csrf', csrfToken, {
       httpOnly: false,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: refreshMaxAge,
       path: '/',
     });
@@ -124,6 +136,10 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
           fullName: owner.fullName,
           email: owner.email,
           mustChangePassword: owner.mustChangePassword,
+          // Se incluye en el body para que el frontend lo guarde en
+          // localStorage (cross-origin: document.cookie no puede leer
+          // cookies del dominio de la API desde el dominio del frontend).
+          csrfToken,
         },
         'Login exitoso'
       )
@@ -209,31 +225,34 @@ router.post('/refresh', async (req, res, next) => {
 
     const isProd = process.env.NODE_ENV === 'production';
     const refreshMaxAge = 90 * 24 * 60 * 60 * 1000;
+    const cookieSameSite = isProd ? 'none' : 'lax';
     res.cookie('lch_owner', newAccessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: 15 * 60 * 1000,
       path: '/',
     });
     res.cookie('lch_owner_refresh', newRefreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: refreshMaxAge,
       path: '/api/v1/owner/login',
     });
-    // Rotar también la cookie CSRF al rotar los tokens de sesión
-    res.cookie('lch_owner_csrf', generateCsrfToken(), {
+    // Rotar también la cookie CSRF al rotar los tokens; devolver en el body
+    // para que el frontend actualice localStorage (ver login handler).
+    const newCsrfToken = generateCsrfToken();
+    res.cookie('lch_owner_csrf', newCsrfToken, {
       httpOnly: false,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: cookieSameSite,
       maxAge: refreshMaxAge,
       path: '/',
     });
 
     logger.info('Access token de administrador renovado', { ownerId: decoded.ownerId });
-    res.status(200).json(ApiResponse.success(null, 'Token renovado'));
+    res.status(200).json(ApiResponse.success({ csrfToken: newCsrfToken }, 'Token renovado'));
   } catch (error) {
     next(error);
   }
@@ -288,9 +307,11 @@ router.post('/logout', authenticateOwnerToken, async (req, res, next) => {
       await redisCache.set(`${REVOKED_PREFIX}${refreshToken}`, '1', 90 * 24 * 60 * 60);
     }
 
-    res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });
-    res.clearCookie('lch_owner_refresh', { httpOnly: true, sameSite: 'strict', path: '/api/v1/owner/login' });
-    res.clearCookie('lch_owner_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
+    const isProdLogout = process.env.NODE_ENV === 'production';
+    const logoutSameSite = isProdLogout ? 'none' : 'lax';
+    res.clearCookie('lch_owner', { httpOnly: true, secure: isProdLogout, sameSite: logoutSameSite, path: '/' });
+    res.clearCookie('lch_owner_refresh', { httpOnly: true, secure: isProdLogout, sameSite: logoutSameSite, path: '/api/v1/owner/login' });
+    res.clearCookie('lch_owner_csrf', { httpOnly: false, secure: isProdLogout, sameSite: logoutSameSite, path: '/' });
 
     logger.info('Logout de administrador', { ownerId: req.user?.ownerId });
     res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
