@@ -18,7 +18,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../../config/prisma';
 import {
   verifyPassword, hashPassword, generateToken, generateRefreshToken,
-  ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
+  generateCsrfToken, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
 } from '../../utils/encryption';
 import { authenticateOwnerToken } from '../../middleware/auth';
 import type { AuthPayload } from '../../middleware/auth';
@@ -88,6 +88,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     logger.info('Login de administrador exitoso', { ownerId: owner.id });
 
     const isProd = process.env.NODE_ENV === 'production';
+    const refreshMaxAge = 90 * 24 * 60 * 60 * 1000; // 90 días
     // Cookie de access token: vida corta (15 min), enviada a todas las rutas
     res.cookie('lch_owner', accessToken, {
       httpOnly: true,
@@ -102,8 +103,19 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000,   // 90 días
+      maxAge: refreshMaxAge,
       path: '/api/v1/owner/login',
+    });
+    // Cookie CSRF (patrón doble cookie, ver middleware/csrf.ts) -- a
+    // propósito NO httpOnly: el frontend la lee y la reenvía como
+    // x-csrf-token en cada request que modifica datos (PUT/POST/DELETE
+    // bajo /owner). Sin esta cookie todas esas rutas devuelven 403.
+    res.cookie('lch_owner_csrf', generateCsrfToken(), {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: refreshMaxAge,
+      path: '/',
     });
 
     res.status(200).json(
@@ -196,6 +208,7 @@ router.post('/refresh', async (req, res, next) => {
     const newRefreshToken = generateRefreshToken(payload);
 
     const isProd = process.env.NODE_ENV === 'production';
+    const refreshMaxAge = 90 * 24 * 60 * 60 * 1000;
     res.cookie('lch_owner', newAccessToken, {
       httpOnly: true,
       secure: isProd,
@@ -207,8 +220,16 @@ router.post('/refresh', async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000,
+      maxAge: refreshMaxAge,
       path: '/api/v1/owner/login',
+    });
+    // Rotar también la cookie CSRF al rotar los tokens de sesión
+    res.cookie('lch_owner_csrf', generateCsrfToken(), {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'strict',
+      maxAge: refreshMaxAge,
+      path: '/',
     });
 
     logger.info('Access token de administrador renovado', { ownerId: decoded.ownerId });
@@ -269,6 +290,7 @@ router.post('/logout', authenticateOwnerToken, async (req, res, next) => {
 
     res.clearCookie('lch_owner', { httpOnly: true, sameSite: 'strict', path: '/' });
     res.clearCookie('lch_owner_refresh', { httpOnly: true, sameSite: 'strict', path: '/api/v1/owner/login' });
+    res.clearCookie('lch_owner_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
 
     logger.info('Logout de administrador', { ownerId: req.user?.ownerId });
     res.status(200).json(ApiResponse.success(null, 'Sesión cerrada correctamente'));
