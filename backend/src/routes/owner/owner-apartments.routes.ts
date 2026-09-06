@@ -64,11 +64,15 @@ router.param('id', async (req, res, next, id) => {
 
 const UpdateApartmentSchema = z
   .object({
+    name: z.string().min(1).max(100).optional(),
     description: z.string().optional(),
     neighborhood: z.string().optional(),
     bedrooms: z.number().int().nullable().optional(),
     bathrooms: z.number().int().nullable().optional(),
     amenities: z.any().optional(),
+    address: z.string().optional(),
+    address_number: z.string().max(20).optional(),
+    cep: z.string().max(9).optional(),
   })
   .refine((v) => Object.values(v).some((x) => x !== undefined), {
     message: 'Nada para actualizar',
@@ -138,7 +142,7 @@ router.get('/', async (req, res, next) => {
     const { rows } = await query(
       `SELECT id, code, name, capacity, base_price, description, neighborhood,
               bedrooms, bathrooms, amenities, external_rating, external_review_count,
-              external_rating_label
+              external_rating_label, address, address_number, cep
        FROM room_types
        WHERE owner_id = $1
        ORDER BY name ASC`,
@@ -157,7 +161,7 @@ router.get('/:id', async (req, res, next) => {
     const { rows } = await query(
       `SELECT id, code, name, capacity, base_price, description, neighborhood,
               bedrooms, bathrooms, amenities, external_rating, external_review_count,
-              external_rating_label
+              external_rating_label, address, address_number, cep
        FROM room_types WHERE id = $1`,
       [req.params.id],
     );
@@ -176,13 +180,17 @@ router.get('/:id', async (req, res, next) => {
 router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { description, neighborhood, bedrooms, bathrooms, amenities } = req.body as z.infer<
+    const { name, description, neighborhood, bedrooms, bathrooms, amenities, address, address_number, cep } = req.body as z.infer<
       typeof UpdateApartmentSchema
     >;
 
     const sets: string[] = [];
     const params: any[] = [];
     const p = () => `$${params.length}`;
+    if (name !== undefined) {
+      params.push(name.trim());
+      sets.push(`name = ${p()}`);
+    }
     if (description !== undefined) {
       params.push(description);
       sets.push(`description = ${p()}`);
@@ -203,12 +211,25 @@ router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
       params.push(JSON.stringify(amenities));
       sets.push(`amenities = ${p()}::jsonb`);
     }
+    if (address !== undefined) {
+      params.push(address || null);
+      sets.push(`address = ${p()}`);
+    }
+    if (address_number !== undefined) {
+      params.push(address_number || null);
+      sets.push(`address_number = ${p()}`);
+    }
+    if (cep !== undefined) {
+      params.push(cep || null);
+      sets.push(`cep = ${p()}`);
+    }
 
     params.push(id);
     const { rows } = await query(
       `UPDATE room_types SET ${sets.join(', ')}, updated_at = now()
        WHERE id = ${p()}
-       RETURNING id, code, name, description, neighborhood, bedrooms, bathrooms, amenities`,
+       RETURNING id, code, name, description, neighborhood, bedrooms, bathrooms, amenities,
+                 address, address_number, cep`,
       params,
     );
 

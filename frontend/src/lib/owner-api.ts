@@ -27,6 +27,9 @@ export interface Apartment {
   external_rating: number | null;
   external_review_count: number | null;
   external_rating_label: string | null;
+  address: string | null;
+  address_number: string | null;
+  cep: string | null;
 }
 
 export interface ApartmentPhoto {
@@ -74,7 +77,7 @@ export const ownerApartmentsAPI = {
   update: (
     id: string,
     data: Partial<
-      Pick<Apartment, 'description' | 'neighborhood' | 'bedrooms' | 'bathrooms' | 'amenities'>
+      Pick<Apartment, 'name' | 'description' | 'neighborhood' | 'bedrooms' | 'bathrooms' | 'amenities' | 'address' | 'address_number' | 'cep'>
     >,
   ) =>
     api.put<{ success: boolean; data: Apartment; message: string }>(

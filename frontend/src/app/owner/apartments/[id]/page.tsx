@@ -2,11 +2,11 @@
 
 // lapa-casa-hostel/frontend/src/app/owner/apartments/[id]/page.tsx
 //
-// Editar um apartamento (só campos editoriais -- base_price e
-// external_rating* ficam fora, ver comentário em owner-apartments.routes.ts)
-// e gerenciar suas fotos.
+// Editar um apartamento (campos editoriais do painel do proprietário):
+// nome, endereço completo com busca automática de CEP (ViaCEP), bairro,
+// descrição, quartos, banheiros, comodidades, e gerenciamento de fotos.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,6 +20,40 @@ import { useOwnerAuth } from '@/lib/use-owner-auth';
 import { ownerApartmentsAPI, type Apartment, type ApartmentPhoto } from '@/lib/owner-api';
 import { handleAPIError } from '@/lib/api';
 
+// ─── ViaCEP lookup ───────────────────────────────────────────────────────────
+
+interface ViaCEPResult {
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+}
+
+async function lookupCep(cep: string): Promise<ViaCEPResult | null> {
+  const digits = cep.replace(/\D/g, '');
+  if (digits.length !== 8) {return null;}
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+    if (!res.ok) {return null;}
+    const data: ViaCEPResult = await res.json();
+    if (data.erro) {return null;}
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function formatCep(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length > 5) {
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  }
+  return digits;
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function OwnerApartmentEditPage() {
   const params = useParams<{ id: string }>();
   const { profile, loading: authLoading } = useOwnerAuth();
@@ -30,13 +64,22 @@ export default function OwnerApartmentEditPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
 
-  // Estado del formulario
+  // Form state
+  const [aptName, setAptName] = useState('');
   const [description, setDescription] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
   const [amenitiesText, setAmenitiesText] = useState('');
+  const [address, setAddress] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [cep, setCep] = useState('');
+
+  // Ref to avoid duplicate CEP lookups on rapid typing
+  const cepLookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -46,11 +89,15 @@ export default function OwnerApartmentEditPage() {
       ]);
       const apt = aptRes.data;
       setApartment(apt);
+      setAptName(apt.name ?? '');
       setDescription(apt.description ?? '');
       setNeighborhood(apt.neighborhood ?? '');
       setBedrooms(apt.bedrooms?.toString() ?? '');
       setBathrooms(apt.bathrooms?.toString() ?? '');
       setAmenitiesText(Array.isArray(apt.amenities) ? apt.amenities.join(', ') : '');
+      setAddress(apt.address ?? '');
+      setAddressNumber(apt.address_number ?? '');
+      setCep(apt.cep ? formatCep(apt.cep) : '');
       setPhotos(photosRes.data.photos);
     } catch (err) {
       setError(handleAPIError(err, 'pt'));
@@ -61,6 +108,38 @@ export default function OwnerApartmentEditPage() {
     if (!profile) {return;}
     loadData();
   }, [profile, loadData]);
+
+  // Auto-fill address from CEP using ViaCEP
+  const handleCepChange = (value: string) => {
+    const formatted = formatCep(value);
+    setCep(formatted);
+    setCepError(null);
+
+    if (cepLookupTimer.current) {
+      clearTimeout(cepLookupTimer.current);
+    }
+
+    const digits = formatted.replace(/\D/g, '');
+    if (digits.length !== 8) {return;}
+
+    cepLookupTimer.current = setTimeout(async () => {
+      setCepLoading(true);
+      const result = await lookupCep(digits);
+      setCepLoading(false);
+      if (!result) {
+        setCepError('CEP não encontrado');
+        return;
+      }
+      // Fill street address and neighborhood if they are empty or match the
+      // previously fetched value (don't overwrite what the user typed).
+      if (result.logradouro) {
+        setAddress((prev) => prev.trim() === '' ? result.logradouro! : prev);
+      }
+      if (result.bairro) {
+        setNeighborhood((prev) => prev.trim() === '' ? result.bairro! : prev);
+      }
+    }, 600);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,14 +152,24 @@ export default function OwnerApartmentEditPage() {
         .map((a) => a.trim())
         .filter(Boolean);
 
+      const cepDigits = cep.replace(/\D/g, '');
+
       await ownerApartmentsAPI.update(params.id, {
+        name: aptName.trim() || undefined,
         description: description || undefined,
         neighborhood: neighborhood || undefined,
         bedrooms: bedrooms ? parseInt(bedrooms, 10) : undefined,
         bathrooms: bathrooms ? parseInt(bathrooms, 10) : undefined,
         amenities,
+        address: address || undefined,
+        address_number: addressNumber || undefined,
+        cep: cepDigits || undefined,
       });
       setSaveMessage('Alterações salvas com sucesso.');
+      // Update heading if name changed
+      if (aptName.trim() && apartment) {
+        setApartment({ ...apartment, name: aptName.trim() });
+      }
     } catch (err) {
       setError(handleAPIError(err, 'pt'));
     } finally {
@@ -90,6 +179,7 @@ export default function OwnerApartmentEditPage() {
 
   const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Clear the input so the same file can be re-selected if needed
     e.target.value = '';
     if (!file) {return;}
 
@@ -156,17 +246,67 @@ export default function OwnerApartmentEditPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSave} className="flex flex-col gap-4">
+                {/* Nome do apartamento */}
+                <Input
+                  label="Nome do apartamento"
+                  value={aptName}
+                  onChange={(e) => setAptName(e.target.value)}
+                  maxLength={100}
+                />
+
+                {/* CEP com auto-preenchimento */}
+                <div className="grid grid-cols-[1fr_auto] items-end gap-3">
+                  <Input
+                    label="CEP"
+                    value={cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    placeholder="00000-000"
+                    maxLength={9}
+                    helperText={
+                      cepLoading
+                        ? 'Buscando CEP...'
+                        : cepError
+                          ? cepError
+                          : 'Preenchimento automático do endereço'
+                    }
+                  />
+                </div>
+
+                {/* Endereço e número */}
+                <div className="grid grid-cols-[1fr_auto] items-start gap-3">
+                  <Input
+                    label="Endereço (rua)"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Rua das Palmeiras"
+                  />
+                  <div className="w-24">
+                    <Input
+                      label="Número"
+                      value={addressNumber}
+                      onChange={(e) => setAddressNumber(e.target.value)}
+                      placeholder="42"
+                      maxLength={20}
+                    />
+                  </div>
+                </div>
+
+                {/* Bairro */}
+                <Input
+                  label="Bairro"
+                  value={neighborhood}
+                  onChange={(e) => setNeighborhood(e.target.value)}
+                />
+
+                {/* Descrição */}
                 <Textarea
                   label="Descrição"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                 />
-                <Input
-                  label="Bairro"
-                  value={neighborhood}
-                  onChange={(e) => setNeighborhood(e.target.value)}
-                />
+
+                {/* Quartos e banheiros */}
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Quartos"
@@ -183,6 +323,8 @@ export default function OwnerApartmentEditPage() {
                     onChange={(e) => setBathrooms(e.target.value)}
                   />
                 </div>
+
+                {/* Comodidades */}
                 <Input
                   label="Comodidades"
                   value={amenitiesText}
@@ -253,7 +395,9 @@ export default function OwnerApartmentEditPage() {
               </div>
 
               <label className="block">
-                <span className="sr-only">Enviar foto</span>
+                <span className="mb-1 block text-sm font-medium text-gray-700">
+                  {uploading ? 'Enviando foto...' : 'Adicionar foto'}
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -262,7 +406,7 @@ export default function OwnerApartmentEditPage() {
                   className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 disabled:opacity-50"
                 />
               </label>
-              {uploading && <p className="mt-2 text-sm text-gray-500">Enviando...</p>}
+              {uploading && <p className="mt-2 text-sm text-gray-500">Aguarde, enviando...</p>}
             </CardContent>
           </Card>
         </>
