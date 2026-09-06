@@ -9,6 +9,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '../globals.css';
+import './owner-light.css';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900`}>
+      <body className={`${inter.className} min-h-screen bg-background text-foreground`}>
         {children}
       </body>
     </html>
