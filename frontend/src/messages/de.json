@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Lapa Casa Hostel",
+    "appName": "Lapa Casa Rio",
     "tagline": "Ihr Zuhause in Rio de Janeiro",
     "loading": "Wird geladen...",
     "error": "Fehler",
@@ -313,22 +313,22 @@
     "whatsapp": "WhatsApp"
   },
   "seo": {
-    "homeTitle": "Lapa Casa Hostel - Santa Teresa, Rio de Janeiro",
+    "homeTitle": "Lapa Casa Rio - Santa Teresa, Rio de Janeiro",
     "homeDescription": "Boutique-Hostel in Santa Teresa, spezialisiert auf Gruppen und internationale Reisende. Buchen Sie Ihren Aufenthalt in Rio de Janeiro.",
-    "bookingTitle": "Buchen - Lapa Casa Hostel",
-    "bookingDescription": "Buchen Sie Ihr Zimmer im Lapa Casa Hostel. Besondere Gruppenrabatte. Beste Lage in Santa Teresa.",
-    "roomsTitle": "Zimmer - Lapa Casa Hostel",
+    "bookingTitle": "Buchen - Lapa Casa Rio",
+    "bookingDescription": "Buchen Sie Ihr Zimmer im Lapa Casa Rio. Besondere Gruppenrabatte. Beste Lage in Santa Teresa.",
+    "roomsTitle": "Zimmer - Lapa Casa Rio",
     "roomsDescription": "Lernen Sie unsere Zimmer kennen. Gemischte und Frauenzimmer mit 7 bis 12 Betten.",
-    "groupsTitle": "Gruppen - Lapa Casa Hostel",
+    "groupsTitle": "Gruppen - Lapa Casa Rio",
     "groupsDescription": "Gruppenspezialisten. Rabatte von bis zu 15% für Gruppen ab 3 Personen. Individuelle Angebote.",
-    "hostelTitle": "Hostel in Santa Teresa · Lapa Casa Hostel",
+    "hostelTitle": "Hostel in Santa Teresa · Lapa Casa Rio",
     "hostelDescription": "Buchen Sie Betten in gemischten und Frauenschlafräumen im Herzen von Santa Teresa, Rio de Janeiro. Gruppenrabatte verfügbar. Bestpreis garantiert.",
     "apartmentsTitle": "Private Apartments in Santa Teresa · Lapa Casa",
     "apartmentsDescription": "Private Apartments mit Küchenzeile in Santa Teresa, Rio de Janeiro. Lapa Loft, Vista do Arco, Chalé da Rua und mehr. Direkt buchen zum besten Preis.",
     "partnersTitle": "Partner-Verwalter werden · Lapa Casa",
     "partnersDescription": "Registrieren Sie Ihre Unterkunft auf der Lapa Casa Plattform und empfangen Sie Gäste sicher. Transparenter Vertrag, 5% Provision, volle Unterstützung.",
-    "galleryTitle": "Gästegalerie · Lapa Casa Hostel",
-    "galleryDescription": "Echte Fotos von Gästen des Lapa Casa Hostel in Santa Teresa, Rio de Janeiro. Entdecken Sie das Hostel aus der Sicht derer, die schon dort waren."
+    "galleryTitle": "Gästegalerie · Lapa Casa Rio",
+    "galleryDescription": "Echte Fotos von Gästen des Lapa Casa Rio in Santa Teresa, Rio de Janeiro. Entdecken Sie das Hostel aus der Sicht derer, die schon dort waren."
   },
   "calendar": {
     "today": "Heute",
@@ -422,7 +422,7 @@
   },
   "gallery": {
     "title": "Reisetagebuch",
-    "subtitle": "Momente von Gästen, die im Lapa Casa Hostel übernachtet haben",
+    "subtitle": "Momente von Gästen, die im Lapa Casa Rio übernachtet haben",
     "empty": "Bald gibt es hier Fotos unserer Gäste."
   },
   "admin": {

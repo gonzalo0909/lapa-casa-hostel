@@ -78,7 +78,7 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
   // WhatsApp share — construye el link al cargar (client-side), incluye URL de la página
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
   const pageUrl = `${siteUrl}${pathname}`;
-  const waText = `${apartment.name} — Lapa Casa Hostel\n${pageUrl}`;
+  const waText = `${apartment.name} — Lapa Casa Rio\n${pageUrl}`;
   const waHref = `https://wa.me/?text=${encodeURIComponent(waText)}`;
   const isSelectable = !disabledReason;
   const PhotoIcon = APT_ICONS[apartment.code] ?? Home;

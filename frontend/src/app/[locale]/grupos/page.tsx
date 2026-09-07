@@ -13,34 +13,34 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 // ─── Per-locale metadata ───────────────────────────────────────────────────────
 const META: Record<Locale, { title: string; description: string }> = {
   pt: {
-    title: 'Hospedagem para Grupos em Rio de Janeiro | Lapa Casa Hostel',
+    title: 'Hospedagem para Grupos em Rio de Janeiro | Lapa Casa Rio',
     description:
-      'Viagem em grupo para o Rio? Reserve seu grupo no Lapa Casa Hostel em Santa Teresa. Desconto especial para grupos, quartos privativos e dormitórios, check-in flexível.',
+      'Viagem em grupo para o Rio? Reserve seu grupo no Lapa Casa Rio em Santa Teresa. Desconto especial para grupos, quartos privativos e dormitórios, check-in flexível.',
   },
   en: {
-    title: 'Group Accommodation in Rio de Janeiro | Lapa Casa Hostel',
+    title: 'Group Accommodation in Rio de Janeiro | Lapa Casa Rio',
     description:
-      'Planning a group trip to Rio de Janeiro? Lapa Casa Hostel offers group discounts, private rooms and dorms in Santa Teresa. Book directly and save.',
+      'Planning a group trip to Rio de Janeiro? Lapa Casa Rio offers group discounts, private rooms and dorms in Santa Teresa. Book directly and save.',
   },
   es: {
-    title: 'Alojamiento para Grupos en Río de Janeiro | Lapa Casa Hostel',
+    title: 'Alojamiento para Grupos en Río de Janeiro | Lapa Casa Rio',
     description:
-      'Viaje en grupo a Río de Janeiro? Lapa Casa Hostel ofrece descuentos para grupos, habitaciones privadas y dormitorios en Santa Teresa. Reserva directa.',
+      'Viaje en grupo a Río de Janeiro? Lapa Casa Rio ofrece descuentos para grupos, habitaciones privadas y dormitorios en Santa Teresa. Reserva directa.',
   },
   de: {
-    title: 'Gruppenunterkunft in Rio de Janeiro | Lapa Casa Hostel',
+    title: 'Gruppenunterkunft in Rio de Janeiro | Lapa Casa Rio',
     description:
-      'Gruppenreise nach Rio de Janeiro? Lapa Casa Hostel in Santa Teresa bietet Gruppenrabatte, Privatzimmer und Schlafsäle. Direkt buchen und sparen.',
+      'Gruppenreise nach Rio de Janeiro? Lapa Casa Rio in Santa Teresa bietet Gruppenrabatte, Privatzimmer und Schlafsäle. Direkt buchen und sparen.',
   },
   fr: {
-    title: 'Hébergement de Groupe à Rio de Janeiro | Lapa Casa Hostel',
+    title: 'Hébergement de Groupe à Rio de Janeiro | Lapa Casa Rio',
     description:
-      'Voyage en groupe à Rio de Janeiro? Lapa Casa Hostel offre des réductions de groupe, des chambres privées et des dortoirs à Santa Teresa. Réservez directement.',
+      'Voyage en groupe à Rio de Janeiro? Lapa Casa Rio offre des réductions de groupe, des chambres privées et des dortoirs à Santa Teresa. Réservez directement.',
   },
   it: {
-    title: 'Alloggio per Gruppi a Rio de Janeiro | Lapa Casa Hostel',
+    title: 'Alloggio per Gruppi a Rio de Janeiro | Lapa Casa Rio',
     description:
-      'Viaggio di gruppo a Rio de Janeiro? Il Lapa Casa Hostel a Santa Teresa offre sconti per gruppi, camere private e dormitori. Prenota direttamente e risparmia.',
+      'Viaggio di gruppo a Rio de Janeiro? Il Lapa Casa Rio a Santa Teresa offre sconti per gruppi, camere private e dormitori. Prenota direttamente e risparmia.',
   },
 };
 
@@ -69,7 +69,7 @@ const CONTENT: Record<Locale, Content> = {
   pt: {
     headline: 'Viagem em Grupo para o Rio de Janeiro',
     intro:
-      'Planejar uma viagem em grupo para o Rio de Janeiro pode ser desafiador — encontrar acomodação que caiba no orçamento de todos, no mesmo lugar, com espaço de convivência. No Lapa Casa Hostel, em Santa Teresa, pensamos nisso para você.',
+      'Planejar uma viagem em grupo para o Rio de Janeiro pode ser desafiador — encontrar acomodação que caiba no orçamento de todos, no mesmo lugar, com espaço de convivência. No Lapa Casa Rio, em Santa Teresa, pensamos nisso para você.',
     sections: [
       {
         heading: 'Desconto Especial para Grupos',
@@ -165,7 +165,7 @@ const CONTENT: Record<Locale, Content> = {
   en: {
     headline: 'Group Trips to Rio de Janeiro',
     intro:
-      "Organizing a group trip to Rio de Janeiro? Finding accommodation that fits everyone's budget, in the same place, with common areas to hang out can be tricky. At Lapa Casa Hostel in Santa Teresa, we've thought it all through.",
+      "Organizing a group trip to Rio de Janeiro? Finding accommodation that fits everyone's budget, in the same place, with common areas to hang out can be tricky. At Lapa Casa Rio in Santa Teresa, we've thought it all through.",
     sections: [
       {
         heading: 'Special Group Discounts',
@@ -261,7 +261,7 @@ const CONTENT: Record<Locale, Content> = {
   es: {
     headline: 'Viaje en Grupo a Río de Janeiro',
     intro:
-      'Organizar un viaje en grupo a Río de Janeiro puede ser todo un reto: encontrar alojamiento que se adapte al presupuesto de todos, en el mismo lugar, con espacios para compartir. En Lapa Casa Hostel, en Santa Teresa, lo tenemos todo pensado.',
+      'Organizar un viaje en grupo a Río de Janeiro puede ser todo un reto: encontrar alojamiento que se adapte al presupuesto de todos, en el mismo lugar, con espacios para compartir. En Lapa Casa Rio, en Santa Teresa, lo tenemos todo pensado.',
     sections: [
       {
         heading: 'Descuentos Especiales para Grupos',
@@ -357,7 +357,7 @@ const CONTENT: Record<Locale, Content> = {
   de: {
     headline: 'Gruppenreise nach Rio de Janeiro',
     intro:
-      'Eine Gruppenreise nach Rio de Janeiro zu planen kann herausfordernd sein: eine Unterkunft finden, die zum Budget aller passt, am selben Ort, mit Gemeinschaftsbereichen zum Zusammensein. Im Lapa Casa Hostel in Santa Teresa haben wir genau daran gedacht.',
+      'Eine Gruppenreise nach Rio de Janeiro zu planen kann herausfordernd sein: eine Unterkunft finden, die zum Budget aller passt, am selben Ort, mit Gemeinschaftsbereichen zum Zusammensein. Im Lapa Casa Rio in Santa Teresa haben wir genau daran gedacht.',
     sections: [
       {
         heading: 'Spezielle Gruppenrabatte',
@@ -453,7 +453,7 @@ const CONTENT: Record<Locale, Content> = {
   fr: {
     headline: 'Voyage en Groupe à Rio de Janeiro',
     intro:
-      'Organiser un voyage en groupe à Rio de Janeiro peut être un vrai défi : trouver un hébergement qui convient au budget de tous, au même endroit, avec des espaces communs pour se retrouver. Au Lapa Casa Hostel, à Santa Teresa, nous avons tout prévu.',
+      'Organiser un voyage en groupe à Rio de Janeiro peut être un vrai défi : trouver un hébergement qui convient au budget de tous, au même endroit, avec des espaces communs pour se retrouver. Au Lapa Casa Rio, à Santa Teresa, nous avons tout prévu.',
     sections: [
       {
         heading: 'Réductions Spéciales pour les Groupes',
@@ -549,7 +549,7 @@ const CONTENT: Record<Locale, Content> = {
   it: {
     headline: 'Viaggio di Gruppo a Rio de Janeiro',
     intro:
-      'Organizzare un viaggio di gruppo a Rio de Janeiro può essere impegnativo — trovare un alloggio che rientri nel budget di tutti, nello stesso posto, con spazi comuni per stare insieme. Al Lapa Casa Hostel, a Santa Teresa, ci abbiamo pensato noi.',
+      'Organizzare un viaggio di gruppo a Rio de Janeiro può essere impegnativo — trovare un alloggio che rientri nel budget di tutti, nello stesso posto, con spazi comuni per stare insieme. Al Lapa Casa Rio, a Santa Teresa, ci abbiamo pensato noi.',
     sections: [
       {
         heading: 'Sconto Speciale per Gruppi',
@@ -648,7 +648,7 @@ function buildGroupLodgingSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
-    name: 'Lapa Casa Hostel',
+    name: 'Lapa Casa Rio',
     description:
       'Hostel boutique in Santa Teresa, Rio de Janeiro offering group accommodations with discounts for 6+ people.',
     url: `${SITE_URL}/grupos`,
@@ -745,12 +745,12 @@ function buildGroupHowToSchema(locale: Locale) {
     ],
   };
   const names: Record<Locale, string> = {
-    pt: 'Como Reservar para um Grupo no Lapa Casa Hostel',
-    en: 'How to Book a Group Stay at Lapa Casa Hostel',
-    es: 'Cómo Reservar como Grupo en Lapa Casa Hostel',
-    de: 'So Buchen Sie Ihren Gruppenaufenthalt im Lapa Casa Hostel',
-    fr: 'Comment Réserver en Groupe au Lapa Casa Hostel',
-    it: 'Come Prenotare per un Gruppo al Lapa Casa Hostel',
+    pt: 'Como Reservar para um Grupo no Lapa Casa Rio',
+    en: 'How to Book a Group Stay at Lapa Casa Rio',
+    es: 'Cómo Reservar como Grupo en Lapa Casa Rio',
+    de: 'So Buchen Sie Ihren Gruppenaufenthalt im Lapa Casa Rio',
+    fr: 'Comment Réserver en Groupe au Lapa Casa Rio',
+    it: 'Come Prenotare per un Gruppo al Lapa Casa Rio',
   };
   return {
     '@context': 'https://schema.org',
@@ -758,16 +758,16 @@ function buildGroupHowToSchema(locale: Locale) {
     name: names[locale]!,
     description:
       locale === 'pt'
-        ? 'Passo a passo para reservar seu grupo no Lapa Casa Hostel em Santa Teresa, Rio de Janeiro'
+        ? 'Passo a passo para reservar seu grupo no Lapa Casa Rio em Santa Teresa, Rio de Janeiro'
         : locale === 'en'
-          ? 'Step-by-step guide to booking your group stay at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
+          ? 'Step-by-step guide to booking your group stay at Lapa Casa Rio in Santa Teresa, Rio de Janeiro'
           : locale === 'es'
-            ? 'Guía paso a paso para reservar tu grupo en Lapa Casa Hostel en Santa Teresa, Río de Janeiro'
+            ? 'Guía paso a paso para reservar tu grupo en Lapa Casa Rio en Santa Teresa, Río de Janeiro'
             : locale === 'de'
-              ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Hostel in Santa Teresa, Rio de Janeiro'
+              ? 'Schritt-für-Schritt-Anleitung zur Buchung Ihres Gruppenaufenthalts im Lapa Casa Rio in Santa Teresa, Rio de Janeiro'
               : locale === 'it'
-                ? 'Guida passo passo per prenotare il tuo gruppo al Lapa Casa Hostel a Santa Teresa, Rio de Janeiro'
-                : 'Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Hostel à Santa Teresa, Rio de Janeiro',
+                ? 'Guida passo passo per prenotare il tuo gruppo al Lapa Casa Rio a Santa Teresa, Rio de Janeiro'
+                : 'Guide étape par étape pour réserver votre séjour de groupe au Lapa Casa Rio à Santa Teresa, Rio de Janeiro',
     step: (steps[locale] ?? []).map((text, i) => ({
       '@type': 'HowToStep',
       position: i + 1,
@@ -855,7 +855,7 @@ export default async function GruposPage({ params }: { params: { locale: string 
         <div className="max-w-3xl mx-auto text-center">
           {/* Eyebrow */}
           <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3 speakable">
-            Lapa Casa Hostel · Santa Teresa · Rio de Janeiro
+            Lapa Casa Rio · Santa Teresa · Rio de Janeiro
           </p>
           <h1
             className="text-3xl md:text-5xl font-bold leading-tight mb-5 speakable"

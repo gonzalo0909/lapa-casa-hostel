@@ -220,7 +220,7 @@ export const ApartmentServiceSchema = {
 export const SpeakableSchema = {
   '@context': 'https://schema.org',
   '@type':    'WebPage',
-  name:       'Lapa Casa Hostel',
+  name:       'Lapa Casa Rio',
   speakable:  {
     '@type':      'SpeakableSpecification',
     cssSelector:  ['h1', 'h2', '.speakable', '[data-speakable]'],

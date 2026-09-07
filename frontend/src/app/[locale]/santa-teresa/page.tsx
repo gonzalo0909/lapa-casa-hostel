@@ -24,7 +24,7 @@ const META: Record<string, { title: string; description: string }> = {
   pt: {
     title: 'Santa Teresa, Rio de Janeiro — Guia Completo do Bairro',
     description:
-      'Tudo sobre Santa Teresa: o que fazer, como chegar, onde comer, atrações e dicas de segurança. O bairro mais charmoso do Rio de Janeiro, lar do Lapa Casa Hostel.',
+      'Tudo sobre Santa Teresa: o que fazer, como chegar, onde comer, atrações e dicas de segurança. O bairro mais charmoso do Rio de Janeiro, lar do Lapa Casa Rio.',
   },
   en: {
     title: 'Santa Teresa, Rio de Janeiro — Complete Neighborhood Guide',
@@ -49,7 +49,7 @@ const META: Record<string, { title: string; description: string }> = {
   it: {
     title: 'Santa Teresa, Rio de Janeiro — Guida Completa del Quartiere',
     description:
-      'Tutto su Santa Teresa: cosa fare, come arrivare, dove mangiare, attrazioni e consigli di sicurezza. Il quartiere più affascinante di Rio de Janeiro, casa del Lapa Casa Hostel.',
+      'Tutto su Santa Teresa: cosa fare, come arrivare, dove mangiare, attrazioni e consigli di sicurezza. Il quartiere più affascinante di Rio de Janeiro, casa del Lapa Casa Rio.',
   },
 };
 
@@ -172,12 +172,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         q: 'Qual é o melhor hospedagem em Santa Teresa para grupos?',
-        a: 'O Lapa Casa Hostel, na Rua Silvio Romero 22, é especializado em grupos. 45 camas em 5 quartos mistos com desconto de 10 a 15% para grupos de 6+ pessoas.',
+        a: 'O Lapa Casa Rio, na Rua Silvio Romero 22, é especializado em grupos. 45 camas em 5 quartos mistos com desconto de 10 a 15% para grupos de 6+ pessoas.',
       },
     ],
     ctaTitle: 'Hospede-se no coração de Santa Teresa',
     ctaBody:
-      'O Lapa Casa Hostel fica a 5 minutos dos Arcos da Lapa. Especialistas em grupos com os melhores preços garantidos.',
+      'O Lapa Casa Rio fica a 5 minutos dos Arcos da Lapa. Especialistas em grupos com os melhores preços garantidos.',
     ctaBtn: 'Reservar agora',
     ctaWa: 'Falar no WhatsApp',
   },
@@ -247,12 +247,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         q: 'What is the best group hostel in Santa Teresa?',
-        a: 'Lapa Casa Hostel, at Rua Silvio Romero 22, specializes in groups. 45 beds in 5 mixed dorms with 10–15% discount for groups of 6+ people.',
+        a: 'Lapa Casa Rio, at Rua Silvio Romero 22, specializes in groups. 45 beds in 5 mixed dorms with 10–15% discount for groups of 6+ people.',
       },
     ],
     ctaTitle: 'Stay in the heart of Santa Teresa',
     ctaBody:
-      'Lapa Casa Hostel is 5 minutes from Arcos da Lapa. Group specialists with the best prices guaranteed.',
+      'Lapa Casa Rio is 5 minutes from Arcos da Lapa. Group specialists with the best prices guaranteed.',
     ctaBtn: 'Book now',
     ctaWa: 'WhatsApp us',
   },
@@ -322,12 +322,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         q: '¿Cuál es el mejor hostel para grupos en Santa Teresa?',
-        a: 'Lapa Casa Hostel, en Rua Silvio Romero 22, está especializado en grupos. 45 camas en 5 habitaciones mixtas con 10–15% de descuento para grupos de 6+ personas.',
+        a: 'Lapa Casa Rio, en Rua Silvio Romero 22, está especializado en grupos. 45 camas en 5 habitaciones mixtas con 10–15% de descuento para grupos de 6+ personas.',
       },
     ],
     ctaTitle: 'Alójate en el corazón de Santa Teresa',
     ctaBody:
-      'Lapa Casa Hostel está a 5 minutos de Arcos da Lapa. Especialistas en grupos con los mejores precios garantizados.',
+      'Lapa Casa Rio está a 5 minutos de Arcos da Lapa. Especialistas en grupos con los mejores precios garantizados.',
     ctaBtn: 'Reservar ahora',
     ctaWa: 'WhatsApp',
   },
@@ -386,7 +386,7 @@ const CONTENT: Record<string, Content> = {
     ],
     ctaTitle: 'Übernachten im Herzen von Santa Teresa',
     ctaBody:
-      'Lapa Casa Hostel liegt 5 Minuten von Arcos da Lapa. Gruppen-Spezialisten mit Bestpreisgarantie.',
+      'Lapa Casa Rio liegt 5 Minuten von Arcos da Lapa. Gruppen-Spezialisten mit Bestpreisgarantie.',
     ctaBtn: 'Jetzt buchen',
     ctaWa: 'WhatsApp',
   },
@@ -445,7 +445,7 @@ const CONTENT: Record<string, Content> = {
     ],
     ctaTitle: 'Séjournez au cœur de Santa Teresa',
     ctaBody:
-      'Lapa Casa Hostel est à 5 minutes des Arcos da Lapa. Spécialistes groupes, meilleur prix garanti.',
+      'Lapa Casa Rio est à 5 minutes des Arcos da Lapa. Spécialistes groupes, meilleur prix garanti.',
     ctaBtn: 'Réserver maintenant',
     ctaWa: 'WhatsApp',
   },
@@ -515,12 +515,12 @@ const CONTENT: Record<string, Content> = {
       },
       {
         q: 'Qual è il miglior alloggio per gruppi a Santa Teresa?',
-        a: 'Il Lapa Casa Hostel, in Rua Silvio Romero 22, è specializzato in gruppi. 45 letti in 5 camere miste con sconto dal 10 al 15% per gruppi di 6+ persone.',
+        a: 'Il Lapa Casa Rio, in Rua Silvio Romero 22, è specializzato in gruppi. 45 letti in 5 camere miste con sconto dal 10 al 15% per gruppi di 6+ persone.',
       },
     ],
     ctaTitle: 'Soggiorna nel cuore di Santa Teresa',
     ctaBody:
-      'Il Lapa Casa Hostel si trova a 5 minuti dagli Arcos da Lapa. Specialisti in gruppi con i migliori prezzi garantiti.',
+      'Il Lapa Casa Rio si trova a 5 minuti dagli Arcos da Lapa. Specialisti in gruppi con i migliori prezzi garantiti.',
     ctaBtn: 'Prenota ora',
     ctaWa: 'Scrivici su WhatsApp',
   },

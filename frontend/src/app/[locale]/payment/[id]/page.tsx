@@ -15,7 +15,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 export function generateMetadata({ params }: { params: { locale: string; id: string } }): Metadata {
   const locale = (locales.includes(params.locale as Locale) ? params.locale : defaultLocale) as Locale;
   return {
-    title: 'Lapa Casa Hostel',
+    title: 'Lapa Casa Rio',
     robots: { index: false, follow: false },
     alternates: {
       canonical: `${SITE_URL}/${locale}/payment/${params.id}`,

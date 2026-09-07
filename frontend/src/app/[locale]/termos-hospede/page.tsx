@@ -23,28 +23,28 @@ const LAST_UPDATED = '2026-08-31';
 
 const META: Record<Locale, { title: string; description: string }> = {
   pt: {
-    title: 'Termo de Reserva e Hospedagem — Lapa Casa Hostel',
-    description: 'Condições de reserva, política de cancelamento, check-in/check-out e regras da casa do Lapa Casa Hostel.',
+    title: 'Termo de Reserva e Hospedagem — Lapa Casa Rio',
+    description: 'Condições de reserva, política de cancelamento, check-in/check-out e regras da casa do Lapa Casa Rio.',
   },
   es: {
-    title: 'Términos de Reserva y Hospedaje — Lapa Casa Hostel',
-    description: 'Condiciones de reserva, política de cancelación, check-in/check-out y normas de la casa de Lapa Casa Hostel.',
+    title: 'Términos de Reserva y Hospedaje — Lapa Casa Rio',
+    description: 'Condiciones de reserva, política de cancelación, check-in/check-out y normas de la casa de Lapa Casa Rio.',
   },
   en: {
-    title: 'Booking & Stay Terms — Lapa Casa Hostel',
-    description: 'Booking conditions, cancellation policy, check-in/check-out and house rules for Lapa Casa Hostel.',
+    title: 'Booking & Stay Terms — Lapa Casa Rio',
+    description: 'Booking conditions, cancellation policy, check-in/check-out and house rules for Lapa Casa Rio.',
   },
   de: {
-    title: 'Buchungs- und Aufenthaltsbedingungen — Lapa Casa Hostel',
-    description: 'Buchungsbedingungen, Stornierungsrichtlinie, Check-in/Check-out und Hausordnung des Lapa Casa Hostel.',
+    title: 'Buchungs- und Aufenthaltsbedingungen — Lapa Casa Rio',
+    description: 'Buchungsbedingungen, Stornierungsrichtlinie, Check-in/Check-out und Hausordnung des Lapa Casa Rio.',
   },
   fr: {
-    title: 'Conditions de Réservation et de Séjour — Lapa Casa Hostel',
-    description: "Conditions de réservation, politique d'annulation, arrivée/départ et règlement intérieur du Lapa Casa Hostel.",
+    title: 'Conditions de Réservation et de Séjour — Lapa Casa Rio',
+    description: "Conditions de réservation, politique d'annulation, arrivée/départ et règlement intérieur du Lapa Casa Rio.",
   },
   it: {
-    title: 'Termini di Prenotazione e Soggiorno — Lapa Casa Hostel',
-    description: 'Condizioni di prenotazione, politica di cancellazione, check-in/check-out e regolamento della casa del Lapa Casa Hostel.',
+    title: 'Termini di Prenotazione e Soggiorno — Lapa Casa Rio',
+    description: 'Condizioni di prenotazione, politica di cancellazione, check-in/check-out e regolamento della casa del Lapa Casa Rio.',
   },
 };
 
@@ -85,7 +85,7 @@ const CONTENT: Record<Locale, Content> = {
   pt: {
     headline: 'Termo de Reserva e Hospedagem',
     updatedLabel: 'Última atualização',
-    intro: 'Este termo se aplica a todas as reservas feitas no Lapa Casa Hostel (dormitórios compartilhados e apartamentos), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Ao marcar a caixa de aceite no formulário de reserva, você confirma que leu e concorda com as condições abaixo.',
+    intro: 'Este termo se aplica a todas as reservas feitas no Lapa Casa Rio (dormitórios compartilhados e apartamentos), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Ao marcar a caixa de aceite no formulário de reserva, você confirma que leu e concorda com as condições abaixo.',
     sections: [
       {
         title: '1. Confirmação da reserva',
@@ -131,7 +131,7 @@ const CONTENT: Record<Locale, Content> = {
   es: {
     headline: 'Términos de Reserva y Hospedaje',
     updatedLabel: 'Última actualización',
-    intro: 'Estos términos se aplican a todas las reservas realizadas en Lapa Casa Hostel (dormitorios compartidos y apartamentos), Rua Silvio Romero 22, Santa Teresa, Río de Janeiro. Al marcar la casilla de aceptación en el formulario de reserva, confirmás que leíste y aceptás las condiciones a continuación.',
+    intro: 'Estos términos se aplican a todas las reservas realizadas en Lapa Casa Rio (dormitorios compartidos y apartamentos), Rua Silvio Romero 22, Santa Teresa, Río de Janeiro. Al marcar la casilla de aceptación en el formulario de reserva, confirmás que leíste y aceptás las condiciones a continuación.',
     sections: [
       {
         title: '1. Confirmación de la reserva',
@@ -177,7 +177,7 @@ const CONTENT: Record<Locale, Content> = {
   en: {
     headline: 'Booking & Stay Terms',
     updatedLabel: 'Last updated',
-    intro: 'These terms apply to all bookings made at Lapa Casa Hostel (shared dorms and apartments), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. By checking the acceptance box on the booking form, you confirm you have read and agree to the conditions below.',
+    intro: 'These terms apply to all bookings made at Lapa Casa Rio (shared dorms and apartments), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. By checking the acceptance box on the booking form, you confirm you have read and agree to the conditions below.',
     sections: [
       {
         title: '1. Booking confirmation',
@@ -223,7 +223,7 @@ const CONTENT: Record<Locale, Content> = {
   de: {
     headline: 'Buchungs- und Aufenthaltsbedingungen',
     updatedLabel: 'Zuletzt aktualisiert',
-    intro: 'Diese Bedingungen gelten für alle Buchungen im Lapa Casa Hostel (Gemeinschaftsschlafsäle und Apartments), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Mit dem Ankreuzen des Zustimmungsfelds im Buchungsformular bestätigen Sie, die folgenden Bedingungen gelesen zu haben und ihnen zuzustimmen.',
+    intro: 'Diese Bedingungen gelten für alle Buchungen im Lapa Casa Rio (Gemeinschaftsschlafsäle und Apartments), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Mit dem Ankreuzen des Zustimmungsfelds im Buchungsformular bestätigen Sie, die folgenden Bedingungen gelesen zu haben und ihnen zuzustimmen.',
     sections: [
       {
         title: '1. Buchungsbestätigung',
@@ -269,7 +269,7 @@ const CONTENT: Record<Locale, Content> = {
   fr: {
     headline: 'Conditions de Réservation et de Séjour',
     updatedLabel: 'Dernière mise à jour',
-    intro: "Ces conditions s'appliquent à toutes les réservations effectuées au Lapa Casa Hostel (dortoirs partagés et appartements), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. En cochant la case d'acceptation du formulaire de réservation, vous confirmez avoir lu et accepté les conditions ci-dessous.",
+    intro: "Ces conditions s'appliquent à toutes les réservations effectuées au Lapa Casa Rio (dortoirs partagés et appartements), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. En cochant la case d'acceptation du formulaire de réservation, vous confirmez avoir lu et accepté les conditions ci-dessous.",
     sections: [
       {
         title: '1. Confirmation de la réservation',
@@ -315,7 +315,7 @@ const CONTENT: Record<Locale, Content> = {
   it: {
     headline: 'Termini di Prenotazione e Soggiorno',
     updatedLabel: 'Ultimo aggiornamento',
-    intro: 'Questi termini si applicano a tutte le prenotazioni effettuate presso il Lapa Casa Hostel (dormitori condivisi e appartamenti), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Selezionando la casella di accettazione nel modulo di prenotazione, confermi di aver letto e accettato le condizioni seguenti.',
+    intro: 'Questi termini si applicano a tutte le prenotazioni effettuate presso il Lapa Casa Rio (dormitori condivisi e appartamenti), Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro. Selezionando la casella di accettazione nel modulo di prenotazione, confermi di aver letto e accettato le condizioni seguenti.',
     sections: [
       {
         title: '1. Conferma della prenotazione',

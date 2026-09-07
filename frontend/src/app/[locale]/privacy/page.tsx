@@ -23,12 +23,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
 const LAST_UPDATED = '2026-08-31';
 
 const META: Record<Locale, { title: string; description: string }> = {
-  pt: { title: 'Política de Privacidade — Lapa Casa Hostel', description: 'Como o Lapa Casa Hostel coleta e utiliza dados pessoais.' },
-  es: { title: 'Política de Privacidad — Lapa Casa Hostel', description: 'Cómo Lapa Casa Hostel recopila y utiliza los datos personales.' },
-  en: { title: 'Privacy Policy — Lapa Casa Hostel', description: 'How Lapa Casa Hostel collects and uses personal data.' },
-  de: { title: 'Datenschutzrichtlinie — Lapa Casa Hostel', description: 'Wie das Lapa Casa Hostel personenbezogene Daten erhebt und verwendet.' },
-  fr: { title: 'Politique de Confidentialité — Lapa Casa Hostel', description: 'Comment Lapa Casa Hostel collecte et utilise les données personnelles.' },
-  it: { title: 'Informativa sulla Privacy — Lapa Casa Hostel', description: 'Come il Lapa Casa Hostel raccoglie e utilizza i dati personali.' },
+  pt: { title: 'Política de Privacidade — Lapa Casa Rio', description: 'Como o Lapa Casa Rio coleta e utiliza dados pessoais.' },
+  es: { title: 'Política de Privacidad — Lapa Casa Rio', description: 'Cómo Lapa Casa Rio recopila y utiliza los datos personales.' },
+  en: { title: 'Privacy Policy — Lapa Casa Rio', description: 'How Lapa Casa Rio collects and uses personal data.' },
+  de: { title: 'Datenschutzrichtlinie — Lapa Casa Rio', description: 'Wie das Lapa Casa Rio personenbezogene Daten erhebt und verwendet.' },
+  fr: { title: 'Politique de Confidentialité — Lapa Casa Rio', description: 'Comment Lapa Casa Rio collecte et utilise les données personnelles.' },
+  it: { title: 'Informativa sulla Privacy — Lapa Casa Rio', description: 'Come il Lapa Casa Rio raccoglie e utilizza i dati personali.' },
 };
 
 export async function generateMetadata({
@@ -69,7 +69,7 @@ const CONTENT: Record<Locale, Content> = {
   pt: {
     headline: 'Política de Privacidade',
     updatedLabel: 'Última atualização',
-    intro: 'Esta página descreve quais dados pessoais o Lapa Casa Hostel coleta através deste site e como são utilizados.',
+    intro: 'Esta página descreve quais dados pessoais o Lapa Casa Rio coleta através deste site e como são utilizados.',
     pendingNotice: 'Seções marcadas como "pendente" ainda não foram formalizadas com assessoria jurídica e serão completadas antes de qualquer uso que exija esse detalhamento.',
     sections: [
       {
@@ -82,7 +82,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Compartilhamento de dados',
-        body: 'Os dados de pagamento são processados diretamente pelos provedores Stripe e Mercado Pago — o Lapa Casa Hostel não armazena números de cartão. Dados de reserva podem ser compartilhados com autoridades quando exigido por lei.',
+        body: 'Os dados de pagamento são processados diretamente pelos provedores Stripe e Mercado Pago — o Lapa Casa Rio não armazena números de cartão. Dados de reserva podem ser compartilhados com autoridades quando exigido por lei.',
       },
       {
         title: '4. Retenção e exclusão de dados',
@@ -100,7 +100,7 @@ const CONTENT: Record<Locale, Content> = {
   es: {
     headline: 'Política de Privacidad',
     updatedLabel: 'Última actualización',
-    intro: 'Esta página describe qué datos personales recopila Lapa Casa Hostel a través de este sitio y cómo se utilizan.',
+    intro: 'Esta página describe qué datos personales recopila Lapa Casa Rio a través de este sitio y cómo se utilizan.',
     pendingNotice: 'Las secciones marcadas como "pendiente" aún no fueron formalizadas con asesoría legal y se completarán antes de cualquier uso que requiera ese detalle.',
     sections: [
       {
@@ -113,7 +113,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Compartición de datos',
-        body: 'Los datos de pago son procesados directamente por Stripe y Mercado Pago — Lapa Casa Hostel no almacena números de tarjeta. Los datos de reserva pueden compartirse con autoridades cuando la ley lo exija.',
+        body: 'Los datos de pago son procesados directamente por Stripe y Mercado Pago — Lapa Casa Rio no almacena números de tarjeta. Los datos de reserva pueden compartirse con autoridades cuando la ley lo exija.',
       },
       {
         title: '4. Retención y eliminación de datos',
@@ -131,7 +131,7 @@ const CONTENT: Record<Locale, Content> = {
   en: {
     headline: 'Privacy Policy',
     updatedLabel: 'Last updated',
-    intro: 'This page describes what personal data Lapa Casa Hostel collects through this site and how it is used.',
+    intro: 'This page describes what personal data Lapa Casa Rio collects through this site and how it is used.',
     pendingNotice: 'Sections marked "pending" have not yet been formalized with legal counsel and will be completed before any use that requires that detail.',
     sections: [
       {
@@ -144,7 +144,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Data sharing',
-        body: 'Payment data is processed directly by Stripe and Mercado Pago — Lapa Casa Hostel does not store card numbers. Booking data may be shared with authorities when required by law.',
+        body: 'Payment data is processed directly by Stripe and Mercado Pago — Lapa Casa Rio does not store card numbers. Booking data may be shared with authorities when required by law.',
       },
       {
         title: '4. Data retention and deletion',
@@ -162,7 +162,7 @@ const CONTENT: Record<Locale, Content> = {
   de: {
     headline: 'Datenschutzrichtlinie',
     updatedLabel: 'Zuletzt aktualisiert',
-    intro: 'Diese Seite beschreibt, welche personenbezogenen Daten das Lapa Casa Hostel über diese Website erhebt und wie sie verwendet werden.',
+    intro: 'Diese Seite beschreibt, welche personenbezogenen Daten das Lapa Casa Rio über diese Website erhebt und wie sie verwendet werden.',
     pendingNotice: 'Als "ausstehend" markierte Abschnitte wurden noch nicht rechtlich formalisiert und werden vor jeder Nutzung, die diese Details erfordert, vervollständigt.',
     sections: [
       {
@@ -175,7 +175,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Datenweitergabe',
-        body: 'Zahlungsdaten werden direkt von Stripe und Mercado Pago verarbeitet — das Lapa Casa Hostel speichert keine Kartennummern. Buchungsdaten können bei gesetzlicher Verpflichtung an Behörden weitergegeben werden.',
+        body: 'Zahlungsdaten werden direkt von Stripe und Mercado Pago verarbeitet — das Lapa Casa Rio speichert keine Kartennummern. Buchungsdaten können bei gesetzlicher Verpflichtung an Behörden weitergegeben werden.',
       },
       {
         title: '4. Datenspeicherung und -löschung',
@@ -193,7 +193,7 @@ const CONTENT: Record<Locale, Content> = {
   fr: {
     headline: 'Politique de Confidentialité',
     updatedLabel: 'Dernière mise à jour',
-    intro: 'Cette page décrit quelles données personnelles Lapa Casa Hostel collecte via ce site et comment elles sont utilisées.',
+    intro: 'Cette page décrit quelles données personnelles Lapa Casa Rio collecte via ce site et comment elles sont utilisées.',
     pendingNotice: 'Les sections marquées "en attente" n\'ont pas encore été formalisées avec un conseil juridique et seront complétées avant toute utilisation nécessitant ce niveau de détail.',
     sections: [
       {
@@ -206,7 +206,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Partage des données',
-        body: 'Les données de paiement sont traitées directement par Stripe et Mercado Pago — Lapa Casa Hostel ne stocke pas les numéros de carte. Les données de réservation peuvent être partagées avec les autorités lorsque la loi l\'exige.',
+        body: 'Les données de paiement sont traitées directement par Stripe et Mercado Pago — Lapa Casa Rio ne stocke pas les numéros de carte. Les données de réservation peuvent être partagées avec les autorités lorsque la loi l\'exige.',
       },
       {
         title: '4. Conservation et suppression des données',
@@ -224,7 +224,7 @@ const CONTENT: Record<Locale, Content> = {
   it: {
     headline: 'Informativa sulla Privacy',
     updatedLabel: 'Ultimo aggiornamento',
-    intro: 'Questa pagina descrive quali dati personali il Lapa Casa Hostel raccoglie tramite questo sito e come vengono utilizzati.',
+    intro: 'Questa pagina descrive quali dati personali il Lapa Casa Rio raccoglie tramite questo sito e come vengono utilizzati.',
     pendingNotice: 'Le sezioni contrassegnate come "in sospeso" non sono state ancora formalizzate con una consulenza legale e verranno completate prima di qualsiasi utilizzo che richieda tale dettaglio.',
     sections: [
       {
@@ -237,7 +237,7 @@ const CONTENT: Record<Locale, Content> = {
       },
       {
         title: '3. Condivisione dei dati',
-        body: 'I dati di pagamento vengono elaborati direttamente da Stripe e Mercado Pago — il Lapa Casa Hostel non memorizza i numeri di carta. I dati di prenotazione possono essere condivisi con le autorità quando richiesto dalla legge.',
+        body: 'I dati di pagamento vengono elaborati direttamente da Stripe e Mercado Pago — il Lapa Casa Rio non memorizza i numeri di carta. I dati di prenotazione possono essere condivisi con le autorità quando richiesto dalla legge.',
       },
       {
         title: '4. Conservazione e cancellazione dei dati',

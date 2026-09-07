@@ -657,7 +657,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       const depCard = Math.round(price.deposit * cardSurchargeMult);
       const res = await paymentAPI.stripeWaLink(
         depCard,
-        `Depósito reserva — Lapa Casa Hostel`,
+        `Depósito reserva — Lapa Casa Rio`,
         form.email || undefined,
         origin,
       );

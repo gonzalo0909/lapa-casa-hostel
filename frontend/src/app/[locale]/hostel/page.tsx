@@ -15,9 +15,9 @@ import { locales, defaultLocale, type Locale } from '@/i18n';
 const HowToBookSchema = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
-  name: 'How to book at Lapa Casa Hostel',
+  name: 'How to book at Lapa Casa Rio',
   description:
-    'Step-by-step guide to reserving beds or full dormitories at Lapa Casa Hostel in Santa Teresa, Rio de Janeiro.',
+    'Step-by-step guide to reserving beds or full dormitories at Lapa Casa Rio in Santa Teresa, Rio de Janeiro.',
   totalTime: 'PT5M',
   step: [
     {

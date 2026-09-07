@@ -51,7 +51,7 @@ export async function generateMetadata({
   setRequestLocale(locale);
   const title = 'Guarda-equipaje en Santa Teresa — Malas/Guardavolumes | Lapa Casa';
   const description =
-    'Deja tu equipaje en Lapa Casa Hostel, Santa Teresa, aunque no te hospedes acá. Antes del check-in, antes de viajar, o de paso por Rio de Janeiro.';
+    'Deja tu equipaje en Lapa Casa Rio, Santa Teresa, aunque no te hospedes acá. Antes del check-in, antes de viajar, o de paso por Rio de Janeiro.';
   return {
     title,
     description,

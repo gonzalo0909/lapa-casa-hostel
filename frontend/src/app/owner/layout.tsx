@@ -14,7 +14,7 @@ import './owner-light.css';
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Painel do Proprietário — Lapa Casa Hostel',
+  title: 'Painel do Proprietário — Lapa Casa Rio',
   robots: { index: false, follow: false },
 };
 

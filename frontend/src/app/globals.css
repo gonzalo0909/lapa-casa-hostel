@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Lapa Casa Hostel — tokens de marca en HSL (consumidos por tailwind.config.js vía hsl(var(--x))) */
+    /* Lapa Casa Rio — tokens de marca en HSL (consumidos por tailwind.config.js vía hsl(var(--x))) */
     /* color-scheme le dice al navegador que esta página maneja su propio
        claro/oscuro -- sin esto, algunos navegadores (Chrome en Android,
        sobre todo) "inventan" un oscuro heurístico por su cuenta, invierte

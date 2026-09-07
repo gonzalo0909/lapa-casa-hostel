@@ -24,34 +24,34 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.lapacasario.com/
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
-    title: 'Preços por Temporada — Lapa Casa Hostel',
+    title: 'Preços por Temporada — Lapa Casa Rio',
     description:
-      'Preços por cama/noite no Lapa Casa Hostel em cada temporada do ano, descontos para grupos e política de depósito. Preços atualizados em tempo real.',
+      'Preços por cama/noite no Lapa Casa Rio em cada temporada do ano, descontos para grupos e política de depósito. Preços atualizados em tempo real.',
   },
   es: {
-    title: 'Precios por Temporada — Lapa Casa Hostel',
+    title: 'Precios por Temporada — Lapa Casa Rio',
     description:
-      'Precios por cama/noche en Lapa Casa Hostel en cada temporada del año, descuentos para grupos y política de depósito. Precios actualizados en tiempo real.',
+      'Precios por cama/noche en Lapa Casa Rio en cada temporada del año, descuentos para grupos y política de depósito. Precios actualizados en tiempo real.',
   },
   en: {
-    title: 'Seasonal Prices — Lapa Casa Hostel',
+    title: 'Seasonal Prices — Lapa Casa Rio',
     description:
-      'Per-bed nightly prices at Lapa Casa Hostel across every season of the year, group discounts and deposit policy. Prices updated in real time.',
+      'Per-bed nightly prices at Lapa Casa Rio across every season of the year, group discounts and deposit policy. Prices updated in real time.',
   },
   de: {
-    title: 'Preise nach Saison — Lapa Casa Hostel',
+    title: 'Preise nach Saison — Lapa Casa Rio',
     description:
-      'Preise pro Bett/Nacht im Lapa Casa Hostel für jede Jahreszeit, Gruppenrabatte und Anzahlungsregelung. Preise in Echtzeit aktualisiert.',
+      'Preise pro Bett/Nacht im Lapa Casa Rio für jede Jahreszeit, Gruppenrabatte und Anzahlungsregelung. Preise in Echtzeit aktualisiert.',
   },
   fr: {
-    title: 'Prix par Saison — Lapa Casa Hostel',
+    title: 'Prix par Saison — Lapa Casa Rio',
     description:
-      "Prix par lit/nuit au Lapa Casa Hostel selon chaque saison de l'année, remises de groupe et politique d'acompte. Prix mis à jour en temps réel.",
+      "Prix par lit/nuit au Lapa Casa Rio selon chaque saison de l'année, remises de groupe et politique d'acompte. Prix mis à jour en temps réel.",
   },
   it: {
-    title: 'Prezzi per Stagione — Lapa Casa Hostel',
+    title: 'Prezzi per Stagione — Lapa Casa Rio',
     description:
-      "Prezzi per letto/notte al Lapa Casa Hostel in ogni stagione dell'anno, sconti per gruppi e politica di caparra. Prezzi aggiornati in tempo reale.",
+      "Prezzi per letto/notte al Lapa Casa Rio in ogni stagione dell'anno, sconti per gruppi e politica di caparra. Prezzi aggiornati in tempo reale.",
   },
 };
 
