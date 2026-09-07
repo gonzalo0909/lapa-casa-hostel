@@ -243,8 +243,8 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   // Si ya tenemos los datos en caché, no vuelve a llamar.
   const loadPayment = useCallback(
     async (tab: 'pix' | 'card', cached: { pix: PixPaymentData | null; card: CardPaymentData | null }) => {
-      if (tab === 'pix'  && cached.pix)  return;
-      if (tab === 'card' && cached.card) return;
+      if (tab === 'pix'  && cached.pix)  {return;}
+      if (tab === 'card' && cached.card) {return;}
 
       setLoading(true);
       setError(null);
@@ -291,7 +291,7 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   }, []);
 
   const handleTabClick = async (tab: 'pix' | 'card') => {
-    if (tab === activeTab) return;
+    if (tab === activeTab) {return;}
     setActiveTab(tab);
     setError(null);
     // Pasamos el snapshot actual del caché para que loadPayment lo evalúe.

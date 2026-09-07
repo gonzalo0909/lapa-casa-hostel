@@ -18,10 +18,9 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../../config/prisma';
 import {
   verifyPassword, hashPassword, generateToken, generateRefreshToken,
-  generateCsrfToken, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
+  generateCsrfToken, ACCESS_TOKEN_TTL,
 } from '../../utils/encryption';
-import { authenticateOwnerToken } from '../../middleware/auth';
-import type { AuthPayload } from '../../middleware/auth';
+import { authenticateOwnerToken, type AuthPayload } from '../../middleware/auth';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';

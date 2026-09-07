@@ -4,7 +4,7 @@
 // Componente puro de presentación: toda la lógica de estado queda en el orquestador.
 
 import React from 'react';
-import { Lang, RoomDef, T } from './hostel-engine.types';
+import { type Lang, type RoomDef, T } from './hostel-engine.types';
 
 // ─── Props ────────────────────────────────────────────────
 interface HostelRoomSelectorProps {

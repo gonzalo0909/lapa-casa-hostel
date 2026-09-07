@@ -8,13 +8,13 @@ import dynamic from 'next/dynamic';
 import { bookingAPI, availabilityAPI, paymentAPI, offersAPI } from '@/lib/api';
 import { useCurrency, convertBRL } from '@/hooks/use-currency';
 import {
-  Lang,
-  Phase,
-  PayMethod,
-  RoomDef,
-  FormState,
-  FormErrors,
-  FieldFeedback,
+  type Lang,
+  type Phase,
+  type PayMethod,
+  type RoomDef,
+  type FormState,
+  type FormErrors,
+  type FieldFeedback,
   T,
   DEFAULT_ROOMS,
 } from './hostel-engine.types';
@@ -146,14 +146,14 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // ─ Fetch cuartos reales cuando hay fechas ─
   useEffect(() => {
-    if (!checkIn || !checkOut) return;
+    if (!checkIn || !checkOut) {return;}
     const ci = checkIn.toISOString().slice(0, 10);
     const co = checkOut.toISOString().slice(0, 10);
     availabilityAPI
       .check({ checkIn: ci, checkOut: co, beds: 1 })
       .then((res) => {
         const apiRooms: any[] = res.data?.rooms || [];
-        if (!apiRooms.length) return;
+        if (!apiRooms.length) {return;}
         setRooms(
           DEFAULT_ROOMS.map((dr) => {
             // Match por code real de room_types (mixto_12a, flexible_7, etc.) --
@@ -161,7 +161,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             // ("cuarto1") y nunca matcheaba, dejando realId sin asignar y
             // mandando el slug en vez del UUID real a POST /bookings.
             const match = apiRooms.find((ar: any) => ar.code === dr.code);
-            if (!match) return dr;
+            if (!match) {return dr;}
             return {
               ...dr,
               realId: match.roomId,
@@ -199,7 +199,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       return;
     }
     const selected = rooms.filter((r) => (beds[r.id] ?? 0) > 0);
-    if (selected.some((r) => !r.realId)) return; // todavía no resolvió el UUID real del cuarto
+    if (selected.some((r) => !r.realId)) {return;} // todavía no resolvió el UUID real del cuarto
     const payload = {
       checkIn: checkIn.toISOString().slice(0, 10),
       checkOut: checkOut.toISOString().slice(0, 10),
@@ -210,7 +210,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       availabilityAPI
         .quote(payload)
         .then((res) => {
-          if (cancelled || !res.data) return;
+          if (cancelled || !res.data) {return;}
           const p = res.data;
           setQuote({
             nights: p.nights,
@@ -222,7 +222,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
           });
         })
         .catch(() => {
-          if (!cancelled) setQuote(null);
+          if (!cancelled) {setQuote(null);}
         });
     }, 300);
     return () => {
@@ -253,8 +253,8 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // Cuartos visibles (reveal progresivo)
   const visibleRooms = rooms.filter((r) => {
-    if (r.id === 'cuarto3') return revealed.cuarto3;
-    if (r.id === 'cuarto5') return revealed.cuarto5;
+    if (r.id === 'cuarto3') {return revealed.cuarto3;}
+    if (r.id === 'cuarto5') {return revealed.cuarto5;}
     return true;
   });
 
@@ -309,7 +309,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
             newRev.cuarto5 = false;
             next['cuarto5'] = 0;
           }
-          if (id === 'cuarto5' && delta < 0 && (next['cuarto5'] ?? 0) === 0) newRev.cuarto5 = false;
+          if (id === 'cuarto5' && delta < 0 && (next['cuarto5'] ?? 0) === 0) {newRev.cuarto5 = false;}
           return next;
         });
         return newRev;
@@ -323,7 +323,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     // Pequeño delay para que React renderice el nuevo step antes de animar
     setTimeout(() => {
       const el = document.querySelector('.he-steps') as HTMLElement | null;
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (el) {el.scrollIntoView({ behavior: 'smooth', block: 'start' });}
     }, 40);
   }, []);
 
@@ -351,15 +351,15 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
     const docOk = isBR ? digits.length === 11 && validateCPF(digits) : form.doc.trim().length > 4;
 
     const errs: FormErrors = {};
-    if (form.name.trim().length <= 2) errs.name = t.errName;
-    if (!emailOk) errs.email = t.errEmail;
-    if (!email2Ok) errs.email2 = t.errEmail2;
-    if (form.phone.replace(/\D/g, '').length < 10) errs.phone = t.errPhone;
-    if (!form.country) errs.country = t.errCountry;
-    if (!docOk) errs.doc = isBR ? t.errCPF : t.errDocForeign;
-    if (!form.arrival) errs.arrival = t.errArrival;
-    if (!form.docPhotoBase64) errs.docPhoto = t.errDocPhoto;
-    if (!form.restrictionAccepted) errs.restriction = t.errRestriction;
+    if (form.name.trim().length <= 2) {errs.name = t.errName;}
+    if (!emailOk) {errs.email = t.errEmail;}
+    if (!email2Ok) {errs.email2 = t.errEmail2;}
+    if (form.phone.replace(/\D/g, '').length < 10) {errs.phone = t.errPhone;}
+    if (!form.country) {errs.country = t.errCountry;}
+    if (!docOk) {errs.doc = isBR ? t.errCPF : t.errDocForeign;}
+    if (!form.arrival) {errs.arrival = t.errArrival;}
+    if (!form.docPhotoBase64) {errs.docPhoto = t.errDocPhoto;}
+    if (!form.restrictionAccepted) {errs.restriction = t.errRestriction;}
 
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) {
@@ -416,7 +416,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
       }
       setStep(3);
     } else if (step === 3) {
-      if (!validateForm()) return; // validateForm ya hace scroll al primer campo con error
+      if (!validateForm()) {return;} // validateForm ya hace scroll al primer campo con error
       setStep(4);
     }
     // Al avanzar: scroll suave al indicador de pasos, sin ir al tope de la página
@@ -511,9 +511,9 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // ─ Cambiar de método de pago sin perder la reserva ya creada ─
   const handleSwitchPayMethod = useCallback(async () => {
-    if (!reservationId) return;
+    if (!reservationId) {return;}
     const nextMethod: PayMethod = payMethod === 'pix' ? 'card' : 'pix';
-    if (nextMethod === 'pix' && form.country !== 'BR') return;
+    if (nextMethod === 'pix' && form.country !== 'BR') {return;}
     setIsProcessing(true);
     setBookingError('');
     setPaymentInitFailed(false);
@@ -547,7 +547,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // ─ Reintentar link de pago desde la pantalla de éxito ─
   const handleRetryPaymentLink = useCallback(async () => {
-    if (!reservationId || isRetryingPayment) return;
+    if (!reservationId || isRetryingPayment) {return;}
     setIsRetryingPayment(true);
     setPaymentLinkError(false);
     try {
@@ -584,7 +584,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   const startTimer = useCallback(() => {
     let secs = 300;
     setTimerSecs(300);
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {clearInterval(timerRef.current);}
     timerRef.current = setInterval(() => {
       secs--;
       setTimerSecs(secs);
@@ -597,7 +597,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   useEffect(
     () => () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {clearInterval(timerRef.current);}
     },
     [],
   );
@@ -605,7 +605,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   // ─ PIX solo disponible para residentes brasileros ─
   // Si el huésped eligió un país distinto de BR, forzamos 'card' automáticamente
   useEffect(() => {
-    if (form.country !== 'BR') setPayMethod('card');
+    if (form.country !== 'BR') {setPayMethod('card');}
   }, [form.country]);
   const timerStr = `${Math.floor(timerSecs / 60)}:${String(timerSecs % 60).padStart(2, '0')}`;
 
@@ -617,14 +617,14 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
         sub: `${price.beds} ${price.beds === 1 ? t.tBed : t.tBeds} · ${price.nights} ${price.nights === 1 ? t.tNight : t.tNights2}`,
       };
     }
-    if (checkIn && !checkOut) return { main: t.tSelectCheckout, sub: t.tClickCheckout };
+    if (checkIn && !checkOut) {return { main: t.tSelectCheckout, sub: t.tClickCheckout };}
     const s = getSeason(TODAY.current);
     return { main: fmtMoney(85 * s.mult) + '/' + t.tBed + '/' + t.tNight, sub: t.tInProgress };
   })();
 
   // ─ Botón WhatsApp — genera link de Stripe para tarjeta on-click ─
   const buildWaMsg = (stripeLink?: string) => {
-    if (!checkIn || !checkOut || !price) return '#';
+    if (!checkIn || !checkOut || !price) {return '#';}
     const selR = rooms.filter((r) => (beds[r.id] ?? 0) > 0);
     const roomsStr = selR
       .map((r) => {
@@ -649,7 +649,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
   };
 
   const handleWaClick = async () => {
-    if (!price) return;
+    if (!price) {return;}
     setIsWaLoading(true);
     let stripeLink: string | undefined;
     try {
@@ -672,7 +672,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // ─ Crear sesión de pago grupal ─
   const handleGroupSession = useCallback(async () => {
-    if (!checkIn || !checkOut || !price) return;
+    if (!checkIn || !checkOut || !price) {return;}
     // Datos del titular: usa el formulario completo (step 4) o los campos mínimos (step 2)
     const titularName = form.name.trim() || gpName.trim();
     const titularEmail = form.email.trim() || gpEmail.trim();
@@ -722,7 +722,7 @@ export function HostelEngine({ locale = 'pt' }: HostelEngineProps) {
 
   // ─ Copiar código PIX / link grupal ─
   const handlePixCopy = useCallback(() => {
-    if (!pixData?.qrCode) return;
+    if (!pixData?.qrCode) {return;}
     navigator.clipboard.writeText(pixData.qrCode).catch(() => {});
     setPixCopied(true);
     setTimeout(() => setPixCopied(false), 3000);

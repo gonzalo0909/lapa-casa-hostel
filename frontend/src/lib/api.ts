@@ -58,7 +58,7 @@ function storeCsrfToken(token: string): void {
 function readCsrfToken(): string | null {
   try {
     const fromStorage = localStorage.getItem('lch_owner_csrf');
-    if (fromStorage) return fromStorage;
+    if (fromStorage) { return fromStorage; }
   } catch {
     // localStorage inaccesible -- caer al cookie
   }

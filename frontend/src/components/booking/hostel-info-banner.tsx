@@ -13,7 +13,7 @@ import {
   CigaretteOff,
   Accessibility,
 } from 'lucide-react';
-import { Lang } from './hostel-engine.types';
+import type { Lang } from './hostel-engine.types';
 
 const INFO_RULES: Record<string, Array<{ Icon: React.ElementType; text: React.ReactNode }>> = {
   pt: [
@@ -223,7 +223,7 @@ const INFO_RULES: Record<string, Array<{ Icon: React.ElementType; text: React.Re
       Icon: FileText,
       text: (
         <>
-          L'envoi d'une photo de pièce d'identité est <strong>obligatoire</strong>, sans exception
+          {'L\'envoi d\'une photo de pièce d\'identité est'} <strong>obligatoire</strong>{', sans exception'}
         </>
       ),
     },
@@ -269,11 +269,11 @@ const INFO_RULES: Record<string, Array<{ Icon: React.ElementType; text: React.Re
       Icon: FileText,
       text: (
         <>
-          L'invio della foto del documento è <strong>obbligatorio</strong>, senza eccezioni
+          {'L\'invio della foto del documento è'} <strong>obbligatorio</strong>{', senza eccezioni'}
         </>
       ),
     },
-    { Icon: CigaretteOff, text: <>Vietato fumare nell'hostel e nelle aree comuni</> },
+    { Icon: CigaretteOff, text: <>{'Vietato fumare nell\'hostel e nelle aree comuni'}</> },
     {
       Icon: Ban,
       text: (

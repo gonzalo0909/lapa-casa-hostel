@@ -89,7 +89,7 @@ function CookieConsentBanner({ onAccept, onReject }: { onAccept: () => void; onR
   // de scroll suficiente para despejar el banner de cualquier botón.
   useEffect(() => {
     const el = bannerRef.current;
-    if (!el) return;
+    if (!el) {return;}
     const applyPadding = () => { document.body.style.paddingBottom = `${el.offsetHeight}px`; };
     applyPadding();
     const ro = new ResizeObserver(applyPadding);

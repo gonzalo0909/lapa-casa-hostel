@@ -76,7 +76,7 @@ export async function uploadApartmentPhoto(
  */
 export async function deleteApartmentPhoto(path: string): Promise<void> {
   const config = getConfig();
-  if (!config || !path) return;
+  if (!config || !path) { return; }
 
   const res = await fetch(`${config.url}/storage/v1/object/${BUCKET}`, {
     method: 'DELETE',

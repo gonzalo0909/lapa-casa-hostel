@@ -4,7 +4,7 @@
 // Componente puro de presentación: toda la lógica de estado queda en el orquestador.
 
 import React from 'react';
-import { Lang, T, DAY_LBL, MON_LBL } from './hostel-engine.types';
+import { type Lang, T, DAY_LBL, MON_LBL } from './hostel-engine.types';
 import { getSeason, fmtDate, sameDay, dayBefore, inRange } from './hostel-engine.utils';
 
 // ─── Props ────────────────────────────────────────────────
@@ -33,7 +33,7 @@ export function HostelCalendar({
     const firstDay    = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1).getDay();
     const daysInMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0).getDate();
     const cells: Array<{ day: number; date: Date; isEmpty: false } | { isEmpty: true }> = [];
-    for (let i = 0; i < firstDay; i++) cells.push({ isEmpty: true });
+    for (let i = 0; i < firstDay; i++) {cells.push({ isEmpty: true });}
     for (let d = 1; d <= daysInMonth; d++) {
       cells.push({ day: d, date: new Date(calMonth.getFullYear(), calMonth.getMonth(), d), isEmpty: false });
     }
@@ -42,11 +42,11 @@ export function HostelCalendar({
 
   // Advertencia de noches mínimas
   const minNightsWarn = (() => {
-    if (!checkIn || !checkOut) return null;
+    if (!checkIn || !checkOut) {return null;}
     const n = Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000);
     const s = getSeason(checkIn);
     if (s.minNights > 1 && n < s.minNights)
-      return `📅 ${s.label}: ${t.tToastMinNights} ${s.minNights} ${t.tToastNights}`;
+      {return `📅 ${s.label}: ${t.tToastMinNights} ${s.minNights} ${t.tToastNights}`;}
     return null;
   })();
 
@@ -86,7 +86,7 @@ export function HostelCalendar({
       <div className="he-cal-grid">
         {DAY_LBL[lang].map(d => <div key={d} className="he-cal-dlbl">{d}</div>)}
         {calCells.map((cell, i) => {
-          if (cell.isEmpty) return <div key={i} className="he-cal-cell" />;
+          if (cell.isEmpty) {return <div key={i} className="he-cal-cell" />;}
 
           const { date } = cell;
           const isPast  = dayBefore(date, today) && !sameDay(date, today);
@@ -99,14 +99,14 @@ export function HostelCalendar({
           const s       = !isPast ? getSeason(date) : null;
 
           let cls = 'he-cal-cell';
-          if (isStart)                          cls += ' in-range range-start';
-          if (isEnd)                            cls += ' in-range range-end';
-          if (isHover && !isStart)              cls += ' in-range range-end';
-          if (inRng)                            cls += ' in-range';
-          if (isToday)                          cls += ' is-today';
-          if (s?.label === 'Alta Temporada')    cls += ' s-alta';
-          else if (s?.label === 'Carnaval')     cls += ' s-carnaval';
-          else if (s?.label === 'Baixa Temporada') cls += ' s-baixa';
+          if (isStart)                          {cls += ' in-range range-start';}
+          if (isEnd)                            {cls += ' in-range range-end';}
+          if (isHover && !isStart)              {cls += ' in-range range-end';}
+          if (inRng)                            {cls += ' in-range';}
+          if (isToday)                          {cls += ' is-today';}
+          if (s?.label === 'Alta Temporada')    {cls += ' s-alta';}
+          else if (s?.label === 'Carnaval')     {cls += ' s-carnaval';}
+          else if (s?.label === 'Baixa Temporada') {cls += ' s-baixa';}
 
           return (
             <div key={i} className={cls}>

@@ -18,9 +18,9 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, disableBackdropClic
   if (!open) { return null; }
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      onClick={() => { if (!disableBackdropClick) { onClose(); } }}
+      role="presentation"
+      onClick={(e) => { if (e.target === e.currentTarget && !disableBackdropClick) { onClose(); } }}
+      onKeyDown={(e) => { if (!disableBackdropClick && e.key === 'Escape') { onClose(); } }}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -28,7 +28,8 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, disableBackdropClic
       }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
         style={{
           background: 'var(--bg-card, #fff)', color: 'var(--fg, #111)',
           borderRadius: 16, maxWidth: 420, width: '100%',

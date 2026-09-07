@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { CreditCard, MessageCircle, Zap } from 'lucide-react';
-import { FormState, PayMethod, RoomDef, Translations } from './hostel-engine.types';
-import { calcPrice, fmtDate, fmtMoney } from './hostel-engine.utils';
+import type { FormState, PayMethod, RoomDef, Translations } from './hostel-engine.types';
+import { type calcPrice, fmtDate, fmtMoney } from './hostel-engine.utils';
 import type { CurrencyInfo } from '@/hooks/use-currency';
 
 type Price = NonNullable<ReturnType<typeof calcPrice>>;

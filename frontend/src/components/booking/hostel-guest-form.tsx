@@ -18,7 +18,7 @@ import {
   X,
   Tag,
 } from 'lucide-react';
-import { Lang, FormState, FormErrors, FieldFeedback, T } from './hostel-engine.types';
+import { type Lang, type FormState, type FormErrors, type FieldFeedback, T } from './hostel-engine.types';
 import { validateCPF, formatCPF, formatPhone } from './hostel-engine.utils';
 
 export interface AppliedCoupon {
@@ -28,7 +28,7 @@ export interface AppliedCoupon {
 }
 
 function FieldFb({ fb }: { fb: FieldFeedback | null }) {
-  if (!fb) return null;
+  if (!fb) {return null;}
   const Icon = fb.ok ? Check : X;
   return (
     <div className={`he-ffb ${fb.ok ? 'ok' : 'err'}`}>
@@ -288,8 +288,8 @@ export function HostelGuestForm({
             maxLength={form.country === 'BR' ? 14 : 30}
             onChange={(e) => {
               const v = e.target.value;
-              if (form.country === 'BR' && !/[a-zA-Z]/.test(v)) onFormChange({ doc: formatCPF(v) });
-              else onFormChange({ doc: v });
+              if (form.country === 'BR' && !/[a-zA-Z]/.test(v)) {onFormChange({ doc: formatCPF(v) });}
+              else {onFormChange({ doc: v });}
             }}
             onBlur={() => {
               const isBR = form.country === 'BR';
@@ -367,7 +367,7 @@ export function HostelGuestForm({
             }}
             onChange={async (e) => {
               const file = e.target.files?.[0];
-              if (!file) return;
+              if (!file) {return;}
               try {
                 const dataUrl = await resizeDocPhoto(file);
                 onFormChange({ docPhotoBase64: dataUrl });

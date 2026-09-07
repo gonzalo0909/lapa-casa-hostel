@@ -4,8 +4,8 @@
 
 import React, { useState } from 'react';
 import { CheckCircle2, CreditCard, Check, Gift } from 'lucide-react';
-import { PayMethod, Translations } from './hostel-engine.types';
-import { calcPrice, fmtMoney } from './hostel-engine.utils';
+import type { PayMethod, Translations } from './hostel-engine.types';
+import { type calcPrice, fmtMoney } from './hostel-engine.utils';
 
 type Price = ReturnType<typeof calcPrice>;
 

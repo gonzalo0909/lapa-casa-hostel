@@ -126,8 +126,11 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
                   {photos.map((_, i) => (
                     <span
                       key={i}
+                      role="button"
+                      tabIndex={0}
                       className={`${styles.photoDot} ${i === photoIdx ? styles.photoDotActive : ''}`}
                       onClick={(e) => { e.stopPropagation(); setPhotoIdx(i); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setPhotoIdx(i); } }}
                     />
                   ))}
                 </div>
@@ -152,10 +155,10 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
               </div>
             )}
             <div className={styles.cardCapacity}>{t('cardCapacity', { count: apartment.capacity })}</div>
-            {apartment.externalRating != null && (
+            {apartment.externalRating !== null && (
               <div className={styles.cardExternalRating}>
                 ⭐ {apartment.externalRating.toFixed(1)}
-                {apartment.externalReviewCount != null && (
+                {apartment.externalReviewCount !== null && (
                   <span> · {apartment.externalReviewCount} reseñas</span>
                 )}
                 <span> · {apartment.externalRatingLabel ?? 'plataformas internacionales'}</span>

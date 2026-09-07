@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Clock } from 'lucide-react';
-import { Translations } from './hostel-engine.types';
+import type { Translations } from './hostel-engine.types';
 
 interface HostelExpiredPanelProps {
   t: Translations;

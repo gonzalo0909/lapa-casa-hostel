@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { Translations } from './hostel-engine.types';
+import type { Translations } from './hostel-engine.types';
 import { fmtMoney } from './hostel-engine.utils';
 
 interface HostelGroupPanelProps {

@@ -37,18 +37,17 @@ import { availabilityAPI, bookingAPI, offersAPI, handleAPIError } from '@/lib/ap
 import { ApartmentDateStep } from './apartment-date-step';
 import { ApartmentSelectorStep } from './apartment-selector-step';
 import { ApartmentGuestForm } from './apartment-guest-form';
-import { parseDs } from './apartment-engine.utils';
-import { isEmailFmt, validateCPF } from './apartment-engine.utils';
+import { parseDs, isEmailFmt, validateCPF } from './apartment-engine.utils';
 import type { ApartmentAvailability } from '@/types/global';
-import type {
-  Step,
-  GuestForm,
-  CreatedBooking,
-  ApartmentEngineProps,
-  AdditionalGuest,
-  AppliedCoupon,
+import {
+  type Step,
+  type GuestForm,
+  type CreatedBooking,
+  type ApartmentEngineProps,
+  type AdditionalGuest,
+  type AppliedCoupon,
+  EMPTY_FORM,
 } from './apartment-engine.types';
-import { EMPTY_FORM } from './apartment-engine.types';
 
 // Carga @stripe/stripe-js + @stripe/react-stripe-js (SDK pesado) recién al
 // llegar al paso 4 (pago) en vez de en el bundle inicial del wizard.
@@ -164,7 +163,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         const apts: ApartmentAvailability[] = res?.data?.apartments ?? [];
         setApartments(apts);
         setSelectedApartment((prev) => {
-          if (!prev) return null;
+          if (!prev) {return null;}
           const updated = apts.find((a) => a.id === prev.id);
           // Mantener el apt seleccionado aunque ya no esté disponible —
           // el selector muestra la vista "bloqueado + alternativas".

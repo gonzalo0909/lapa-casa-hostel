@@ -74,14 +74,14 @@ export function useCurrency(): CurrencyInfo | null {
 
         if (!country || country === 'BR') {
           cachedInfo = null;
-          if (!cancelled) setInfo(null);
+          if (!cancelled) { setInfo(null); }
           return;
         }
 
         const curr = COUNTRY_CURRENCY[country];
         if (!curr) {
           cachedInfo = null;
-          if (!cancelled) setInfo(null);
+          if (!cancelled) { setInfo(null); }
           return;
         }
 
@@ -95,17 +95,17 @@ export function useCurrency(): CurrencyInfo | null {
 
         if (!rate) {
           cachedInfo = null;
-          if (!cancelled) setInfo(null);
+          if (!cancelled) { setInfo(null); }
           return;
         }
 
         const result: CurrencyInfo = { code: curr.code, symbol: curr.symbol, rate };
         cachedInfo = result;
-        if (!cancelled) setInfo(result);
+        if (!cancelled) { setInfo(result); }
       } catch {
         // Falla silenciosa — no mostrar conversión
         cachedInfo = null;
-        if (!cancelled) setInfo(null);
+        if (!cancelled) {setInfo(null);}
       }
     }
 
