@@ -57,7 +57,7 @@ export default async function ApartmentsPage({ params }: { params: { locale: str
 
       <ApartmentEngine locale={locale as 'pt' | 'es' | 'en'} />
 
-      {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot) */}
+      {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Grok, Copilot) */}
       <FAQSection locale={locale} pageName="apartamentos" />
     </main>
   );

@@ -2,7 +2,7 @@
 //
 // Componente FAQ visible en la página + JSON-LD FAQPage para AEO.
 // Las respuestas aparecen tanto en el HTML (para lectores y Google) como en
-// el schema JSON-LD (para motores de IA: ChatGPT, Perplexity, Gemini, Claude,
+// el schema JSON-LD (para motores de IA: ChatGPT, Perplexity, Gemini,
 // Grok, Copilot, etc.).
 //
 // Uso:
@@ -537,7 +537,7 @@ export function FAQSection({ locale, pageName = 'general', title }: FAQSectionPr
 
   return (
     <section aria-labelledby="faq-heading" className="py-12 px-4 max-w-3xl mx-auto">
-      {/* JSON-LD: consumido por Google, ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot */}
+      {/* JSON-LD: consumido por Google, ChatGPT, Perplexity, Gemini, Grok, Copilot */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

@@ -108,7 +108,7 @@ export default async function HostelPage({ params }: { params: { locale: string 
 
       <HostelEngine locale={locale} />
 
-      {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Claude, Grok, Copilot) */}
+      {/* FAQ visible + JSON-LD FAQPage (AEO: ChatGPT, Perplexity, Gemini, Grok, Copilot) */}
       <FAQSection locale={locale} pageName="hostel" />
     </main>
   );
