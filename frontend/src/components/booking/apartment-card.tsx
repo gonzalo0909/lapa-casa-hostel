@@ -155,10 +155,10 @@ export const ApartmentCard: React.FC<ApartmentCardProps> = ({
               </div>
             )}
             <div className={styles.cardCapacity}>{t('cardCapacity', { count: apartment.capacity })}</div>
-            {apartment.externalRating !== null && (
+            {apartment.externalRating !== null && apartment.externalRating !== undefined && (
               <div className={styles.cardExternalRating}>
                 ⭐ {apartment.externalRating.toFixed(1)}
-                {apartment.externalReviewCount !== null && (
+                {apartment.externalReviewCount !== null && apartment.externalReviewCount !== undefined && (
                   <span> · {apartment.externalReviewCount} reseñas</span>
                 )}
                 <span> · {apartment.externalRatingLabel ?? 'plataformas internacionales'}</span>
