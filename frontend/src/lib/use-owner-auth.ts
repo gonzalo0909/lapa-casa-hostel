@@ -33,6 +33,10 @@ export function useOwnerAuth() {
           router.replace('/owner/change-password');
           return;
         }
+        if (!res.data.termAcceptedAt) {
+          router.replace('/owner/accept-terms');
+          return;
+        }
         setProfile(res.data);
         setLoading(false);
       } catch (err) {
@@ -51,6 +55,10 @@ export function useOwnerAuth() {
             if (cancelled) {return;}
             if (retried.data.mustChangePassword) {
               router.replace('/owner/change-password');
+              return;
+            }
+            if (!retried.data.termAcceptedAt) {
+              router.replace('/owner/accept-terms');
               return;
             }
             setProfile(retried.data);

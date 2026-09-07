@@ -17,10 +17,12 @@ import { prisma } from '../../config/prisma';
 import { query } from '../../config/database';
 import { ApiResponse } from '../../utils/responses';
 import { ownerApartmentsRouter } from './owner-apartments.routes';
+import { ownerTermsRouter } from './owner-terms.routes';
 
 const router = Router();
 
 router.use('/apartments', ownerApartmentsRouter);
+router.use('/accept-terms', ownerTermsRouter);
 
 // ─── GET /owner/me ────────────────────────────────────────────────────────────
 
@@ -43,6 +45,8 @@ router.get('/me', async (req, res, next) => {
         commissionRate: true,
         isActive: true,
         mustChangePassword: true,
+        termAcceptedAt: true,
+        termVersion: true,
       },
     });
 

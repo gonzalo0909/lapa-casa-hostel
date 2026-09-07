@@ -11,7 +11,11 @@ export interface OwnerProfile {
   fullName: string;
   email: string;
   mustChangePassword: boolean;
+  termAcceptedAt: string | null;
+  termVersion: string | null;
 }
+
+export const CURRENT_TERM_VERSION = '2.0';
 
 export interface Apartment {
   id: string;
@@ -66,6 +70,12 @@ export const ownerAuthAPI = {
    */
   refresh: () =>
     api.post<{ success: boolean; message: string }>('/owner/login/refresh'),
+
+  acceptTerms: (version: string) =>
+    api.post<{ success: boolean; data: { termAcceptedAt: string; termVersion: string }; message: string }>(
+      '/owner/accept-terms',
+      { version }
+    ),
 };
 
 export const ownerApartmentsAPI = {

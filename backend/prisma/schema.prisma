@@ -50,6 +50,11 @@ model ApartmentOwner {
   passwordHash           String?                 @map("password_hash")
   mustChangePassword     Boolean                 @default(true) @map("must_change_password")
   lastLoginAt            DateTime?               @map("last_login_at")
+  // 0033_owner_term_acceptance.sql -- registro del aceite del Termo de Adesão.
+  // NULL = no aceptó todavía → el panel bloquea el acceso hasta aceptar.
+  termAcceptedAt         DateTime?               @map("term_accepted_at")
+  termAcceptedIp         String?                 @map("term_accepted_ip")
+  termVersion            String?                 @map("term_version")
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @default(now()) @map("updated_at")
 
