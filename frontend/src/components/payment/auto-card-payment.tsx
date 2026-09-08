@@ -255,6 +255,7 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
       onSuccess={d => onSuccess({ ...d, currency: 'BRL' })}
       onError={onError}
       onBinChange={handleBinChange}
+      onSdkError={switchToStripe}
     />
   );
 };

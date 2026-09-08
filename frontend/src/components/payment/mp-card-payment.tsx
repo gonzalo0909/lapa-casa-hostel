@@ -67,6 +67,10 @@ interface MpCardPaymentProps {
    *  que cambia el número de tarjeta. AutoCardPayment lo usa para detectar
    *  en segundo plano si la tarjeta es internacional. */
   onBinChange?: (bin: string) => void;
+  /** Callback opcional: se llama cuando el SDK de MP falla al cargar o
+   *  inicializarse. AutoCardPayment lo usa para cambiar automáticamente al
+   *  formulario de Stripe en lugar de mostrar un error al usuario. */
+  onSdkError?: () => void;
 }
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
@@ -280,7 +284,7 @@ const secureRow: React.CSSProperties = {
 
 export function MpCardPayment({
   reservationId, depositAmount, surchargePercent, locale, onSuccess, onError,
-  initialCardNumber, onBinChange: onBinChangeExternal,
+  initialCardNumber, onBinChange: onBinChangeExternal, onSdkError,
 }: MpCardPaymentProps) {
 
   const mpRef = useRef<MercadoPagoInstance | null>(null);
@@ -327,17 +331,20 @@ export function MpCardPayment({
     script.src = 'https://sdk.mercadopago.com/js/v2';
     script.async = true;
     script.onload  = initMp;
-    script.onerror = () => setSdkError(true);
+    script.onerror = () => { if (onSdkError) { onSdkError(); } else { setSdkError(true); } };
     document.head.appendChild(script);
 
     function initMp() {
       const key = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
-      if (!key || !window.MercadoPago) { setSdkError(true); return; }
+      if (!key || !window.MercadoPago) {
+        if (onSdkError) { onSdkError(); } else { setSdkError(true); }
+        return;
+      }
       try {
         mpRef.current = new window.MercadoPago(key, { locale: 'pt-BR' });
         setSdkReady(true);
       } catch {
-        setSdkError(true);
+        if (onSdkError) { onSdkError(); } else { setSdkError(true); }
       }
     }
   }, []);
@@ -472,8 +479,13 @@ export function MpCardPayment({
 
   // ── Render ───────────────────────────────────────────────────────────────
 
-  if (sdkError) {
+  // Si hay onSdkError, el padre maneja el error (p.ej. cambiando a Stripe);
+  // no renderizamos nada para evitar un flash del mensaje de error.
+  if (sdkError && !onSdkError) {
     return <div style={errStyle}>{T('errSdk', locale)}</div>;
+  }
+  if (sdkError) {
+    return null;
   }
   if (!sdkReady) {
     return (
