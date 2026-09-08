@@ -1,10 +1,11 @@
 'use client';
 // frontend/src/components/payment/auto-card-payment.tsx
 //
-// Muestra el formulario MP completo desde el inicio (todos los campos visibles).
-// Detección de BIN en segundo plano: si el usuario pega/escribe 6+ dígitos y la
-// tarjeta es internacional, aparece un banner con opción de cambiar a Stripe.
-// Los brasileños nunca tienen que esperar — ven el formulario completo de inmediato.
+// Formulario MP completo visible desde el inicio.
+// Cuando el usuario escribe el número de tarjeta:
+//   - 6+ dígitos → detección de BIN automática en segundo plano
+//   - tarjeta brasileña → sigue con MP (sin cambios)
+//   - tarjeta internacional → cambia automáticamente al form de Stripe
 
 import React, { useState, useEffect, useRef } from 'react';
 import { paymentAPI } from '@/lib/api';
@@ -15,6 +16,8 @@ import { StripeElementsWrapper } from './stripe-elements';
 import { CardPayment } from './card-payment';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
+
+type Mode = 'mp' | 'switching' | 'intl';
 
 interface StripePaymentData {
   paymentId: string;
@@ -36,46 +39,34 @@ export interface AutoCardPaymentProps {
 
 const T = createPaymentT({
   pt: {
-    intlBanner:   '🌍 Parece que seu cartão é internacional.',
-    switchStripe: 'Pagar com cartão internacional',
-    intlLoading:  'Preparando pagamento internacional…',
-    intlError:    'Erro ao preparar pagamento. Tente novamente.',
-    orBr:         'Ou use cartão brasileiro',
+    switching:  'Cartão internacional detectado. Preparando pagamento…',
+    stripeErr:  'Erro ao preparar pagamento internacional. Tente novamente.',
+    backToMp:   '← Usar cartão brasileiro',
   },
   es: {
-    intlBanner:   '🌍 Parece que tu tarjeta es internacional.',
-    switchStripe: 'Pagar con tarjeta internacional',
-    intlLoading:  'Preparando pago internacional…',
-    intlError:    'Error al preparar el pago. Intentá de nuevo.',
-    orBr:         'O usar tarjeta brasileña',
+    switching:  'Tarjeta internacional detectada. Preparando pago…',
+    stripeErr:  'Error al preparar el pago internacional. Intentá de nuevo.',
+    backToMp:   '← Usar tarjeta brasileña',
   },
   en: {
-    intlBanner:   '🌍 Looks like your card is international.',
-    switchStripe: 'Pay with international card',
-    intlLoading:  'Preparing international payment…',
-    intlError:    'Error preparing payment. Please try again.',
-    orBr:         'Or use a Brazilian card',
+    switching:  'International card detected. Preparing payment…',
+    stripeErr:  'Error preparing international payment. Please try again.',
+    backToMp:   '← Use a Brazilian card',
   },
   fr: {
-    intlBanner:   '🌍 Votre carte semble être internationale.',
-    switchStripe: 'Payer avec une carte internationale',
-    intlLoading:  'Préparation du paiement international…',
-    intlError:    'Erreur de préparation. Réessayez.',
-    orBr:         'Ou utiliser une carte brésilienne',
+    switching:  'Carte internationale détectée. Préparation du paiement…',
+    stripeErr:  'Erreur de préparation. Réessayez.',
+    backToMp:   '← Utiliser une carte brésilienne',
   },
   de: {
-    intlBanner:   '🌍 Ihre Karte scheint international zu sein.',
-    switchStripe: 'Mit internationaler Karte bezahlen',
-    intlLoading:  'Internationales Zahlungsmittel wird vorbereitet…',
-    intlError:    'Fehler bei der Vorbereitung. Bitte erneut versuchen.',
-    orBr:         'Oder brasilianische Karte verwenden',
+    switching:  'Internationale Karte erkannt. Zahlung wird vorbereitet…',
+    stripeErr:  'Fehler bei der Vorbereitung. Bitte erneut versuchen.',
+    backToMp:   '← Brasilianische Karte verwenden',
   },
   it: {
-    intlBanner:   '🌍 La tua carta sembra essere internazionale.',
-    switchStripe: 'Paga con carta internazionale',
-    intlLoading:  'Preparazione del pagamento internazionale…',
-    intlError:    'Errore nella preparazione. Riprova.',
-    orBr:         'O usa una carta brasiliana',
+    switching:  'Carta internazionale rilevata. Preparazione pagamento…',
+    stripeErr:  'Errore nella preparazione. Riprova.',
+    backToMp:   '← Usa una carta brasiliana',
   },
 });
 
@@ -88,74 +79,82 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
   onSuccess,
   onError,
 }) => {
-  // 'mp'    = formulario MP (default, todos los campos visibles)
-  // 'intl'  = formulario Stripe
-  const [mode, setMode] = useState<'mp' | 'intl'>('mp');
+  const [mode,         setMode]        = useState<Mode>('mp');
+  const [stripeData,   setStripeData]  = useState<StripePaymentData | null>(null);
+  const [stripeError,  setStripeError] = useState<string | null>(null);
 
-  // Banner de detección internacional (se muestra sobre el form MP cuando detectamos INTL)
-  const [intlDetected, setIntlDetected] = useState(false);
+  // BIN que ya fue evaluado — no relanzar la misma detección dos veces
+  const lastCheckedBin = useRef<string>('');
+  // Resultado de la última detección ('br' | 'intl' | null)
+  const lastResult     = useRef<'br' | 'intl' | null>(null);
 
-  const [stripeData,    setStripeData]    = useState<StripePaymentData | null>(null);
-  const [stripeLoading, setStripeLoading] = useState(false);
-  const [stripeError,   setStripeError]   = useState<string | null>(null);
+  const mpSdkRef = useRef<any>(null);
 
-  const mpRef = useRef<any>(null);
-
-  // ── Cargar SDK de MP para detección por BIN en segundo plano ─────────────
+  // ── Cargar SDK de MP para detección ──────────────────────────────────────
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const key = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
     if (!key) return;
 
-    const initMp = () => {
+    const init = () => {
       const MP = (window as any).MercadoPago;
-      if (!MP || mpRef.current) return;
-      try { mpRef.current = new MP(key, { locale: 'pt-BR' }); } catch { /* silent */ }
+      if (!MP || mpSdkRef.current) return;
+      try { mpSdkRef.current = new MP(key, { locale: 'pt-BR' }); } catch { /* silent */ }
     };
 
-    if ((window as any).MercadoPago) { initMp(); return; }
-    const script = document.createElement('script');
-    script.src   = 'https://sdk.mercadopago.com/js/v2';
-    script.async = true;
-    script.onload = initMp;
-    document.head.appendChild(script);
+    if ((window as any).MercadoPago) { init(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://sdk.mercadopago.com/js/v2';
+    s.async = true;
+    s.onload = init;
+    document.head.appendChild(s);
   }, []);
 
-  // ── Detección de BIN en segundo plano ────────────────────────────────────
-  // MpCardPayment llama a este callback cuando el usuario escribe 6+ dígitos.
-  // Solo mostramos el banner si detectamos tarjeta internacional.
+  // ── Detección automática por BIN ─────────────────────────────────────────
 
   const handleBinChange = async (bin: string) => {
-    const mp = mpRef.current;
-    if (!mp || bin.length < 6) { setIntlDetected(false); return; }
+    if (!bin || bin.length < 6) return;
+    // No repetir la misma detección
+    if (bin === lastCheckedBin.current) return;
+    lastCheckedBin.current = bin;
+
+    const mp = mpSdkRef.current;
+    if (!mp) return; // SDK no cargó → no detectamos, dejamos MP como default
 
     try {
       const methods = await mp.getPaymentMethods({ bin });
-      if (!methods.results?.length) { setIntlDetected(true); return; }
 
-      const instData = await mp.getInstallments({
-        amount:        String(Math.max(depositAmount, 1)),
-        locale:        'pt-BR',
-        paymentTypeId: 'credit_card',
-        bin,
-      });
-      const hasBrInstallments = instData[0]?.payer_costs?.some(
-        (c: { installments: number }) => c.installments >= 2
-      ) ?? false;
+      let isBr = false;
+      if (methods.results?.length) {
+        const instData = await mp.getInstallments({
+          amount:        String(Math.max(depositAmount, 1)),
+          locale:        'pt-BR',
+          paymentTypeId: 'credit_card',
+          bin,
+        });
+        isBr = instData[0]?.payer_costs?.some(
+          (c: { installments: number }) => c.installments >= 2
+        ) ?? false;
+      }
 
-      setIntlDetected(!hasBrInstallments);
+      lastResult.current = isBr ? 'br' : 'intl';
+
+      if (!isBr) {
+        // Tarjeta internacional → cambiar a Stripe automáticamente
+        await switchToStripe();
+      }
+      // Si es brasileña → no hacer nada, el form MP ya está visible
     } catch {
-      // Si falla la detección, no mostramos el banner — dejamos pagar con MP
-      setIntlDetected(false);
+      // Error en la detección → dejar MP como default (no bloquear el pago)
     }
   };
 
-  // ── Cambio a Stripe ───────────────────────────────────────────────────────
+  // ── Cambio automático a Stripe ────────────────────────────────────────────
 
   const switchToStripe = async () => {
     if (stripeData) { setMode('intl'); return; }
-    setStripeLoading(true);
+    setMode('switching');
     setStripeError(null);
     try {
       const res = await paymentAPI.processDeposit(reservationId, 'stripe');
@@ -170,23 +169,41 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
       });
       setMode('intl');
     } catch {
-      setStripeError(T('intlError', locale));
-    } finally {
-      setStripeLoading(false);
+      setStripeError(T('stripeErr', locale));
+      setMode('mp'); // volver al form MP si falla
     }
   };
 
+  // ── Volver a MP ───────────────────────────────────────────────────────────
+
+  const backToMp = () => {
+    lastCheckedBin.current = ''; // permitir nueva detección
+    lastResult.current = null;
+    setMode('mp');
+    setStripeError(null);
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
+
+  // Transición → mostrando spinner mientras carga Stripe
+  if (mode === 'switching') {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '.65rem',
+        padding: '1.25rem', borderRadius: 10,
+        background: 'var(--bg-card, #f7f7f5)',
+        color: 'var(--fg-muted, #555)', fontSize: '.93rem',
+      }}>
+        <LoadingSpinner size="sm" />
+        {T('switching', locale)}
+      </div>
+    );
+  }
 
   // Modo Stripe
   if (mode === 'intl') {
     return (
       <div>
-        {stripeLoading && (
-          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--fg-muted, #666)', fontSize: '.93rem' }}>
-            <LoadingSpinner size="sm" /> {T('intlLoading', locale)}
-          </div>
-        )}
         {stripeError && (
           <div style={{
             padding: '.9rem 1.15rem', borderRadius: 10, marginBottom: '.75rem',
@@ -213,61 +230,31 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
             />
           </StripeElementsWrapper>
         )}
-        {/* Volver a MP */}
         <button
           type="button"
-          onClick={() => { setMode('mp'); setIntlDetected(false); }}
+          onClick={backToMp}
           style={{
             marginTop: '1rem', background: 'none', border: 'none',
             color: 'var(--fg-muted, #888)', fontSize: '.85rem',
             cursor: 'pointer', textDecoration: 'underline', padding: 0,
           }}
         >
-          ← {T('orBr', locale)}
+          {T('backToMp', locale)}
         </button>
       </div>
     );
   }
 
-  // Modo MP (default) — todos los campos visibles desde el inicio
+  // Modo MP (default) — formulario completo visible desde el inicio
   return (
-    <div>
-      {/* Banner de tarjeta internacional detectada */}
-      {intlDetected && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: '.75rem', flexWrap: 'wrap',
-          padding: '.65rem 1rem', borderRadius: 8, marginBottom: '.85rem',
-          background: '#DBEAFE', border: '1px solid #93C5FD',
-          fontSize: '.88rem', color: '#1E3A5F',
-        }}>
-          <span>{T('intlBanner', locale)}</span>
-          <button
-            type="button"
-            onClick={switchToStripe}
-            disabled={stripeLoading}
-            style={{
-              background: '#1E3A5F', color: '#fff', border: 'none',
-              borderRadius: 6, padding: '.4rem .85rem',
-              fontSize: '.85rem', fontWeight: 600, cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {stripeLoading ? <LoadingSpinner size="sm" /> : T('switchStripe', locale)}
-          </button>
-        </div>
-      )}
-
-      {/* Formulario MP completo — visible desde el inicio */}
-      <MpCardPayment
-        reservationId={reservationId}
-        depositAmount={depositAmount}
-        surchargePercent={0}
-        locale={locale}
-        onSuccess={d => onSuccess({ ...d, currency: 'BRL' })}
-        onError={onError}
-        onBinChange={handleBinChange}
-      />
-    </div>
+    <MpCardPayment
+      reservationId={reservationId}
+      depositAmount={depositAmount}
+      surchargePercent={0}
+      locale={locale}
+      onSuccess={d => onSuccess({ ...d, currency: 'BRL' })}
+      onError={onError}
+      onBinChange={handleBinChange}
+    />
   );
 };
