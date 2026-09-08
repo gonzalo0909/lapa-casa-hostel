@@ -240,13 +240,15 @@ function validateCpf(cpf: string) {
   const c = cpf.replace(/\D/g, '');
   if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
   let s = 0;
-  for (let i = 0; i < 9; i++) s += +c[i] * (10 - i);
+  // noUncheckedIndexedAccess: c[i] es string|undefined — ?? '0' es inerte
+  // porque c.length === 11 garantiza que los índices 0-10 existen.
+  for (let i = 0; i < 9; i++) s += +(c[i] ?? '0') * (10 - i);
   let d = 11 - (s % 11); if (d >= 10) d = 0;
-  if (d !== +c[9]) return false;
+  if (d !== +(c[9] ?? '0')) return false;
   s = 0;
-  for (let i = 0; i < 10; i++) s += +c[i] * (11 - i);
+  for (let i = 0; i < 10; i++) s += +(c[i] ?? '0') * (11 - i);
   d = 11 - (s % 11); if (d >= 10) d = 0;
-  return d === +c[10];
+  return d === +(c[10] ?? '0');
 }
 
 const fmtBRL = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
