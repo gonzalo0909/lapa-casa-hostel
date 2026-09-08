@@ -7,17 +7,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useOwnerAuth } from '@/lib/use-owner-auth';
-import { ownerApartmentsAPI, ownerAuthAPI, type Apartment } from '@/lib/owner-api';
+import { ownerApartmentsAPI, type Apartment } from '@/lib/owner-api';
 import { handleAPIError } from '@/lib/api';
+import { OwnerNav } from '@/components/owner/owner-nav';
 
 export default function OwnerDashboardPage() {
-  const router = useRouter();
   const { profile, loading: authLoading } = useOwnerAuth();
   const [apartments, setApartments] = useState<Apartment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +27,6 @@ export default function OwnerDashboardPage() {
       .then((res) => setApartments(res.data.apartments))
       .catch((err) => setError(handleAPIError(err, 'pt')));
   }, [profile]);
-
-  const handleLogout = async () => {
-    try {
-      await ownerAuthAPI.logout();
-    } finally {
-      router.push('/owner/login');
-    }
-  };
 
   if (authLoading) {
     return (
@@ -50,14 +40,10 @@ export default function OwnerDashboardPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Olá, {profile.fullName}</h1>
-          <p className="text-sm text-gray-500">{profile.email}</p>
-        </div>
-        <Button variant="outline" onClick={handleLogout}>
-          Sair
-        </Button>
+      <OwnerNav fullName={profile.fullName} />
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold">Olá, {profile.fullName}</h1>
+        <p className="text-sm text-gray-500">{profile.email}</p>
       </div>
 
       {error && (
