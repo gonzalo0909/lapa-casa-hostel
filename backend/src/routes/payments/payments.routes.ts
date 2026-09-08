@@ -13,6 +13,7 @@ import { depositMpCardHandler } from './deposit-mp-card';
 import { handleWebhookHandler } from './handle-webhook';
 import releaseDepositRouter from './release-deposit';
 import markReceivedAtDeskRouter from './mark-received-at-desk';
+import { query } from '../../config/database';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
 import { groupPaymentService } from '../../services/group-payment-service';
