@@ -117,7 +117,9 @@ export default function OwnerDocumentsPage() {
 
   if (!profile) { return null; }
 
-  const statusInfo = STATUS_INFO[verificationStatus] ?? STATUS_INFO.pending;
+  // noUncheckedIndexedAccess hace que Record<string,T>[string] sea T|undefined;
+  // el fallback garantiza que siempre haya un valor definido.
+  const statusInfo = STATUS_INFO[verificationStatus] ?? STATUS_INFO['pending'] ?? { label: '', color: '', desc: '' };
   const canUpload = verificationStatus !== 'verified';
 
   return (
