@@ -41,9 +41,12 @@ export default function OwnerDashboardPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <OwnerNav fullName={profile.fullName} />
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Olá, {profile.fullName}</h1>
-        <p className="text-sm text-gray-500">{profile.email}</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Olá, {profile.fullName}</h1>
+          <p className="text-sm text-gray-500">{profile.email}</p>
+        </div>
+        <VerificationBadge status={profile.verificationStatus} />
       </div>
 
       {error && (
@@ -80,5 +83,34 @@ export default function OwnerDashboardPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Badge de verificación ────────────────────────────────────────────────────
+
+function VerificationBadge({ status }: { status: string }) {
+  if (status === 'verified') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+        ✓ Verificado
+      </span>
+    );
+  }
+  if (status === 'rejected') {
+    return (
+      <Link href="/owner/documents">
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200 cursor-pointer">
+          ✗ Documentos rejeitados — reenviar
+        </span>
+      </Link>
+    );
+  }
+  // pending
+  return (
+    <Link href="/owner/documents">
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 cursor-pointer">
+        ⚠ Verificação pendente
+      </span>
+    </Link>
   );
 }

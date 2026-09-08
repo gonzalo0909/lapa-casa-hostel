@@ -70,6 +70,112 @@ export async function uploadApartmentPhoto(
   return { url: publicUrl, publicId: path };
 }
 
+// ─── Documentos de administradores (bucket owner-docs, privado) ───────────────
+//
+// A diferencia de las fotos de apartamentos (bucket público), los documentos
+// KYC (CPF/CNPJ, escrituras) se guardan en un bucket privado.
+// El acceso del admin es vía la URL directa autenticada con la service role key
+// (el backend la adjunta como Bearer token al leerlas).
+
+const OWNER_DOCS_BUCKET = 'owner-docs';
+
+export interface UploadedDocument {
+  url: string;   // URL completa para previsualizar (requiere auth — solo backend)
+  path: string;  // Path dentro del bucket (guardado en file_path de owner_documents)
+}
+
+/**
+ * Sube un buffer de documento al bucket owner-docs (privado).
+ * Devuelve { url, path } — la URL incluye la ruta para que el admin la abra
+ * desde el backend con su service role key.
+ */
+export async function uploadOwnerDocument(
+  buffer: Buffer,
+  mimeType: string,
+  originalName: string,
+): Promise<UploadedDocument> {
+  const config = getConfig();
+  if (!config) {
+    throw new Error(
+      'Supabase Storage no está configurado — agregá SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en Fly.io',
+    );
+  }
+
+  const ext = originalName.split('.').pop() ?? 'bin';
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const uploadUrl = `${config.url}/storage/v1/object/${OWNER_DOCS_BUCKET}/${path}`;
+
+  const res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.key}`,
+      'Content-Type': mimeType,
+      'x-upsert': 'false',
+    },
+    body: buffer,
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    logger.error('Error subiendo doc de owner a Supabase Storage', { status: res.status, body, path });
+    throw new Error(`Error al subir el documento (${res.status}): ${body}`);
+  }
+
+  // URL autenticada: el backend la sirve al admin generando un signed URL on-demand.
+  // Guardamos la URL pública-storage para que el admin pueda acceder con service key.
+  const url = `${config.url}/storage/v1/object/${OWNER_DOCS_BUCKET}/${path}`;
+  return { url, path };
+}
+
+/**
+ * Genera una URL firmada de corta duración (60 min) para que el admin visualice
+ * un documento sin exponer la service role key al cliente.
+ */
+export async function signOwnerDocumentUrl(path: string, expiresInSeconds = 3600): Promise<string> {
+  const config = getConfig();
+  if (!config) { throw new Error('Supabase Storage no configurado'); }
+
+  const signUrl = `${config.url}/storage/v1/object/sign/${OWNER_DOCS_BUCKET}/${path}`;
+  const res = await fetch(signUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.key}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ expiresIn: expiresInSeconds }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Error al firmar URL del documento (${res.status}): ${body}`);
+  }
+
+  const data = await res.json() as { signedURL: string };
+  return `${config.url}/storage/v1${data.signedURL}`;
+}
+
+/**
+ * Borra un documento del bucket owner-docs dado su path.
+ */
+export async function deleteOwnerDocument(path: string): Promise<void> {
+  const config = getConfig();
+  if (!config || !path) { return; }
+
+  const res = await fetch(`${config.url}/storage/v1/object/${OWNER_DOCS_BUCKET}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${config.key}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ prefixes: [path] }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    logger.warn('No se pudo borrar doc de owner de Supabase Storage', { path, status: res.status, body });
+  }
+}
+
 /**
  * Borra una foto del bucket dado su path (almacenado en cloudinary_public_id).
  * Si falla, loguea y sigue — el registro de BD se borra igual.

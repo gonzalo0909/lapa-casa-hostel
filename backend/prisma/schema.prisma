@@ -55,12 +55,34 @@ model ApartmentOwner {
   termAcceptedAt         DateTime?               @map("term_accepted_at")
   termAcceptedIp         String?                 @map("term_accepted_ip")
   termVersion            String?                 @map("term_version")
+  // 0034_owner_documents.sql -- verificación KYC del administrador.
+  // pending → sin docs o en revisión; verified → aprobado (badge "Verificado"); rejected → rechazado.
+  verificationStatus     String                  @default("pending") @map("verification_status") @db.VarChar(20)
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @default(now()) @map("updated_at")
 
   transfers OwnerTransfer[]
+  documents OwnerDocument[]
 
   @@map("apartment_owners")
+}
+
+// ─── 0034_owner_documents.sql ──────────────────────────────────────────────
+
+model OwnerDocument {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String         @map("owner_id") @db.Uuid
+  owner        ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  docType      String         @map("doc_type") @db.VarChar(30)
+  fileUrl      String         @map("file_url")
+  filePath     String         @map("file_path")
+  originalName String?        @map("original_name") @db.VarChar(255)
+  mimeType     String?        @map("mime_type") @db.VarChar(100)
+  uploadedAt   DateTime       @default(now()) @map("uploaded_at")
+  reviewedAt   DateTime?      @map("reviewed_at")
+  reviewNotes  String?        @map("review_notes")
+
+  @@map("owner_documents")
 }
 
 model OwnerTransfer {

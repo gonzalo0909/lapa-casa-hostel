@@ -41,6 +41,7 @@ import { hashPassword, generateTempPassword } from '../../utils/encryption';
 import { ApiResponse } from '../../utils/responses';
 import { logger } from '../../utils/logger';
 import { validate } from '../../middleware/validation';
+import { signOwnerDocumentUrl } from '../../lib/supabase/storage-client';
 
 const router = Router();
 
@@ -510,6 +511,116 @@ router.put('/:id/assign-room/:roomId', async (req, res, next) => {
     });
 
     res.status(200).json(ApiResponse.success(rows[0], 'Administrador asignado al apartamento'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── GET /apartment-owners/:id/documents ─────────────────────────────────────
+// Lista los documentos subidos por un administrador, con URLs firmadas (60 min)
+// para que el admin las abra sin exponer la service role key al frontend.
+
+router.get('/:id/documents', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const owner = await prisma.apartmentOwner.findUnique({
+      where: { id },
+      select: { id: true, fullName: true, verificationStatus: true },
+    });
+
+    if (!owner) {
+      res.status(404).json(ApiResponse.error('Administrador no encontrado'));
+      return;
+    }
+
+    const documents = await prisma.ownerDocument.findMany({
+      where: { ownerId: id },
+      orderBy: { uploadedAt: 'desc' },
+    });
+
+    // Generar signed URLs para cada documento
+    const docsWithUrls = await Promise.all(
+      documents.map(async (doc) => {
+        let signedUrl: string | null = null;
+        try {
+          signedUrl = await signOwnerDocumentUrl(doc.filePath, 3600);
+        } catch {
+          // Si Supabase no está configurado (dev), usar la URL almacenada
+          signedUrl = doc.fileUrl;
+        }
+        return { ...doc, signedUrl };
+      }),
+    );
+
+    res.status(200).json(
+      ApiResponse.success({
+        owner: { id: owner.id, fullName: owner.fullName, verificationStatus: owner.verificationStatus },
+        documents: docsWithUrls,
+      }),
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── PATCH /apartment-owners/:id/verify ──────────────────────────────────────
+// El admin aprueba o rechaza los documentos del administrador.
+// status: 'verified' | 'rejected'
+// notes: comentario opcional para el administrador (visible en su panel)
+
+const VerifyOwnerSchema = z.object({
+  status: z.enum(['verified', 'rejected']),
+  notes: z.string().optional(),
+});
+
+router.patch('/:id/verify', validate(VerifyOwnerSchema), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body as z.infer<typeof VerifyOwnerSchema>;
+
+    let owner;
+    try {
+      owner = await prisma.apartmentOwner.update({
+        where: { id },
+        data: { verificationStatus: status },
+        select: { id: true, fullName: true, email: true, verificationStatus: true },
+      });
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        res.status(404).json(ApiResponse.error('Administrador no encontrado'));
+        return;
+      }
+      throw error;
+    }
+
+    // Guardar las notas de revisión en los documentos más recientes
+    if (notes) {
+      await prisma.ownerDocument.updateMany({
+        where: { ownerId: id },
+        data: { reviewedAt: new Date(), reviewNotes: notes },
+      });
+    }
+
+    await auditLogService.log({
+      entity_type: 'apartment_owner',
+      entity_id: id,
+      operation: status === 'verified' ? 'ADMIN_VERIFY_OWNER' : 'ADMIN_REJECT_OWNER_DOCS',
+      new_data: { status, notes },
+    });
+
+    logger.info('Estado de verificación de owner actualizado', {
+      ownerId: id,
+      status,
+      notes,
+    });
+
+    const msg =
+      status === 'verified'
+        ? 'Administrador verificado. Ahora tiene el badge "Verificado".'
+        : 'Documentos rechazados. El administrador deberá volver a subirlos.';
+
+    res.status(200).json(ApiResponse.success(owner, msg));
   } catch (error) {
     next(error);
   }

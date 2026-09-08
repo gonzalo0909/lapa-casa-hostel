@@ -18,11 +18,13 @@ import { query } from '../../config/database';
 import { ApiResponse } from '../../utils/responses';
 import { ownerApartmentsRouter } from './owner-apartments.routes';
 import { ownerTermsRouter } from './owner-terms.routes';
+import { ownerDocumentsRouter } from './owner-documents.routes';
 
 const router = Router();
 
 router.use('/apartments', ownerApartmentsRouter);
 router.use('/accept-terms', ownerTermsRouter);
+router.use('/documents', ownerDocumentsRouter);
 
 // ─── GET /owner/me ────────────────────────────────────────────────────────────
 
@@ -47,6 +49,7 @@ router.get('/me', async (req, res, next) => {
         mustChangePassword: true,
         termAcceptedAt: true,
         termVersion: true,
+        verificationStatus: true,
       },
     });
 

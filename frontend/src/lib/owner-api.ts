@@ -13,6 +13,17 @@ export interface OwnerProfile {
   mustChangePassword: boolean;
   termAcceptedAt: string | null;
   termVersion: string | null;
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+}
+
+export interface OwnerDocument {
+  id: string;
+  docType: 'cpf_cnpj' | 'proof_ownership' | 'other';
+  originalName: string | null;
+  mimeType: string | null;
+  uploadedAt: string;
+  reviewedAt: string | null;
+  reviewNotes: string | null;
 }
 
 export const CURRENT_TERM_VERSION = '2.0';
@@ -131,5 +142,32 @@ export const ownerApartmentsAPI = {
     api.delete<{ success: boolean; message: string }>(`/owner/apartments/photos/${photoId}`),
 };
 
-const ownerAPI = { ownerAuthAPI, ownerApartmentsAPI };
+export const ownerDocumentsAPI = {
+  list: () =>
+    api.get<{
+      success: boolean;
+      data: { verificationStatus: string; documents: OwnerDocument[] };
+    }>('/owner/documents'),
+
+  upload: async (file: File, docType: 'cpf_cnpj' | 'proof_ownership' | 'other') => {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('docType', docType);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/owner/documents`,
+      { method: 'POST', body: formData, credentials: 'include' },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new APIError(data?.message || data?.error || 'Error al subir el documento', res.status);
+    }
+    return data as { success: boolean; data: OwnerDocument; message: string };
+  },
+
+  delete: (docId: string) =>
+    api.delete<{ success: boolean; message: string }>(`/owner/documents/${docId}`),
+};
+
+const ownerAPI = { ownerAuthAPI, ownerApartmentsAPI, ownerDocumentsAPI };
 export default ownerAPI;
