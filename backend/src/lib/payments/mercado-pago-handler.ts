@@ -34,6 +34,25 @@ interface MPPaymentStatus {
   metadata?: Record<string, any>;
 }
 
+interface MPCardPaymentInput {
+  token: string;
+  paymentMethodId: string;
+  issuerId: string;
+  installments: number;
+  amount: number;
+  payerEmail: string;
+  payerCpf: string;
+  description: string;
+  reservationId: string;
+  paymentType: 'deposit' | 'remaining';
+}
+
+interface MPCardPaymentResult {
+  id: string;
+  status: string;     // 'approved' | 'rejected' | 'pending' | 'in_process'
+  statusDetail: string;
+}
+
 export class MercadoPagoPaymentHandler {
   private accessToken: string | null = null;
   private readonly PIX_EXPIRATION_MINUTES = 30;
@@ -145,6 +164,60 @@ export class MercadoPagoPaymentHandler {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Crea y procesa un pago con tarjeta brasileña usando el token generado
+   * por el SDK de Mercado Pago en el frontend (PCI-compliant: los datos
+   * de la tarjeta nunca llegan al servidor). Requiere CPF del titular.
+   */
+  async createCardPayment(data: MPCardPaymentInput): Promise<MPCardPaymentResult> {
+    if (!this.accessToken) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new AppError('Pago con cartão via Mercado Pago não disponível no momento', 503);
+      }
+      return { id: `mp_card_test_${Date.now()}`, status: 'approved', statusDetail: 'accredited' };
+    }
+
+    const body = {
+      transaction_amount: data.amount,
+      token: data.token,
+      description: data.description,
+      installments: Math.max(1, data.installments),
+      payment_method_id: data.paymentMethodId,
+      issuer_id: data.issuerId || undefined,
+      payer: {
+        email: data.payerEmail,
+        identification: { type: 'CPF', number: data.payerCpf.replace(/\D/g, '') },
+      },
+      metadata: {
+        reservation_id: data.reservationId,
+        payment_type: data.paymentType,
+      },
+    };
+
+    const resp = await fetch('https://api.mercadopago.com/v1/payments', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': `lch-card-${data.reservationId}-${Date.now()}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const payment: any = await resp.json();
+
+    if (!resp.ok) {
+      const cause = payment?.cause?.[0]?.description ?? payment?.message ?? resp.status;
+      throw new AppError(`MercadoPago cartão error: ${cause}`, 400);
+    }
+
+    return {
+      id: payment.id.toString(),
+      status: payment.status,
+      statusDetail: payment.status_detail,
+    };
   }
 
   getMaxInstallments(amount: number): number {
