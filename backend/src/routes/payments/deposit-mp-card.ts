@@ -101,17 +101,19 @@ export const depositMpCardHandler = async (
       return;
     }
 
-    // 2. Registrar el pago en nuestra base de datos
-    const payment = await paymentService.createPaymentIntent({
-      reservation_id: reservationId,
-      guest_id: booking.guest_id,
+    // 2. Registrar el pago en nuestra base de datos.
+    // IMPORTANTE: no llamar a paymentService.createPaymentIntent() aquí porque
+    // ese método vuelve a llamar a la API de MP, lo que fallaría sin token de
+    // tarjeta y dejaría la tarjeta cobrada pero sin confirmación en la DB.
+    const payment = await paymentService.registerExternalPayment({
+      reservationId,
+      guestId: booking.guest_id,
       amount: chargedAmount,
       baseAmount: depositAmount,
       currency: 'BRL',
-      guest_email: guestEmail,
-      payment_type: 'deposit',
+      paymentType: 'deposit',
       provider: 'mercadopago',
-      payment_method: 'card',
+      providerPaymentId: mpResult.id,
       installments,
     });
 

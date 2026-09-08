@@ -361,6 +361,35 @@ export class PaymentService {
     return this.paymentRepo.markCompleted(remainingPayment.id);
   }
 
+  /**
+   * Registra en la base de datos un pago que ya fue procesado por el proveedor.
+   * Usar cuando el proveedor ya cobró (ej. MP tarjeta vía deposit-mp-card) y
+   * solo se necesita persistir el registro sin volver a llamar a la API externa.
+   */
+  async registerExternalPayment(data: {
+    reservationId: string;
+    guestId?: string | null;
+    amount: number;
+    baseAmount?: number;
+    currency: string;
+    paymentType: 'deposit' | 'remaining';
+    provider: PaymentProvider;
+    providerPaymentId: string;
+    installments?: number;
+  }): Promise<{ payment_id: string }> {
+    const payment = await this.paymentRepo.create({
+      reservation_id: data.reservationId,
+      guest_id: data.guestId ?? null,
+      provider: data.provider,
+      payment_type: data.paymentType,
+      amount: data.amount,
+      currency: data.currency,
+      provider_payment_id: data.providerPaymentId,
+      metadata: { installments: data.installments, base_amount: data.baseAmount },
+    });
+    return { payment_id: payment.id };
+  }
+
   async getStatistics(): Promise<any> {
     return this.paymentRepo.getStatistics();
   }
