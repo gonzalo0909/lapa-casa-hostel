@@ -7,9 +7,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { paymentAPI } from '@/lib/api';
 import { PixPayment } from './pix-payment';
-import { CardPayment } from './card-payment';
-import { MpCardPayment } from './mp-card-payment';
-import { StripeElementsWrapper } from './stripe-elements';
+import { AutoCardPayment } from './auto-card-payment';
 import { type PaymentLocale, createPaymentT } from './payment-i18n';
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
@@ -31,14 +29,6 @@ interface PixPaymentData {
   amount: number;
 }
 
-interface CardPaymentData {
-  paymentId: string;
-  clientSecret: string;
-  amount: number;
-  currency: string;
-  cardSurchargePercent: number;
-}
-
 // ── Helpers de localización ─────────────────────────────────────────────────
 
 const SUPPORTED: PaymentLocale[] = ['pt', 'es', 'en', 'fr', 'de', 'it'];
@@ -49,94 +39,70 @@ function safeLocale(locale: string): PaymentLocale {
 
 const T = createPaymentT({
     pt: {
-      tabPix:            'PIX',
-      tabCard:           'Cartão Brasileiro',
-      tabIntl:           'Cartão Internacional',
-      pixRecommended:    '✓ Recomendado – sem taxa extra',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard emitidos fora do Brasil',
-      depositNow:        'Depósito agora',
-      remainingCheckin:  'Saldo no check-in',
-      totalBooking:      'Total da reserva',
-      surchargePct:      '+ {pct}% de taxa para cartão',
-      loading:           'Preparando pagamento…',
-      error:             'Erro ao iniciar o pagamento. Tente novamente.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Cartão',
+      pixRecommended:   '✓ Recomendado – sem taxa extra',
+      depositNow:       'Depósito agora',
+      remainingCheckin: 'Saldo no check-in',
+      totalBooking:     'Total da reserva',
+      loading:          'Preparando pagamento…',
+      error:            'Erro ao iniciar o pagamento. Tente novamente.',
+      checkIn:          'Check-in',
     },
     es: {
-      tabPix:            'PIX',
-      tabCard:           'Tarjeta Brasileña',
-      tabIntl:           'Tarjeta Internacional',
-      pixRecommended:    '✓ Recomendado – sin cargo extra',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard emitidas fuera de Brasil',
-      depositNow:        'Depósito ahora',
-      remainingCheckin:  'Saldo al check-in',
-      totalBooking:      'Total de la reserva',
-      surchargePct:      '+ {pct}% de recargo para tarjeta',
-      loading:           'Preparando pago…',
-      error:             'Error al iniciar el pago. Intentá de nuevo.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Tarjeta',
+      pixRecommended:   '✓ Recomendado – sin cargo extra',
+      depositNow:       'Depósito ahora',
+      remainingCheckin: 'Saldo al check-in',
+      totalBooking:     'Total de la reserva',
+      loading:          'Preparando pago…',
+      error:            'Error al iniciar el pago. Intentá de nuevo.',
+      checkIn:          'Check-in',
     },
     en: {
-      tabPix:            'PIX',
-      tabCard:           'Brazilian Card',
-      tabIntl:           'International Card',
-      pixRecommended:    '✓ Recommended – no extra fee',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard issued outside Brazil',
-      depositNow:        'Deposit now',
-      remainingCheckin:  'Balance at check-in',
-      totalBooking:      'Booking total',
-      surchargePct:      '+ {pct}% card surcharge',
-      loading:           'Preparing payment…',
-      error:             'Error initiating payment. Please try again.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Card',
+      pixRecommended:   '✓ Recommended – no extra fee',
+      depositNow:       'Deposit now',
+      remainingCheckin: 'Balance at check-in',
+      totalBooking:     'Booking total',
+      loading:          'Preparing payment…',
+      error:            'Error initiating payment. Please try again.',
+      checkIn:          'Check-in',
     },
     fr: {
-      tabPix:            'PIX',
-      tabCard:           'Carte Brésilienne',
-      tabIntl:           'Carte Internationale',
-      pixRecommended:    '✓ Recommandé – sans frais',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard émises hors du Brésil',
-      depositNow:        'Dépôt maintenant',
-      remainingCheckin:  'Solde au check-in',
-      totalBooking:      'Total de la réservation',
-      surchargePct:      '+ {pct}% de frais carte',
-      loading:           'Préparation du paiement…',
-      error:             'Erreur lors du paiement. Réessayez.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Carte',
+      pixRecommended:   '✓ Recommandé – sans frais',
+      depositNow:       'Dépôt maintenant',
+      remainingCheckin: 'Solde au check-in',
+      totalBooking:     'Total de la réservation',
+      loading:          'Préparation du paiement…',
+      error:            'Erreur lors du paiement. Réessayez.',
+      checkIn:          'Check-in',
     },
     de: {
-      tabPix:            'PIX',
-      tabCard:           'Brasilianische Karte',
-      tabIntl:           'Internationale Karte',
-      pixRecommended:    '✓ Empfohlen – kein Aufpreis',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard aus dem Ausland',
-      depositNow:        'Anzahlung jetzt',
-      remainingCheckin:  'Restbetrag beim Check-in',
-      totalBooking:      'Reservierungsgesamt',
-      surchargePct:      '+ {pct}% Kartengebühr',
-      loading:           'Zahlung wird vorbereitet…',
-      error:             'Fehler beim Starten der Zahlung. Bitte erneut versuchen.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Karte',
+      pixRecommended:   '✓ Empfohlen – kein Aufpreis',
+      depositNow:       'Anzahlung jetzt',
+      remainingCheckin: 'Restbetrag beim Check-in',
+      totalBooking:     'Reservierungsgesamt',
+      loading:          'Zahlung wird vorbereitet…',
+      error:            'Fehler beim Starten der Zahlung. Bitte erneut versuchen.',
+      checkIn:          'Check-in',
     },
     it: {
-      tabPix:            'PIX',
-      tabCard:           'Carta Brasiliana',
-      tabIntl:           'Carta Internazionale',
-      pixRecommended:    '✓ Consigliato – nessuna commissione extra',
-      cardBrHint:        'Visa, Master, Elo, Hipercard',
-      cardIntlHint:      'Visa, Mastercard emesse fuori dal Brasile',
-      depositNow:        'Caparra ora',
-      remainingCheckin:  'Saldo al check-in',
-      totalBooking:      'Totale prenotazione',
-      surchargePct:      '+ {pct}% di commissione carta',
-      loading:           'Preparazione del pagamento…',
-      error:             'Errore nell\'avvio del pagamento. Riprova.',
-      checkIn:           'Check-in',
+      tabPix:           'PIX',
+      tabCard:          'Carta',
+      pixRecommended:   '✓ Consigliato – nessuna commissione extra',
+      depositNow:       'Caparra ora',
+      remainingCheckin: 'Saldo al check-in',
+      totalBooking:     'Totale prenotazione',
+      loading:          'Preparazione del pagamento…',
+      error:            "Errore nell'avvio del pagamento. Riprova.",
+      checkIn:          'Check-in',
     },
 });
 
@@ -252,54 +218,28 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 }) => {
   const loc = safeLocale(locale);
 
-  const [activeTab,  setActiveTab]  = useState<'pix' | 'card-br' | 'card-intl'>('pix');
-  const [pixData,    setPixData]    = useState<PixPaymentData | null>(null);
-  const [cardData,   setCardData]   = useState<CardPaymentData | null>(null);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState<string | null>(null);
-  // card-br no pre-carga nada — el formulario MP maneja todo internamente
-  const [cardSurcharge, setCardSurcharge] = useState(0);
+  const [activeTab, setActiveTab] = useState<'pix' | 'card'>('pix');
+  const [pixData,   setPixData]   = useState<PixPaymentData | null>(null);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState<string | null>(null);
 
-  // Llama al backend para crear el payment intent del proveedor indicado.
-  // card-br no pre-carga: el formulario MP maneja el flujo completo.
-  const loadPayment = useCallback(
-    async (tab: 'pix' | 'card-br' | 'card-intl', cached: { pix: PixPaymentData | null; card: CardPaymentData | null }) => {
-      if (tab === 'pix'       && cached.pix)  return;
-      if (tab === 'card-intl' && cached.card) return;
-      if (tab === 'card-br')                  return; // MP form handles its own flow
-
+  // Carga el PaymentIntent de PIX.
+  const loadPix = useCallback(
+    async (cached: PixPaymentData | null) => {
+      if (cached) return;
       setLoading(true);
       setError(null);
-
       try {
-        const provider = tab === 'pix' ? 'mercadopago' : 'stripe';
-        const res = await paymentAPI.processDeposit(reservationId, provider);
-
-        // El backend devuelve ApiResponse.success({ payment: {...} })
-        // → axios res.data = { success, data: { payment: {...} } }
-        // Desempacamos de forma defensiva.
-        const raw = res.data;
+        const res = await paymentAPI.processDeposit(reservationId, 'mercadopago');
+        const raw = (res as any).data;
         const p   = raw?.data?.payment ?? raw?.payment ?? raw?.data ?? raw;
-
-        if (tab === 'pix') {
-          setPixData({
-            paymentId:     p.paymentId,
-            qrCode:        p.qrCode        ?? '',
-            qrCodeBase64:  p.qrCodeBase64,
-            amount:        p.amount,
-          });
-        } else {
-          const surcharge = p.cardSurchargePercent ?? 0;
-          setCardSurcharge(surcharge);
-          setCardData({
-            paymentId:            p.paymentId,
-            clientSecret:         p.clientSecret      ?? '',
-            amount:               p.amount,
-            currency:             p.currency          ?? 'BRL',
-            cardSurchargePercent: surcharge,
-          });
-        }
-      } catch (_err) {
+        setPixData({
+          paymentId:    p.paymentId,
+          qrCode:       p.qrCode       ?? '',
+          qrCodeBase64: p.qrCodeBase64,
+          amount:       p.amount,
+        });
+      } catch {
         setError(T('error', loc));
       } finally {
         setLoading(false);
@@ -310,23 +250,15 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
   // Carga PIX al montar (tab por defecto).
   useEffect(() => {
-    loadPayment('pix', { pix: null, card: null });
+    loadPix(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleTabClick = async (tab: 'pix' | 'card-br' | 'card-intl') => {
+  const handleTabClick = async (tab: 'pix' | 'card') => {
     if (tab === activeTab) return;
     setActiveTab(tab);
     setError(null);
-    // Para card-br cargamos solo el surcharge si no lo tenemos aún
-    if (tab === 'card-br' && cardSurcharge === 0) {
-      try {
-        const r = await paymentAPI.getSurcharge();
-        const raw = r.data as any;
-        setCardSurcharge(raw?.data?.cardSurchargePercent ?? raw?.cardSurchargePercent ?? 0);
-      } catch { /* silencioso */ }
-    }
-    await loadPayment(tab, { pix: pixData, card: cardData });
+    if (tab === 'pix') await loadPix(pixData);
   };
 
   const handlePixSuccess = useCallback(
@@ -337,10 +269,7 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
     (_data: { paymentId: string; amount: number; currency: string }) => { onSuccess(); },
     [onSuccess]
   );
-  const handlePaymentError = useCallback(
-    (err: Error) => { setError(err.message); },
-    []
-  );
+  const handlePaymentError = useCallback((err: Error) => { setError(err.message); }, []);
 
   const fmtBRL = (val: number) =>
     'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -372,8 +301,8 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
         </div>
       </div>
 
-      {/* ── Tabs de método de pago (3 opciones) ──────────────── */}
-      <div style={{ ...S.tabs, flexWrap: 'wrap' }}>
+      {/* ── Tabs de método de pago (PIX | Cartão) ───────────── */}
+      <div style={S.tabs}>
         <button
           type="button"
           style={tabStyle(activeTab === 'pix')}
@@ -387,25 +316,11 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
         </button>
         <button
           type="button"
-          style={tabStyle(activeTab === 'card-br')}
-          onClick={() => handleTabClick('card-br')}
-          aria-pressed={activeTab === 'card-br'}
+          style={tabStyle(activeTab === 'card')}
+          onClick={() => handleTabClick('card')}
+          aria-pressed={activeTab === 'card'}
         >
-          🇧🇷 {T('tabCard', loc)}
-          {activeTab === 'card-br' && (
-            <span style={S.pixBadge}>{T('cardBrHint', loc)}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          style={tabStyle(activeTab === 'card-intl')}
-          onClick={() => handleTabClick('card-intl')}
-          aria-pressed={activeTab === 'card-intl'}
-        >
-          🌍 {T('tabIntl', loc)}
-          {activeTab === 'card-intl' && (
-            <span style={S.pixBadge}>{T('cardIntlHint', loc)}</span>
-          )}
+          💳 {T('tabCard', loc)}
         </button>
       </div>
 
@@ -429,42 +344,15 @@ export const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
               onError={handlePaymentError}
             />
           )
-        ) : activeTab === 'card-br' ? (
-          /* Tarjeta brasileña — Mercado Pago Bricks (formulario propio) */
-          <MpCardPayment
+        ) : (
+          /* Cartão — detección automática BR (MP) o Internacional (Stripe) */
+          <AutoCardPayment
             reservationId={reservationId}
             depositAmount={depositAmount}
-            surchargePercent={cardSurcharge}
             locale={loc}
-            onSuccess={(d) => { handleCardSuccess({ ...d, currency: 'BRL' }); }}
+            onSuccess={handleCardSuccess}
             onError={handlePaymentError}
           />
-        ) : (
-          /* Tarjeta internacional — Stripe Elements */
-          cardData && (
-            <>
-              {cardData.cardSurchargePercent > 0 && (
-                <div style={S.surchargeBadge}>
-                  {T('surchargePct', loc).replace('{pct}', String(cardData.cardSurchargePercent))}
-                </div>
-              )}
-              <StripeElementsWrapper
-                clientSecret={cardData.clientSecret}
-                amount={cardData.amount}
-                currency={cardData.currency}
-              >
-                <CardPayment
-                  paymentId={cardData.paymentId}
-                  clientSecret={cardData.clientSecret}
-                  amount={cardData.amount}
-                  currency={cardData.currency}
-                  locale={loc}
-                  onSuccess={handleCardSuccess}
-                  onError={handlePaymentError}
-                />
-              </StripeElementsWrapper>
-            </>
-          )
         )}
       </div>
     </div>

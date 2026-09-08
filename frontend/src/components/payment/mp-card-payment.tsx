@@ -59,6 +59,10 @@ interface MpCardPaymentProps {
   locale: PaymentLocale;
   onSuccess: (data: { paymentId: string; amount: number }) => void;
   onError: (err: Error) => void;
+  /** Número de tarjeta pre-detectado por AutoCardPayment (sin espacios).
+   *  Si se pasa, el campo se inicializa con este valor y se lanza la
+   *  detección de BIN automáticamente al montar el SDK. */
+  initialCardNumber?: string;
 }
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
@@ -270,6 +274,7 @@ const secureRow: React.CSSProperties = {
 
 export function MpCardPayment({
   reservationId, depositAmount, surchargePercent, locale, onSuccess, onError,
+  initialCardNumber,
 }: MpCardPaymentProps) {
 
   const mpRef = useRef<MercadoPagoInstance | null>(null);
@@ -278,7 +283,10 @@ export function MpCardPayment({
   const [surcharge, setSurcharge]         = useState(surchargePercent);
 
   const [name,      setName]        = useState('');
-  const [number,    setNumber]      = useState('');
+  // Si viene pre-detectado desde AutoCardPayment, formateamos el número inicial
+  const [number,    setNumber]      = useState(
+    initialCardNumber ? initialCardNumber.replace(/(.{4})/g, '$1 ').trim() : ''
+  );
   const [expiry,    setExpiry]      = useState('');
   const [cvv,       setCvv]         = useState('');
   const [cpf,       setCpf]         = useState('');
@@ -358,6 +366,14 @@ export function MpCardPayment({
       // silent — las cuotas son opcionales
     }
   }, [chargedAmount, installments]);
+
+  // Si viene initialCardNumber desde AutoCardPayment, disparar BIN detection
+  // cuando el SDK esté listo (después de que onBinChange ya está definido).
+  useEffect(() => {
+    if (sdkReady && initialCardNumber && initialCardNumber.length >= 6) {
+      onBinChange(initialCardNumber.slice(0, 6));
+    }
+  }, [sdkReady, initialCardNumber, onBinChange]);
 
   const handleNumberChange = (v: string) => {
     const fmt = formatCardNumber(v);
