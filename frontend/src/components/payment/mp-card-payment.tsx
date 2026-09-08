@@ -63,6 +63,10 @@ interface MpCardPaymentProps {
    *  Si se pasa, el campo se inicializa con este valor y se lanza la
    *  detección de BIN automáticamente al montar el SDK. */
   initialCardNumber?: string;
+  /** Callback opcional: se llama con los primeros 6 dígitos (BIN) cada vez
+   *  que cambia el número de tarjeta. AutoCardPayment lo usa para detectar
+   *  en segundo plano si la tarjeta es internacional. */
+  onBinChange?: (bin: string) => void;
 }
 
 // ── i18n ─────────────────────────────────────────────────────────────────────
@@ -276,7 +280,7 @@ const secureRow: React.CSSProperties = {
 
 export function MpCardPayment({
   reservationId, depositAmount, surchargePercent, locale, onSuccess, onError,
-  initialCardNumber,
+  initialCardNumber, onBinChange: onBinChangeExternal,
 }: MpCardPaymentProps) {
 
   const mpRef = useRef<MercadoPagoInstance | null>(null);
@@ -381,8 +385,14 @@ export function MpCardPayment({
     const fmt = formatCardNumber(v);
     setNumber(fmt);
     const raw = fmt.replace(/\s/g, '');
-    if (raw.length >= 6) onBinChange(raw.slice(0, 6));
-    else setInstallmentOpts([]);
+    if (raw.length >= 6) {
+      const bin = raw.slice(0, 6);
+      onBinChange(bin);
+      onBinChangeExternal?.(bin);
+    } else {
+      setInstallmentOpts([]);
+      onBinChangeExternal?.('');
+    }
   };
 
   // ── Submit ───────────────────────────────────────────────────────────────
