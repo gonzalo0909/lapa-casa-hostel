@@ -308,7 +308,7 @@ export function MpCardPayment({
   useEffect(() => {
     if (surchargePercent > 0) return; // ya viene del padre
     api.get<{ success: boolean; data: { cardSurchargePercent: number } }>('/payments/surcharge')
-      .then(r => setSurcharge(r.data.data.cardSurchargePercent))
+      .then(r => setSurcharge(r.data.cardSurchargePercent))
       .catch(() => {}); // si falla, usamos 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
