@@ -19,64 +19,63 @@ export function PropertySelectorHero() {
   const apartmentsHref = `/${locale}/apartamentos`
 
   return (
-    <div className="min-h-screen bg-[#12160f] text-cream">
+    <div className="bg-[#12160f] text-cream">
       {/* Nav */}
       <header className="sticky top-0 z-20 border-b border-white/10 bg-[#12160f]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-2">
-            <span className="font-serif text-2xl tracking-tight text-cream">Lapa Casa</span>
+            <span className="font-serif text-xl tracking-tight text-cream">Lapa Casa</span>
             <span className="hidden text-xs uppercase tracking-[0.2em] text-cream/50 sm:inline">Rio de Janeiro</span>
           </div>
-          <nav className="flex gap-2">
+          <nav className="flex flex-wrap gap-1.5">
             <Link
               href={hostelHref}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+              className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
               Hostel
             </Link>
             <Link
               href={apartmentsHref}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+              className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
               Apartamentos
             </Link>
             <a
               href={`/${locale}/parceiros`}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+              className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
               Parceiros
             </a>
             <a
               href={`/${locale}/guardavolumes`}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
+              className="hidden sm:inline-flex rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
             >
-              Malas/Guardavolumes
+              Guardavolumes
             </a>
           </nav>
         </div>
       </header>
 
       {/* Hero */}
-      <main className="mx-auto max-w-6xl px-6 pb-20 pt-14 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-cream/60">
-          <MapPin className="h-3.5 w-3.5 text-gold" />
+      <main className="mx-auto max-w-6xl px-6 pb-8 pt-8 text-center">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-cream/60">
+          <MapPin className="h-3 w-3 text-gold" />
           Rio de Janeiro
         </div>
-        <h1 className="mx-auto max-w-3xl text-balance font-serif text-4xl leading-tight sm:text-6xl">
+        <h1 className="mx-auto max-w-2xl text-balance font-serif text-3xl leading-tight sm:text-4xl">
           Tu lugar en Rio de Janeiro
         </h1>
-        <p className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-cream/70">
-          Dos experiencias, dos reservas independientes. Elige la energía compartida del hostel o la privacidad de un
-          apartamento propio.
+        <p className="mx-auto mt-2 max-w-md text-pretty text-sm leading-relaxed text-cream/60 hidden sm:block">
+          Elige la energía compartida del hostel o la privacidad de un apartamento propio.
         </p>
 
-        <div className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-2">
+        <div className="mx-auto mt-6 grid max-w-4xl gap-4 sm:grid-cols-2">
           <PropertyPanel
             title="Hostel"
             location="Rio de Janeiro"
-            description="Camas en cuartos compartidos y privados. Ideal para grupos, mochileros y viajeros sociales."
+            description="Camas en cuartos compartidos. Ideal para grupos, mochileros y viajeros sociales."
             cta="Reservar cama"
-            icon={<BedDouble className="h-6 w-6" />}
+            icon={<BedDouble className="h-5 w-5" />}
             tone="foliage"
             pattern="beds"
             href={hostelHref}
@@ -84,16 +83,16 @@ export function PropertySelectorHero() {
           <PropertyPanel
             title="Apartamentos"
             location="Rio de Janeiro"
-            description="Espacios privados con cocina en distintos puntos de la ciudad, para parejas y familias."
+            description="Espacios privados con cocina. Para parejas, familias y estadías largas."
             cta="Reservar apartamento"
-            icon={<Home className="h-6 w-6" />}
+            icon={<Home className="h-5 w-5" />}
             tone="azulejo"
             pattern="windows"
             href={apartmentsHref}
           />
         </div>
 
-        <p className="mt-8 text-sm text-cream/50">
+        <p className="mt-5 text-xs text-cream/40">
           Reserva directa · Mejor precio garantizado
         </p>
       </main>
@@ -128,23 +127,23 @@ function PropertyPanel({
   return (
     <Link
       href={href}
-      className="group relative flex min-h-[320px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-left text-cream transition-transform duration-300 hover:-translate-y-1"
+      className="group relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-2xl p-5 text-left text-cream transition-transform duration-300 hover:-translate-y-1"
       style={{ background: bg }}
     >
       <span className="pointer-events-none absolute inset-0 text-cream opacity-40 transition-opacity duration-300 group-hover:opacity-70">
         {pattern === "beds" ? <BedsPattern /> : <WindowsPattern />}
       </span>
       <span className="relative z-10">
-        <span className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cream/15 text-cream backdrop-blur">
+        <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-cream/15 text-cream backdrop-blur">
           {icon}
         </span>
-        <span className="block font-serif text-3xl">{title}</span>
-        <span className="mt-1 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-cream/70">
-          <MapPin className="h-3 w-3" />
+        <span className="block font-serif text-2xl">{title}</span>
+        <span className="mt-0.5 inline-flex items-center gap-1 text-xs uppercase tracking-[0.15em] text-cream/70">
+          <MapPin className="h-2.5 w-2.5" />
           {location}
         </span>
-        <span className="mt-2 block max-w-[26ch] text-sm leading-relaxed text-cream/85">{description}</span>
-        <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
+        <span className="mt-1.5 block max-w-[28ch] text-sm leading-snug text-cream/85">{description}</span>
+        <span className="mt-3 inline-flex items-center gap-2 text-sm font-semibold">
           {cta}
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>
