@@ -20,8 +20,8 @@
               Redis (Upstash) — cache +
               colas + rate limiting
 
-   Frontend (Next.js, motor de reservas real) y landing estática:
-   Vercel, procesos aparte del backend. Ver docs/DEPLOY.md.
+   Frontend (Next.js, motor de reservas real):
+   Vercel, proceso aparte del backend. Ver docs/DEPLOY.md.
 ```
 
 - **Backend**: Node/Express, un solo proceso HTTP (`src/server.ts` → `src/app.ts`).
@@ -33,11 +33,9 @@
 - **Base de datos**: Supabase (Postgres real), única fuente de verdad. `availability_cache`
   es dato derivado, recalculable — nunca se lee como fuente de verdad en decisiones de
   negocio.
-- **Frontend**: `frontend/` (Next.js App Router) ya tiene el motor de reservas real
+- **Frontend**: `frontend/` (Next.js App Router) — motor de reservas real
   (hostel + apartamentos) conectado a la API, en 6 idiomas. Corre en Vercel, proceso
   separado del backend.
-- **Landing estática**: `public/landing/` servida en el dominio raíz (info de contacto
-  + links directos a las OTAs). También en Vercel.
 
 ## Requisito crítico #6: SQL como única implementación de negocio
 

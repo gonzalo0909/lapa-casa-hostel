@@ -4,8 +4,7 @@ Guía paso a paso para desplegar el sistema en producción. Apunta al Supabase r
 migrado (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — **no crear un proyecto
 Supabase nuevo**.
 
-> **Stack actual:** Frontend + Landing → Vercel · Backend + Worker → Fly.io · DB → Supabase.
-> `render.yaml` queda archivado (referencia histórica, ya no define servicios activos).
+> **Stack actual:** Frontend → Vercel · Backend + Worker → Fly.io · DB → Supabase.
 
 > Antes de seguir esta guía: Ventanas 3 (pagos), 4 (colas/emails/Sheets/admin) y 5
 > (iCal/OTAs) deben estar verificadas de punta a punta, no solo escritas (ver
@@ -17,7 +16,6 @@ Supabase nuevo**.
 | Servicio | Plataforma | Sirve |
 |---|---|---|
 | `lapa-frontend` | Vercel | Frontend Next.js — motor de reservas, rutas `/[locale]/...` |
-| `lapa-landing` | Vercel | Landing estática de `public/landing/` |
 | Backend API + worker | Fly.io | API REST + BullMQ (ver `backend/fly.toml`) |
 | Base de datos | Supabase | Postgres 17, región `sa-east-1` |
 
@@ -43,21 +41,7 @@ dashboard web de Fly (sin `flyctl` local). Resumen:
    correr `migrate.js`/`seed.js` contra producción salvo que se agregue una migración
    `0009+` nueva.
 
-## 3. Deploy — landing estática (Vercel)
-
-1. Vercel → **Add New Project** → importar repo `gonzalo0909/lapa-casa-hostel`.
-2. Root Directory: `public/landing`.
-3. Framework Preset: **Other** (es HTML estático, sin build step).
-4. Branch de producción: `definitivo2026`.
-5. Sin variables de entorno (es HTML puro).
-6. Dominio custom: `lapacasario.com` (sin `www`) → Vercel → Settings → Domains.
-   DNS en Porkbun: registro `ALIAS` / `CNAME` apuntando al dominio que da Vercel
-   (`cname.vercel-dns.com` o el A/AAAA que muestre el dashboard).
-7. Antes de publicar, completar los `TODO` de `public/landing/index.html`:
-   - Número real de WhatsApp (`href="https://wa.me/..."`)
-   - URLs reales de Booking.com, Airbnb, Hostelworld, Expedia
-
-## 4. Deploy — frontend Next.js (Vercel)
+## 3. Deploy — frontend Next.js (Vercel)
 
 1. Vercel → **Add New Project** → importar repo `gonzalo0909/lapa-casa-hostel`.
 2. Root Directory: `frontend`.
@@ -73,22 +57,21 @@ dashboard web de Fly (sin `flyctl` local). Resumen:
    NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-xxxxx         # opcional
    NEXT_PUBLIC_FB_PIXEL_ID=xxxxx                  # opcional
    ```
-6. Dominio custom: `www.lapacasario.com` → Vercel → Settings → Domains.
+6. Dominio custom: `lapacasario.com` y `www.lapacasario.com` → Vercel → Settings → Domains.
    DNS en Porkbun: `CNAME www → cname.vercel-dns.com` (o los registros que muestre
-   el dashboard de Vercel para ese proyecto).
+   el dashboard de Vercel).
 7. Auto-deploy activado por defecto: cada push a `definitivo2026` despliega solo.
 
-## 5. Dominios custom
+## 4. Dominios custom
 
-- `lapacasario.com` → Vercel proyecto `lapa-landing`, Settings → Domains.
-- `www.lapacasario.com` → Vercel proyecto `lapa-frontend`, Settings → Domains.
+- `lapacasario.com` y `www.lapacasario.com` → Vercel proyecto `lapa-frontend`, Settings → Domains.
 - `api.lapacasario.com` → Fly.io, app del backend → Certificates → agregar el
   hostname, cargar los registros `A`/`AAAA`/`CNAME` que muestra en Porkbun.
 
 `APP_URL` en los Secrets de Fly debe apuntar a `https://api.lapacasario.com` (no a
 `*.fly.dev`), ya que se usa para links en emails transaccionales.
 
-## 6. Redis (Upstash u otro proveedor)
+## 5. Redis (Upstash u otro proveedor)
 
 Sin `REDIS_URL`, el sistema sigue funcionando (cache cae a un fallback en memoria por
 proceso, colas BullMQ quedan deshabilitadas — ver `src/cache/redis-client.ts` y
@@ -100,7 +83,7 @@ sin compartir estado entre instancias. Obligatorio antes de recibir pagos reales
 3. El worker (`npm run worker`) ya corre como process group `worker` en Fly —
    `backend/fly.toml`, no hace falta un servicio aparte.
 
-## 7. Webhooks externos
+## 6. Webhooks externos
 
 Registrar, en el dashboard de cada proveedor, la URL pública `https://api.<dominio>/api/v1/...`:
 
@@ -114,7 +97,7 @@ Registrar, en el dashboard de cada proveedor, la URL pública `https://api.<domi
 Airbnb y Hostelworld son iCal-only (no tienen webhook, ver
 `config/channels.ts:WEBHOOK_CHANNELS`) — no hay nada que registrar ahí.
 
-## 8. Feeds iCal
+## 7. Feeds iCal
 
 - **Export** (público, sin auth): `GET /api/v1/ical/export` y
   `/api/v1/ical/export/:roomId` — pegar estas URLs en Airbnb/Hostelworld/Booking como
@@ -123,18 +106,18 @@ Airbnb y Hostelworld son iCal-only (no tienen webhook, ver
   `POST /api/v1/admin` → panel admin, o `POST /api/v1/ical/import/config` con JWT de
   admin (ver colección Postman).
 
-## 9. Deploy sin downtime
+## 8. Deploy sin downtime
 
-**Frontend/landing (Vercel)**: Vercel hace rolling deploy atómico — la nueva versión
+**Frontend (Vercel)**: Vercel hace rolling deploy atómico — la nueva versión
 sólo recibe tráfico después de que el build termina correctamente. Sin cold-starts
 (Vercel mantiene las funciones warm en el plan por defecto).
 
 **Backend/worker (Fly.io)**: `fly.toml` tiene `min_machines_running = 1` y healthcheck
 en `/health` antes de que el proxy le mande tráfico a una máquina nueva.
 
-## 10. Rollback
+## 9. Rollback
 
-**Frontend/landing (Vercel)**: `./scripts/deploy.sh rollback` (requiere `VERCEL_TOKEN`
+**Frontend (Vercel)**: `./scripts/rollback.sh` (requiere `VERCEL_TOKEN`
 y `VERCEL_PROJECT_ID`, ver el script) o manualmente: dashboard de Vercel → proyecto →
 pestaña **Deployments** → elegir un deploy anterior → **Promote to Production**.
 
@@ -142,17 +125,17 @@ pestaña **Deployments** → elegir un deploy anterior → **Promote to Producti
 nuevo deploy vía el Auto-Deploy conectado a GitHub), o desde el dashboard de Fly →
 Activity → elegir un release anterior → redeploy. `scripts/rollback.sh` no cubre Fly.
 
-## 11. Scripts de operaciones
+## 10. Scripts de operaciones
 
 Ver `scripts/` en la raíz del repo:
 
-- `deploy.sh <frontend|landing>` — dispara un deploy forzado vía Deploy Hook de Vercel
-- `rollback.sh` — vuelve al deploy anterior vía API de Vercel (frontend o landing)
+- `deploy.sh frontend` — dispara un deploy forzado vía Deploy Hook de Vercel
+- `rollback.sh` — vuelve al deploy anterior vía API de Vercel
 - `backup-db.sh` — `pg_dump` contra el Supabase real
 - `restore-db.sh` — restaura un backup (destructivo, pide confirmación)
 - `health-check.sh` — verifica que todos los endpoints públicos respondan
 
-## 12. Checklist pre-producción
+## 11. Checklist pre-producción
 
 Ver la lista completa (con estado real, no aspiracional) en
 `prompts/combo-VENTANA-6-completa.md`, sección "Checklist pre-producción", y en

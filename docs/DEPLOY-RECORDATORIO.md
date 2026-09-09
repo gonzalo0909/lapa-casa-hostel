@@ -2,17 +2,15 @@
 
 ## Stack real (hoy)
 - **Frontend (Next.js)**: Vercel — proyecto `lapa-frontend`, root `frontend/`
-- **Landing estática**: Vercel — proyecto `lapa-landing`, root `public/landing/`
 - **Backend + worker**: Fly.io, app `lapa-casa-hostel` (dos process groups: `app` y `worker`, ver `backend/fly.toml`)
 - **Dominio**: `lapacasario.com`, comprado en Porkbun
-- **Base de datos**: Supabase (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — no gestionada por Vercel ni por Fly
+- **Base de datos**: Supabase (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`)
 
-## Dominios ya configurados
+## Dominios
 
 | Dominio | Apunta a | DNS (Porkbun) |
 |---|---|---|
-| `lapacasario.com` | Landing en Vercel (`lapa-landing`) | ALIAS/CNAME → dominio que da Vercel |
-| `www.lapacasario.com` | Frontend en Vercel (`lapa-frontend`) | CNAME → `cname.vercel-dns.com` |
+| `lapacasario.com` y `www` | Frontend en Vercel (`lapa-frontend`) | CNAME → `cname.vercel-dns.com` |
 | `api.lapacasario.com` | Backend en Fly.io | A + AAAA + CNAME que muestra Fly → Certificates |
 
 ---
@@ -30,7 +28,7 @@ Todo se hace desde el dashboard web de Fly (fly.io/dashboard), sin instalar nada
    `MP_WEBHOOK_SECRET`, `RESEND_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`,
    `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
    `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`,
-   `SENTRY_DSN` (proyecto `lapa-backend` en sentry.io → Settings → Client Keys).
+   `SENTRY_DSN`.
    **`DATABASE_CA_CERT` ya no hace falta** — es código (`backend/src/config/supabase-ca.ts`), no secreto.
 5. Settings → **Auto-Deploy on push**, rama `definitivo2026` — cada push despliega solo
 6. Certificates → agregar `api.lapacasario.com`, cargar los registros DNS que muestra en Porkbun
@@ -38,15 +36,13 @@ Todo se hace desde el dashboard web de Fly (fly.io/dashboard), sin instalar nada
 
 ---
 
-## Deploy del frontend y landing (Vercel)
+## Deploy del frontend (Vercel)
 
-Dos proyectos separados en Vercel, ambos conectados al mismo repo:
-
-### Proyecto `lapa-frontend` (Next.js)
+Proyecto `lapa-frontend` en Vercel:
 - Root Directory: `frontend`
 - Framework: Next.js (auto-detectado)
 - Branch de producción: `definitivo2026`
-- Dominio: `www.lapacasario.com`
+- Dominios: `lapacasario.com` y `www.lapacasario.com`
 - Variables de entorno (Settings → Environment Variables):
   ```
   NEXT_PUBLIC_API_URL=https://api.lapacasario.com/api/v1
@@ -56,13 +52,6 @@ Dos proyectos separados en Vercel, ambos conectados al mismo repo:
   NEXT_PUBLIC_WHATSAPP_NUMBER=5521xxxxxxxxx
   ```
 - Vercel auto-deploya en cada push a `definitivo2026`.
-
-### Proyecto `lapa-landing` (estático)
-- Root Directory: `public/landing`
-- Framework: Other
-- Branch de producción: `definitivo2026`
-- Dominio: `lapacasario.com` (sin www)
-- Sin variables de entorno.
 
 ---
 
@@ -80,8 +69,6 @@ Crear **dos fichas separadas**:
 1. **Lapa Casa Hostel** — con dirección física: Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro
 2. **Lapa Casa Apartamentos** — sin dirección fija, seleccionar categoría "Área de servicio" → "Rio de Janeiro"
 
-Así en Google Maps aparecen como negocios independientes con SEO propio.
-
 ---
 
 ## Checklist final antes de lanzar
@@ -89,12 +76,11 @@ Así en Google Maps aparecen como negocios independientes con SEO propio.
 - [x] Comprar dominio lapacasario.com
 - [x] Deploy backend en Fly.io
 - [x] Deploy frontend en Vercel
-- [x] Deploy landing en Vercel
-- [x] Configurar DNS (`api.` → Fly, `www` → Vercel frontend, raíz → Vercel landing)
+- [x] Configurar DNS (`api.` → Fly, raíz/`www` → Vercel)
 - [ ] Probar formulario de reserva hostel (end-to-end)
 - [ ] Probar formulario de reserva apartamentos (end-to-end)
 - [ ] Verificar que /apartamentos NO muestra tab de hostel
-- [ ] Verificar que emails de confirmación NO incluyen dirección de apartamento en el cuerpo (solo en link seguro)
+- [ ] Verificar que emails de confirmación NO incluyen dirección de apartamento en el cuerpo
 - [ ] Configurar Google Business Profile (dos fichas)
 - [ ] Cargar apartamentos reales en la DB
 - [ ] Cargar fotos de apartamentos
