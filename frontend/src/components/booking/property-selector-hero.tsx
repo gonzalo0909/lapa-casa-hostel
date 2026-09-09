@@ -94,7 +94,7 @@ export function PropertySelectorHero() {
         </div>
 
         <p className="mt-8 text-sm text-cream/50">
-          Reserva directa · Mejor precio garantizado · Sin comisiones de plataformas
+          Reserva directa · Mejor precio garantizado
         </p>
       </main>
     </div>
