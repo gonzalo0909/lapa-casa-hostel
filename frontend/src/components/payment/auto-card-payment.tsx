@@ -39,34 +39,40 @@ export interface AutoCardPaymentProps {
 
 const T = createPaymentT({
   pt: {
-    switching:  'Cartão internacional detectado. Preparando pagamento…',
-    stripeErr:  'Erro ao preparar pagamento internacional. Tente novamente.',
-    backToMp:   '← Usar cartão brasileiro',
+    switching:   'Cartão internacional detectado. Preparando pagamento…',
+    stripeErr:   'Erro ao preparar pagamento internacional. Tente novamente.',
+    backToMp:    '← Usar cartão brasileiro',
+    unavailable: 'Pagamento com cartão temporariamente indisponível. Use PIX ou entre em contato.',
   },
   es: {
-    switching:  'Tarjeta internacional detectada. Preparando pago…',
-    stripeErr:  'Error al preparar el pago internacional. Intentá de nuevo.',
-    backToMp:   '← Usar tarjeta brasileña',
+    switching:   'Tarjeta internacional detectada. Preparando pago…',
+    stripeErr:   'Error al preparar el pago internacional. Intentá de nuevo.',
+    backToMp:    '← Usar tarjeta brasileña',
+    unavailable: 'Pago con tarjeta temporalmente no disponible. Usá PIX o contactanos.',
   },
   en: {
-    switching:  'International card detected. Preparing payment…',
-    stripeErr:  'Error preparing international payment. Please try again.',
-    backToMp:   '← Use a Brazilian card',
+    switching:   'International card detected. Preparing payment…',
+    stripeErr:   'Error preparing international payment. Please try again.',
+    backToMp:    '← Use a Brazilian card',
+    unavailable: 'Card payment temporarily unavailable. Use PIX or contact us.',
   },
   fr: {
-    switching:  'Carte internationale détectée. Préparation du paiement…',
-    stripeErr:  'Erreur de préparation. Réessayez.',
-    backToMp:   '← Utiliser une carte brésilienne',
+    switching:   'Carte internationale détectée. Préparation du paiement…',
+    stripeErr:   'Erreur de préparation. Réessayez.',
+    backToMp:    '← Utiliser une carte brésilienne',
+    unavailable: 'Paiement par carte temporairement indisponible. Utilisez PIX ou contactez-nous.',
   },
   de: {
-    switching:  'Internationale Karte erkannt. Zahlung wird vorbereitet…',
-    stripeErr:  'Fehler bei der Vorbereitung. Bitte erneut versuchen.',
-    backToMp:   '← Brasilianische Karte verwenden',
+    switching:   'Internationale Karte erkannt. Zahlung wird vorbereitet…',
+    stripeErr:   'Fehler bei der Vorbereitung. Bitte erneut versuchen.',
+    backToMp:    '← Brasilianische Karte verwenden',
+    unavailable: 'Kartenzahlung vorübergehend nicht verfügbar. Nutzen Sie PIX oder kontaktieren Sie uns.',
   },
   it: {
-    switching:  'Carta internazionale rilevata. Preparazione pagamento…',
-    stripeErr:  'Errore nella preparazione. Riprova.',
-    backToMp:   '← Usa una carta brasiliana',
+    switching:   'Carta internazionale rilevata. Preparazione pagamento…',
+    stripeErr:   'Errore nella preparazione. Riprova.',
+    backToMp:    '← Usa una carta brasiliana',
+    unavailable: 'Pagamento con carta temporaneamente non disponibile. Usa PIX o contattaci.',
   },
 });
 
@@ -82,6 +88,8 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
   const [mode,         setMode]        = useState<Mode>('mp');
   const [stripeData,   setStripeData]  = useState<StripePaymentData | null>(null);
   const [stripeError,  setStripeError] = useState<string | null>(null);
+  // true cuando el SDK de MP falló Y el fallback a Stripe también falló
+  const [bothFailed,   setBothFailed]  = useState(false);
 
   // BIN que ya fue evaluado — no relanzar la misma detección dos veces
   const lastCheckedBin = useRef<string>('');
@@ -171,6 +179,8 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
     } catch {
       setStripeError(T('stripeErr', locale));
       setMode('mp'); // volver al form MP si falla
+      // Si llegamos acá desde onSdkError (MP falló), ambos proveedores fallaron
+      setBothFailed(true);
     }
   };
 
@@ -245,7 +255,21 @@ export const AutoCardPayment: React.FC<AutoCardPaymentProps> = ({
     );
   }
 
-  // Modo MP (default) — formulario completo visible desde el inicio
+  // Modo MP (default) — formulario completo visible desde el inicio.
+  // Si ambos proveedores fallaron (MP SDK + Stripe), mostramos un mensaje
+  // claro en lugar de una pantalla en blanco.
+  if (bothFailed) {
+    return (
+      <div style={{
+        padding: '1.1rem 1.15rem', borderRadius: 10,
+        background: '#FEE2E2', border: '1.5px solid #FCA5A5',
+        color: '#991B1B', fontSize: '.93rem',
+      }}>
+        {T('unavailable', locale)}
+      </div>
+    );
+  }
+
   return (
     <MpCardPayment
       reservationId={reservationId}
