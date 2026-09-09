@@ -106,12 +106,14 @@ const nextConfig = {
               // reducir la superficie de ataque XSS -- si Stripe.js rompe
               // en producción, se puede restaurar con evidencia concreta.
               // blob: requerido por el web-worker interno de Sentry para enviar eventos
-              `script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net`,
+              // sdk.mercadopago.com: SDK de MP para tokenización de tarjetas brasileñas
+              `script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://sdk.mercadopago.com https://www.googletagmanager.com https://connect.facebook.net`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
               // ingest.sentry.io y o*.ingest.sentry.io: destino de los reportes de error
-              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://viacep.com.br https://o0.ingest.sentry.io https://o1.ingest.sentry.io https://o2.ingest.sentry.io https://o3.ingest.sentry.io https://o4.ingest.sentry.io https://*.ingest.us.sentry.io`,
+              // api.mercadopago.com: llamadas del SDK de MP (getPaymentMethods, getInstallments, createCardToken)
+              `connect-src 'self' ${API_ORIGIN} https://api.stripe.com https://api.mercadopago.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://viacep.com.br https://o0.ingest.sentry.io https://o1.ingest.sentry.io https://o2.ingest.sentry.io https://o3.ingest.sentry.io https://o4.ingest.sentry.io https://*.ingest.us.sentry.io`,
               "frame-src https://js.stripe.com",
             ].join('; '),
           },
