@@ -5,7 +5,7 @@
 `config/database.ts` tira esto al importarse si `DATABASE_URL` no está seteada —
 es intencional (falla rápido en vez de arrancar en un estado inconsistente).
 Verificar la variable en Fly.io (`fly secrets list -a <app-backend>` — backend/worker
-viven ahí desde 2026-09-02, no en Render) o en `backend/.env` local.
+corren en Fly.io) o en `backend/.env` local.
 
 ## `GET /health` devuelve 503 / Fly.io marca el deploy como unhealthy
 

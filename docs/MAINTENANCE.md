@@ -7,8 +7,8 @@
   fallback cross-provider, ver `docs/ARCHITECTURE.md`), servicio caído.
 - **Panel admin** (`/admin`) → Dashboard: check-ins próximos, ocupación.
 - Si `REDIS_URL` está configurada: confirmar que el proceso de workers sigue vivo
-  (`fly logs -a lapa-casa-hostel-worker` — worker y backend viven en Fly.io desde
-  2026-09-02, no en Render). Sin workers corriendo, los reintentos de pago y los
+  (`fly logs -a lapa-casa-hostel-worker` — worker y backend corren en Fly.io).
+  Sin workers corriendo, los reintentos de pago y los
   emails encolados no se procesan (la creación de reservas en sí no se ve afectada).
 
 ## Semanal
@@ -59,7 +59,7 @@
 - **`DATABASE_URL`** (password de Supabase): Supabase dashboard → proyecto
   `rpowardrcwnhbkzjsiok` → Project Settings → Database → Connection string → rotar →
   actualizar en Fly.io (`fly secrets set DATABASE_URL=... -a <app-backend>` —
-  backend/worker viven ahí desde 2026-09-02, no en Render; nunca commitear la
+  nunca commitear la
   contraseña real — ver el incidente documentado en el Maestro,
   prompts/combo-VENTANA-1-completa.md).
 - **`JWT_SECRET`**: rotarlo invalida todas las sesiones admin activas (fuerza

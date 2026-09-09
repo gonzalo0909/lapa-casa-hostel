@@ -154,7 +154,7 @@ app.get('/health', async (req: Request, res: Response) => {
 
 // L-03: health check extendido protegido con auth admin — expone topología
 // interna (Redis, colas, Stripe, MP, email). El /health público de arriba
-// (solo DB) se mantiene sin auth porque Render lo usa como healthCheckPath.
+// (solo DB) se mantiene sin auth porque Fly.io lo usa como healthCheckPath.
 app.get('/api/health', authenticateToken, requireRole(['admin']), async (req: Request, res: Response) => {
   try {
     const health = await getSystemHealth();

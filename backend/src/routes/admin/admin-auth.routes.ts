@@ -121,7 +121,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
     // que lo consuma -- era una pieza de un flujo de refresh que nunca se
     // terminó de construir. El default de JWT_EXPIRES_IN ya se acortó de
     // 90d a 24h (ver sección 8 auditoría 17 secciones) para que un olvido
-    // de configurar la env var en el dashboard de Render falle corto, no
+    // de configurar la env var en los secrets de Fly.io falle corto, no
     // largo. Un flujo de refresh completo (endpoint dedicado + cookie
     // propia, para poder tener un access token de vida aún más corta sin
     // forzar reloguearse tan seguido) sigue pendiente -- requiere probarlo

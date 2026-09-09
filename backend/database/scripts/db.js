@@ -14,9 +14,9 @@ const connectionString =
   'postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapa_casa_hostel';
 
 // Mismo criterio que src/config/database.ts: Supabase en produccion exige
-// SSL. Sin esto, migrate.js fallaba al conectar en Render (npm run start
-// encadena "migrate && server" -- si migrate.js no puede conectar, el
-// servidor entero no llega a levantar).
+// SSL. Sin esto, migrate.js falla al conectar (npm run start encadena
+// "migrate && server" -- si migrate.js no puede conectar, el servidor
+// entero no llega a levantar).
 const pool = new Pool({
   connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,

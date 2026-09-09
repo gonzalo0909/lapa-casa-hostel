@@ -167,7 +167,7 @@ sandbox de pruebas (ver Maestro).
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/health` | Chequeo mínimo (solo DB) — usado por Render como `healthCheckPath` |
+| GET | `/health` | Chequeo mínimo (solo DB) — usado por Fly.io como `healthCheckPath` |
 | GET | `/api/health` | Chequeo extendido: DB, Redis, colas, Stripe/MP/email configurados |
 | GET | `/ready` | Readiness |
 | GET | `/api/metrics` | Requests/min, latencia, tasa de error (ventana de 60s, en memoria) |

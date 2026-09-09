@@ -4,8 +4,8 @@
 # Vuelve el proyecto de Vercel (lapa-frontend) al deploy
 # anterior exitoso, via la API REST de Vercel.
 #
-# Backend/worker ya no están en Render ni en Vercel — corren en Fly.io
-# (ver docs/DEPLOY.md sección 10 para el rollback de esos dos).
+# Backend/worker corren en Fly.io — ver docs/DEPLOY.md sección 9 para
+# el rollback de esos dos.
 #
 # Uso:
 #   VERCEL_TOKEN=xxx VERCEL_PROJECT_ID=prj_xxx ./scripts/rollback.sh
