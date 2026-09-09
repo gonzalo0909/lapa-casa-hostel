@@ -651,6 +651,8 @@ export default async function TourPage({ params }: { params: { locale: string } 
     })),
   };
 
+  const STOP_ICONS = ['🏔️', '🚡', '🏖️', '🏛️', '🎨'];
+
   return (
     <main className="min-h-screen bg-background">
       <StructuredData data={TourSchema} />
@@ -666,14 +668,21 @@ export default async function TourPage({ params }: { params: { locale: string } 
             ← {c.backLabel}
           </Link>
         </div>
-        <div className="max-w-3xl mx-auto px-4 py-16 pt-6">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-4">
+        <div className="max-w-3xl mx-auto px-4 pb-14 pt-8">
+          {/* eyebrow */}
+          <p className="text-xs font-display font-semibold tracking-[0.18em] uppercase text-secondary mb-5">
             Rio de Janeiro · Brasil
           </p>
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4 leading-tight">
+          {/* titular en Cormorant — la misma fuente que usa el motor de reservas */}
+          <h1 className="font-serif font-semibold leading-[1.1] text-foreground mb-5"
+              style={{ fontSize: 'clamp(2.6rem, 6vw, 3.8rem)' }}>
             {c.headline}
           </h1>
-          <p className="text-lg text-primary font-medium mb-4">{c.tagline}</p>
+          {/* tagline en Poppins medium — acento de color */}
+          <p className="font-display font-medium text-lg text-primary mb-5 tracking-tight">
+            {c.tagline}
+          </p>
+          {/* intro en Inter — lectura cómoda */}
           <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">{c.intro}</p>
         </div>
       </section>
@@ -682,13 +691,13 @@ export default async function TourPage({ params }: { params: { locale: string } 
 
         {/* ── Package included ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-5">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-5 tracking-tight">
             {c.packageTitle}
           </h2>
-          <ul className="space-y-3">
+          <ul className="space-y-3.5">
             {c.packageItems.map((item, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-foreground">
-                <span className="text-green-500 mt-0.5 flex-shrink-0 font-bold">✓</span>
+              <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
+                <span className="text-primary mt-0.5 flex-shrink-0 font-bold text-base">✓</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -697,18 +706,27 @@ export default async function TourPage({ params }: { params: { locale: string } 
 
         {/* ── Tour stops ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-6">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-7 tracking-tight">
             {c.stopsTitle}
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {c.stops.map((stop, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                  {i + 1}
+              <div key={i} className="flex gap-4 items-start">
+                {/* número + icono */}
+                <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
+                  <span className="text-lg leading-none">{STOP_ICONS[i]}</span>
+                  <span className="text-[10px] font-display font-bold text-primary/60 tabular-nums">
+                    0{i + 1}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{stop.name}</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">{stop.description}</p>
+                <div className="pt-0.5">
+                  {/* nombre de la parada en Cormorant */}
+                  <p className="font-serif font-semibold text-lg text-foreground leading-tight">
+                    {stop.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    {stop.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -717,21 +735,21 @@ export default async function TourPage({ params }: { params: { locale: string } 
 
         {/* ── Guide ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-4">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-4 tracking-tight">
             {c.whoTitle}
           </h2>
-          <p className="text-muted-foreground leading-relaxed">{c.whoBody}</p>
+          <p className="text-muted-foreground leading-relaxed text-sm">{c.whoBody}</p>
         </section>
 
         {/* ── Practical info ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-5">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-5 tracking-tight">
             {c.practicalTitle}
           </h2>
           <ul className="space-y-3">
             {c.practicalItems.map((item, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-foreground">
-                <span className="text-primary mt-0.5 flex-shrink-0">→</span>
+              <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
+                <span className="text-secondary mt-0.5 flex-shrink-0 font-bold">→</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -740,18 +758,22 @@ export default async function TourPage({ params }: { params: { locale: string } 
 
         {/* ── FAQ ── */}
         <section className="py-12 border-b border-border">
-          <h2 className="text-2xl font-display font-semibold text-foreground mb-8">FAQ</h2>
-          <div className="space-y-3">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-7 tracking-tight">
+            FAQ
+          </h2>
+          <div className="space-y-2.5">
             {c.faq.map((item, i) => (
               <details
                 key={i}
-                className="group border border-border rounded-lg bg-card overflow-hidden"
+                className="group border border-border rounded-xl bg-card overflow-hidden"
               >
-                <summary className="flex justify-between items-center gap-4 px-5 py-4 cursor-pointer text-sm font-medium text-foreground list-none select-none hover:bg-accent/30 transition-colors">
+                <summary className="flex justify-between items-center gap-4 px-5 py-4 cursor-pointer text-sm font-display font-medium text-foreground list-none select-none hover:bg-muted/40 transition-colors">
                   {item.q}
-                  <span className="text-muted-foreground flex-shrink-0 text-xs">▾</span>
+                  <span className="text-muted-foreground flex-shrink-0 text-xs group-open:rotate-180 transition-transform duration-200">
+                    ▾
+                  </span>
                 </summary>
-                <p className="px-5 pb-4 pt-1 text-sm text-muted-foreground leading-relaxed">
+                <p className="px-5 pb-5 pt-1 text-sm text-muted-foreground leading-relaxed border-t border-border">
                   {item.a}
                 </p>
               </details>
@@ -760,37 +782,41 @@ export default async function TourPage({ params }: { params: { locale: string } 
         </section>
 
         {/* ── Cross-link ── */}
-        <div className="mt-8 mb-2 text-sm text-muted-foreground">
+        <div className="py-6 border-b border-border text-sm text-muted-foreground">
           <Link
             href={`/${locale}/santa-teresa`}
-            className="underline hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 hover:text-foreground transition-colors group"
           >
-            🗺️{' '}
-            {locale === 'pt'
-              ? 'Conheça o bairro de Santa Teresa antes de chegar'
-              : locale === 'en'
-                ? 'Learn about the Santa Teresa neighborhood before you arrive'
-                : locale === 'es'
-                  ? 'Conocé el barrio de Santa Teresa antes de llegar'
-                  : locale === 'de'
-                    ? 'Entdecke das Viertel Santa Teresa vor deiner Ankunft'
-                    : locale === 'it'
-                      ? 'Scopri il quartiere di Santa Teresa prima di arrivare'
-                      : 'Découvrez le quartier de Santa Teresa avant votre arrivée'}
+            <span>🗺️</span>
+            <span className="underline underline-offset-2">
+              {locale === 'pt'
+                ? 'Conheça o bairro de Santa Teresa antes de chegar'
+                : locale === 'en'
+                  ? 'Learn about the Santa Teresa neighborhood before you arrive'
+                  : locale === 'es'
+                    ? 'Conocé el barrio de Santa Teresa antes de llegar'
+                    : locale === 'de'
+                      ? 'Entdecke das Viertel Santa Teresa vor deiner Ankunft'
+                      : locale === 'it'
+                        ? 'Scopri il quartiere di Santa Teresa prima di arrivare'
+                        : 'Découvrez le quartier de Santa Teresa avant votre arrivée'}
+            </span>
           </Link>
         </div>
 
         {/* ── CTA ── */}
         <section className="py-12">
-          <div className="bg-card border border-border rounded-xl p-8">
-            <h2 className="text-2xl font-display font-semibold text-foreground mb-3">
+          <div className="bg-card border border-border rounded-2xl p-8 md:p-10">
+            {/* título en Cormorant */}
+            <h2 className="font-serif font-semibold text-foreground mb-3"
+                style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.1rem)' }}>
               {c.ctaTitle}
             </h2>
-            <p className="text-muted-foreground mb-6">{c.ctaBody}</p>
+            <p className="text-sm text-muted-foreground mb-7 leading-relaxed max-w-lg">{c.ctaBody}</p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href={`/${locale}/hostel`}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold hover:opacity-90 transition-opacity"
               >
                 📅 {c.ctaBtn}
               </Link>
@@ -798,7 +824,7 @@ export default async function TourPage({ params }: { params: { locale: string } 
                 href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#25D366] text-white text-sm font-display font-semibold hover:opacity-90 transition-opacity"
               >
                 💬 {c.ctaWa}
               </a>
