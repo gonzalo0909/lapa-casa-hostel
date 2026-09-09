@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/services/notification-service.ts
-// ventana4
 //
 // Servicio de notificaciones por email: envia inmediato (notify) o
 // programa para mas adelante (scheduleNotification, via BullMQ). Toda
@@ -8,7 +7,7 @@
 //
 // El canal WhatsApp vive aparte en whatsapp-notification-service.ts
 // (deshabilitado por defecto, WHATSAPP_ENABLED=false) -- este archivo
-// es el que Ventana 4 pide bajo el nombre notification-service.ts.
+// es el que implementado en notification-service.ts.
 
 import { query } from '../config/database';
 import bookingRepo from '../database/repositories/booking-repository';
@@ -76,7 +75,7 @@ async function dispatchByType(type: NotificationType, booking: BookingWithGuest,
 
 export class NotificationService {
   /**
-   * ventana4: intenta el envío ya mismo, en el request actual. Si falla,
+   * intenta el envío ya mismo, en el request actual. Si falla,
    * se reencola en email-notifications (hasta 3 veces con backoff
    * exponencial, ver queues/email-notifications.queue.ts) en vez de darlo
    * por perdido -- así cumple "si un email falla, se reencola hasta 3

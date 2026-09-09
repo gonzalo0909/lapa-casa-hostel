@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/config/channels.ts
-// ventana5
 //
 // Configuracion estatica del channel manager: mapping de room_types
 // locales (por `code` real, ver 0001_seed.sql) a nombres/alias usados
@@ -14,7 +13,7 @@ import type { ChannelCode } from '../types/database';
 
 /**
  * Prioridad de canal para `autoResolveByPriority` en conflict-service.ts
- * (numero mas alto = gana). Orden pedido por el prompt de Ventana 5:
+ * (numero mas alto = gana). Orden:
  * directo > Booking > Expedia > Hostelworld > Airbnb.
  */
 export const CHANNEL_PRIORITY: Record<ChannelCode, number> = {

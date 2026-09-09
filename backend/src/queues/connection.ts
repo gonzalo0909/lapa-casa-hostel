@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/connection.ts
-// ventana4
 //
 // Conexion Redis dedicada para BullMQ. BullMQ exige su propia conexion
 // ioredis con opciones distintas a un cliente de cache generico

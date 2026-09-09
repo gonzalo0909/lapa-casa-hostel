@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/admin/js/conflicts.js
-// ventana5
 
 requireAuth();
 renderNav('conflicts');

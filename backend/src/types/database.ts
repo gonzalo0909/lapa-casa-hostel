@@ -19,7 +19,7 @@ export type PaymentMethod = 'card' | 'pix' | 'bank_transfer' | 'cash';
 
 export type BedGender = 'mixed' | 'female' | 'male';
 
-// ventana3 + 0021: agrega 'cash' e 'infinitypay' para pagos físicos en recepción
+// agrega 'cash' e 'infinitypay' para pagos físicos en recepción
 export type PaymentProvider = 'stripe' | 'mercadopago' | 'cash' | 'infinitypay';
 
 export interface Guest {

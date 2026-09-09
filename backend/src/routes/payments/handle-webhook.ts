@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/payments/handle-webhook.ts
-// ventana3
 //
 // FIX (auditoría de seguridad 2026-08-30): este handler solo está montado
 // en POST /payments/webhook/stripe (ver payments.routes.ts), pero antes

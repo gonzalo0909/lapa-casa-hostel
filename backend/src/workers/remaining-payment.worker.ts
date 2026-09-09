@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/workers/remaining-payment.worker.ts
-// ventana4
 //
 // Corre 7 dias antes del check-in (encolado por confirm-payment.ts via
 // scheduleRemainingPayment). Crea el payment intent del saldo restante,

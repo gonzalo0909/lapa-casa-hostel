@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/integrations/google-sheets/sheets-client.ts
-// ventana4 (bloque 2)
 //
 // Cliente de bajo nivel contra la API de Google Sheets. Reescrito
 // contra el schema real (0002_tables.sql) y la estructura de columnas
@@ -18,7 +17,7 @@ import { google, type sheets_v4 } from 'googleapis';
 import { logger } from '../../utils/logger';
 
 /**
- * Estructura de columnas A-N (prompt de Ventana 4):
+ * Estructura de columnas A-N:
  * A=booking_id, B=guest_name, C=guest_email, D=guest_phone, E=check_in,
  * F=check_out, G=room_assigned, H=beds_count, I=total_price,
  * J=deposit_paid, K=remaining_paid, L=booking_status, M=created_date, N=notes
@@ -206,7 +205,7 @@ export class SheetsClient {
     const sheets = this.requireClient();
     const response = await sheets.spreadsheets.get({ spreadsheetId: this.spreadsheetId });
     const sheet = response.data.sheets?.find(s => s.properties?.title === this.sheetName);
-    // ventana4: acá estaba el bug reportado (sheet.properties?.sheetId es
+    // acá estaba el bug reportado (sheet.properties?.sheetId es
     // `number | null`, no se puede devolver directo como `number`) --
     // 0 es un sheetId valido (la primera hoja de un spreadsheet nuevo lo
     // usa), por eso se chequea con `??`, no con `||`.

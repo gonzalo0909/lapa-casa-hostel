@@ -1,9 +1,9 @@
 // database/tests/pricing.test.ts
 //
-// Ventana 2, entregable 10: "Test de precios: matriz temporada x grupo x
+// Test: "Test de precios: matriz temporada x grupo x
 // early bird, comparado bit a bit contra invocar la funcion SQL
 // directamente". pricingService es un wrapper delgado sobre las
-// funciones SQL de Ventana 1 (Requisito Critico #6) -- si algun metodo
+// funciones SQL (Requisito Critico #6) -- si algun metodo
 // alguna vez reimplementara la regla en JS en vez de llamar a la
 // funcion, este test lo detecta por divergencia numerica.
 

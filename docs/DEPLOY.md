@@ -36,7 +36,7 @@ dashboard web de Fly (sin `flyctl` local). Resumen:
    `backend/src/config/supabase-ca.ts` (no es un secreto, es la CA pública de Supabase).
 5. Auto-deploy activado: cada push a `definitivo2026` dispara un build+deploy solo.
 6. Verificar: `GET https://api.lapacasario.com/health` → `{"status":"healthy"}`.
-7. El schema y el seed **ya están aplicados** en el Supabase real (Ventana 1) — no
+7. El schema y el seed **ya están aplicados** en el Supabase real — no
    correr `migrate.js`/`seed.js` contra producción salvo que se agregue una migración
    `0009+` nueva.
 

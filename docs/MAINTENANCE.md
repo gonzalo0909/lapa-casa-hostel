@@ -70,7 +70,7 @@
 ## Migraciones nuevas
 
 Política del proyecto (ver Maestro, "FORMA DE TRABAJO"): el schema completo se
-definió en Ventana 1. Cualquier cambio posterior es una migración `0009+` nueva,
+fue definido en las migraciones iniciales. Cualquier cambio posterior es una migración `0009+` nueva,
 nunca un `ALTER` retroactivo sobre un archivo ya aplicado. Pasos:
 
 1. Crear `backend/database/migrations/000N_descripcion.sql`.

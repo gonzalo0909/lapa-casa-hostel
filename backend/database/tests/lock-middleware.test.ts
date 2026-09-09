@@ -1,6 +1,6 @@
 // database/tests/lock-middleware.test.ts
 //
-// Ventana 2, entregable 10: "Test de lock-middleware: confirmar que el
+// Test: "Test de lock-middleware: confirmar que el
 // patron fuera de una transaccion compartida no protege nada, dejando
 // documentado por que withTransaction es obligatorio".
 //

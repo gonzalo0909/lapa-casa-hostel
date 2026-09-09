@@ -1,6 +1,6 @@
 // database/tests/concurrency.test.ts
 //
-// Ventana 2, entregable 10: "Test de concurrencia: N reservas
+// Test: "Test de concurrencia: N reservas
 // simultaneas sobre la misma cama, con conexiones/promesas realmente
 // paralelas -- verificar que solo una tiene exito y las demas fallan de
 // forma manejada (no un crash)". Este es el escenario que exhibia el bug

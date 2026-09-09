@@ -28,7 +28,7 @@ bloqueando camas que el cálculo de disponibilidad no está considerando correct
 
 ## `POST /api/v1/bookings` (o `/availability/*`) devuelve 413 "Payload demasiado grande"
 
-Límites nuevos de Ventana 6 (`app.ts`): 10kb para `/availability/*`, 50kb para
+Límites de payload (`app.ts`): 10kb para `/availability/*`, 50kb para
 `/bookings/*`. Un 413 legítimo casi siempre significa un payload mal formado (loop
 infinito construyendo un array, base64 de una imagen metido por error en
 `specialRequests`, etc.) — no subir el límite sin antes confirmar que el payload es
@@ -36,14 +36,14 @@ realmente necesario de ese tamaño.
 
 ## `429 Too Many Requests`
 
-Rate limits por endpoint desde Ventana 6 (`routes/index.ts`): disponibilidad/rooms
+Rate limits por endpoint (`routes/index.ts`): disponibilidad/rooms
 10 req/s, reservas/pagos 3 req/s, admin 5 req/s — por IP. Si un uso legítimo choca
 con esto (ej. un script de importación masiva desde el panel admin), correrlo con
 pausas entre requests en vez de subir el límite global.
 
 ## Webhook de Stripe devuelve 400 "Webhook inválido"
 
-Antes de Ventana 6 esto pasaba con **cualquier** webhook real, incluso con firma
+Antes de este fix esto pasaba con **cualquier** webhook real, incluso con firma
 válida (bug: el body llegaba re-parseado como objeto, la verificación HMAC de
 Stripe necesita los bytes exactos — ver `docs/ARCHITECTURE.md`, sección "Webhooks:
 por qué necesitan el body crudo"). Si esto sigue pasando después del fix:

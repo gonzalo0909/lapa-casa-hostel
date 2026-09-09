@@ -29,7 +29,7 @@ export const validate = (schema: ZodSchema) => (
 };
 
 /**
- * Sanitizacion de inputs contra XSS/inyeccion de markup (Ventana 6,
+ * Sanitizacion de inputs contra XSS/inyeccion de markup (
  * entregable 6). Las queries a Postgres ya van parametrizadas ($1, $2...
  * via `pg`, ver config/database.ts) asi que no hay inyeccion SQL posible
  * desde aca -- esto cubre el otro vector real: texto de huesped

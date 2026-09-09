@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/email-notifications.queue.ts
-// ventana4
 //
 // Cola para el envio asincrono de emails. `notification-service.ts` la
 // usa para programar notificaciones (ej. recordatorio de pago, mensaje

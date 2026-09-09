@@ -1,6 +1,6 @@
 // lapa-casa-hostel/backend/src/monitoring/alerts.ts
 //
-// Alertas configurables del checklist de Ventana 6. Dos ya estaban
+// Alertas configurables del sistema. Dos ya estaban
 // resueltas antes de esta ventana y no se duplican aca:
 //   - overbooking / conflicto entre canales detectado -> conflict-service.ts
 //     (notifyConflict, se dispara al registrar cada booking_conflicts)

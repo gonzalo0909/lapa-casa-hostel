@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/sheets-export.queue.ts
-// ventana4 (bloque 2 pendiente)
 //
 // Estructura de la cola nada mas -- el worker real que exporta a Google
 // Sheets se implementa en el Bloque 2 de esta ventana, cuando la
@@ -20,7 +19,7 @@ export const sheetsExportQueue = createSafeQueue<SheetsExportJobData>('sheets-ex
   backoff: { type: 'exponential', delay: 30_000 }
 });
 
-/** ventana4 (bloque 2): encola el espejo DB -> Sheets de una reserva. Llamado desde booking-service.ts y payment-service.ts tras cada cambio persistido. */
+/** encola el espejo DB -> Sheets de una reserva. Llamado desde booking-service.ts y payment-service.ts tras cada cambio persistido. */
 export async function enqueueSheetsExport(reservationId: string, action: 'upsert' | 'delete' = 'upsert'): Promise<void> {
   await sheetsExportQueue.add('export-booking', { reservationId, action });
 }

@@ -1,6 +1,6 @@
 // database/tests/cancel-release.test.ts
 //
-// Ventana 2, entregable 10: "Test de liberacion automatica al cancelar
+// Test: "Test de liberacion automatica al cancelar
 // (confirmar que no hace falta codigo Node adicional, el trigger ya lo
 // resuelve)". bookingService.cancelBooking() delega en el repositorio,
 // que solo cambia `status` -- la fila de reservation_beds la borra

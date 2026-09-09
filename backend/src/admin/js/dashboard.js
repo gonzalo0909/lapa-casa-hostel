@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/admin/js/dashboard.js
-// ventana4 (bloque 2)
 
 function showMsg(elId, text, type) {
   const el = document.getElementById(elId);

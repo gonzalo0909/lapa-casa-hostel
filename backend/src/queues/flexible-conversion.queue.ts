@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/flexible-conversion.queue.ts
-// ventana4
 //
 // Repeatable job cada hora: invoca sp_process_flexible_conversion()
 // (0007_procedures.sql, REQUISITO CRITICO #2). Reemplaza el scheduling

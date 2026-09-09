@@ -93,7 +93,7 @@ router.use('/offers', rateLimiter({ max: 30, windowMs: 60000, prefix: 'offers' }
 router.use('/partners', partnersRouter);
 
 /**
- * iCal (ventana5): export publico de disponibilidad + config/sync de
+ * iCal: export publico de disponibilidad + config/sync de
  * importacion (estas ultimas requieren admin, aplicado dentro del propio
  * router). Webhooks de reservas OTA: solo Booking.com y Expedia tienen
  * (Airbnb/Hostelworld son iCal-only) -- autenticados por firma HMAC +
@@ -133,7 +133,7 @@ router.use(
 );
 
 /**
- * Admin Login (ventana4 bloque 2) — público, montado ANTES del
+ * Admin Login — público, montado ANTES del
  * authenticateToken de abajo (si no, nadie podría loguearse para
  * conseguir el primer token). Rate limit estricto contra fuerza bruta.
  */

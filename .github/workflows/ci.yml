@@ -22,7 +22,7 @@ jobs:
         env:
           POSTGRES_USER: lapa_dev
           POSTGRES_PASSWORD: lapa_dev_pw
-          POSTGRES_DB: lapa_casa_hostel
+          POSTGRES_DB: lapacasario
         ports:
           - 5432:5432
         options: >-
@@ -32,7 +32,7 @@ jobs:
           --health-retries 5
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapa_casa_hostel
+      DATABASE_URL: postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapacasario
       JWT_SECRET: ci-test-secret
       JWT_EXPIRES_IN: 24h
       REFRESH_TOKEN_EXPIRES_IN: 7d

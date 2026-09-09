@@ -1,9 +1,9 @@
 // database/tests/flexible-room.test.ts
 //
-// Ventana 2, entregable 10: "Test de Flexible 7: conversion automatica
+// Test: "Test de Flexible 7: conversion automatica
 // por fecha, sin afectar otras fechas". Se prueba availabilityService
 // (que envuelve get_flexible_room_status()) y room-service.ts
-// (getFlexibleRoomPrediction, Ventana 2 entregable 5), no una
+// (getFlexibleRoomPrediction en room-service.ts), no una
 // reimplementacion propia de la regla de 48h.
 
 import { pool } from '../../src/config/database';

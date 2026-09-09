@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/admin/admin-auth.routes.ts
-// ventana4 (bloque 2)
 //
 // Login del admin único, separado de admin.routes.ts a propósito: se
 // monta ANTES del middleware authenticateToken en routes/index.ts (para

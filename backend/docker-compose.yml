@@ -17,7 +17,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5000
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/lapa_casa_hostel?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/lapacasario?schema=public
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     env_file:
@@ -47,7 +47,7 @@ services:
   #   docker compose exec backend node database/scripts/migrate.js
   #   docker compose exec backend node database/scripts/seed.js
   # (no hay init.sql -- el schema completo vive en database/migrations/,
-  # ver Ventana 1 y backend/database/README.md)
+  # ver backend/database/README.md)
   # ===========================================
   postgres:
     container_name: lapa-casa-postgres
@@ -57,7 +57,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=lapa_casa_hostel
+      - POSTGRES_DB=lapacasario
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -102,7 +102,7 @@ services:
     ports:
       - '5555:5555'
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/lapa_casa_hostel?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/lapacasario?schema=public
     command: npx prisma studio
     depends_on:
       - postgres

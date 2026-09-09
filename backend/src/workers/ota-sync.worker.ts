@@ -1,8 +1,7 @@
 // lapa-casa-hostel/backend/src/workers/ota-sync.worker.ts
-// ventana5
 //
 // Consumidor real de la cola `ota-sync` (ver queues/ota-sync.queue.ts).
-// Reemplaza el stub de Ventana 4 (que descartaba todos los jobs con un
+// Reemplaza la implementación anterior (que descartaba todos los jobs con un
 // warning) -- ahora ejecuta la sincronizacion real de feeds iCal
 // (Airbnb/Hostelworld, y respaldo de disponibilidad para Booking/Expedia)
 // y despues corre la resolucion automatica de conflictos por prioridad

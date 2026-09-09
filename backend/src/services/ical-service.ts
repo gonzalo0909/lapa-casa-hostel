@@ -1,12 +1,11 @@
 // lapa-casa-hostel/backend/src/services/ical-service.ts
-// ventana5
 //
 // Reemplaza a services/ical-sync-service.ts + integrations/ical/ota-sync.ts
-// + integrations/ical/ical-generator.ts (Ventana 4/anteriores), que
+// + integrations/ical/ical-generator.ts, que
 // referenciaban una tabla `ical_feeds` y una tabla `rooms` que nunca
 // existieron en el schema real (0002_tables.sql tiene `room_types`, no
 // `rooms`; no existe `ical_feeds`). Auditados igual que
-// availability-service.ts/pricing-service.ts en Ventana 2: se reescriben
+// availability-service.ts/pricing-service.ts: se reescriben
 // contra el schema real en vez de "conectarlos" tal cual.
 //
 // Los feeds iCal configurados (URL a importar por canal+habitacion) se
@@ -444,7 +443,7 @@ export async function syncICalFeeds(filterChannelId?: string): Promise<SyncAllRe
  *
  * Antes de esta ventana ninguna parte del repo la poblaba (confirmado en
  * services/stats-service.ts, que por eso calcula ocupacion en vivo en
- * vez de leer de aca) -- Ventana 5 la deja poblada por primera vez, para
+ * vez de leer de aca) -- La tabla quedó poblada por primera vez, para
  * que una futura exportacion/reporte rapido pueda leerla en vez de
  * recalcular sobre reservation_beds cada vez.
  */

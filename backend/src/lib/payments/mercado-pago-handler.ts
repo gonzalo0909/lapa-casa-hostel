@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/lib/payments/mercado-pago-handler.ts
-// ventana3
 
 import { logger } from '../../utils/logger';
 import { AppError } from '../../middleware/error-handler';

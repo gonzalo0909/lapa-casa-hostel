@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/queues/ota-sync.queue.ts
-// ventana5
 //
 // Repeatable job cada 5 minutos (ICAL_IMPORT_INTERVAL_MINUTES,
 // config/channels.ts): invoca icalService.syncICalFeeds() completo
@@ -8,7 +7,7 @@
 // canal lo que haya quedado abierto (ver workers/ota-sync.worker.ts).
 // Reemplaza a src/crons/sync-ota-calendars.ts (node-cron, retirado en
 // esta ventana) -- consolida TODO el scheduling en BullMQ, igual que ya
-// se hizo con cleanup/flexible-conversion en Ventana 4.
+// se hizo con cleanup/flexible-conversion.
 
 import { createSafeQueue } from './safe-queue';
 

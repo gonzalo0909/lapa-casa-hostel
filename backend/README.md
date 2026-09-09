@@ -136,7 +136,7 @@ nano .env
 
 ```bash
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/lapa_casa_hostel
+DATABASE_URL=postgresql://user:password@localhost:5432/lapacasario
 
 # JWT Secrets (generate with: openssl rand -base64 32)
 JWT_SECRET=your_jwt_secret_here

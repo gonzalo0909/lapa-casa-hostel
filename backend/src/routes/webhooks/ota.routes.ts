@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/routes/webhooks/ota.routes.ts
-// ventana5
 //
 // Webhooks de reservas OTA -- SOLO para los canales que realmente los
 // ofrecen (REQUISITO CRITICO #4 / config/channels.ts WEBHOOK_CHANNELS):

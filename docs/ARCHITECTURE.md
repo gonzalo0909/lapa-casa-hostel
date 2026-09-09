@@ -119,7 +119,7 @@ nunca contra `req.body` (que ya es un objeto JS re-serializado, con espacios/ord
 claves distintos a lo que el proveedor firmó). Ver `routes/webhooks/ota.routes.ts` y
 `routes/payments/handle-webhook.ts`.
 
-## Observabilidad (Ventana 6)
+## Observabilidad
 
 - `GET /health`: chequeo mínimo (solo DB), es el que usa Fly.io como
   healthcheck (`[[http_service.checks]]` en `backend/fly.toml`) — tiene que
@@ -135,7 +135,7 @@ claves distintos a lo que el proveedor firmó). Ver `routes/webhooks/ota.routes.
 
 ## Escalar a más de una propiedad
 
-No implementado hoy (fuera de alcance de Ventana 6) — el schema asume un solo
+No implementado actualmente — el schema asume un solo
 hostel (no hay tabla `properties`). Camino más directo si esto se necesita: agregar
 `property_id` a `room_types` y propagarlo por FK a `beds`/`reservations`, particionar
 `availability_cache` por propiedad. El constraint EXCLUDE seguiría funcionando igual

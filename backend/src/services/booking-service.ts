@@ -19,7 +19,7 @@ import redisClient from '../cache/redis-client';
 import { logger } from '../utils/logger';
 import type { Reservation, BookingStatus } from '../types/database';
 
-// ventana4 (bloque 2): fire-and-forget -- un fallo al encolar el espejo a
+// fire-and-forget -- un fallo al encolar el espejo a
 // Sheets nunca debe tumbar la operación real sobre la reserva.
 const exportToSheetsAsync = (
   reservationId: string,
@@ -357,7 +357,7 @@ export class BookingService {
     };
   }
 
-  /** Libera reservas pending_payment vencidas (>5 min). sp_cleanup_expired_pending() cubre lo mismo desde BullMQ (Ventana 4). */
+  /** Libera reservas pending_payment vencidas (>5 min). sp_cleanup_expired_pending() cubre lo mismo desde BullMQ. */
   async expirePendingBookings(): Promise<number> {
     const { rows } = await query(
       `UPDATE reservations
@@ -368,7 +368,6 @@ export class BookingService {
     return rows.length;
   }
 
-  // ventana3
   async updateBooking(
     id: string,
     data: Parameters<typeof bookingRepo.update>[1],
@@ -378,7 +377,6 @@ export class BookingService {
     return result;
   }
 
-  // ventana3
   async updateGuest(
     guestId: string,
     data: Partial<{

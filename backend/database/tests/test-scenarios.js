@@ -1,14 +1,14 @@
 // test-scenarios.js
 // Lapa Casa Hostel - Channel Manager
 //
-// Los 13 escenarios de prueba de la Ventana 1, corridos contra una base
+// Los 13 escenarios de prueba, corridos contra una base
 // Postgres real (no mocks). Cubren la jerarquia anti-overbooking
 // completa, el ciclo de vida de reservas directas y OTA, la conversion
 // de Flexible 7 por fecha, y la matriz de pricing.
 //
 // Uso: node database/tests/test-scenarios.js
 // (requiere DATABASE_URL apuntando a una base con las migraciones y el
-// seed de la Ventana 1 ya aplicados)
+// seed ya aplicados)
 
 const { Pool } = require('pg');
 const { Client } = require('pg');
@@ -179,7 +179,7 @@ async function testRealConcurrency(client) {
   const checkIn = '2027-09-01';
   const checkOut = '2027-09-03';
 
-  // Simula exactamente el patron de Ventana 2: BEGIN; acquire_bed_locks;
+  // Simula el patrón de locking: BEGIN; acquire_bed_locks;
   // check_availability; INSERT; COMMIT -- todo en la MISMA conexion/transaccion.
   async function attemptBooking(guestId, reservationNumber) {
     const c = new Client({ connectionString });

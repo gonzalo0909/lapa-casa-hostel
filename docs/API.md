@@ -37,7 +37,7 @@ directo en `routes/index.ts` (`GET /api/v1/health`, `GET /api/v1/info`).
 - Webhook Stripe (`/payments/webhook/stripe`): header `stripe-signature`, verificado
   contra el body crudo.
 
-## Rate limiting (Ventana 6)
+## Rate limiting
 
 Por IP, ver `routes/index.ts`:
 
@@ -49,7 +49,7 @@ Por IP, ver `routes/index.ts`:
 | `/admin/*` (autenticado) | 5 req/s |
 | Todo `/api/*` (general) | 100 req/min |
 
-## Límite de payload (Ventana 6)
+## Límite de payload
 
 `/availability/*`: 10kb. `/bookings/*`: 50kb. El resto: 10mb (límite general de
 `express.json()`).
@@ -147,7 +147,7 @@ sandbox de pruebas (ver Maestro).
 | POST | `/webhooks/booking` | API key + IP + HMAC | ✅ (lógica de seguridad probada; integración real con Booking.com sin probar) |
 | POST | `/webhooks/expedia` | API key + IP + HMAC | ✅ (ídem, Expedia) |
 
-## Admin ⚠️ (routes/admin/*, no auditadas end-to-end en Ventana 6)
+## Admin ⚠️ (routes/admin/*, ver MAINTENANCE.md para estado de auditoría)
 
 | Método | Ruta | Descripción |
 |---|---|---|
@@ -163,7 +163,7 @@ sandbox de pruebas (ver Maestro).
 | POST | `/admin/sync/sheets` | Sincroniza Google Sheets manualmente |
 | GET / GET / POST | `/admin/conflicts`, `/admin/conflicts/:id`, `/admin/conflicts/:id/resolve` | Conflictos entre canales |
 
-## System (Ventana 6)
+## System
 
 | Método | Ruta | Descripción |
 |---|---|---|

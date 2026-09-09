@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/templates/render.ts
-// ventana4
 //
 // Motor de plantillas minimo: sustitucion {{variable}} sobre archivos
 // HTML estaticos en src/templates/emails/. No hace falta nada mas

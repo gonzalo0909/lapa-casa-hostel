@@ -1,8 +1,7 @@
 // lapa-casa-hostel/backend/src/routes/admin/conflicts.routes.ts
-// ventana5
 //
 // Reemplaza el listado inline que admin.routes.ts tenia para
-// GET /conflicts (agregado como placeholder en Ventana 4) -- se suma
+// GET /conflicts (agregado como placeholder) -- se suma
 // aca el detalle y la resolucion manual (conflict-service.ts). Montado
 // bajo /admin (routes/index.ts ya aplica authenticateToken +
 // requireRole(['admin']) a todo ese prefijo).

@@ -2,7 +2,7 @@
 //
 // Health check extendido, mas alla del `testConnection()` basico que ya
 // vive en app.ts (GET /health, el que usa Fly.io como healthCheckPath).
-// Este cubre los servicios que pide el checklist de Ventana 6: DB, Redis,
+// Este cubre los servicios que pide los servicios: DB, Redis,
 // Stripe, MercadoPago, colas BullMQ.
 //
 // Distincion importante para no mentir en el reporte: DB y Redis se

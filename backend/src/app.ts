@@ -82,7 +82,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// ventana5: `verify` guarda el buffer crudo del body en req.rawBody antes
+// `verify` guarda el buffer crudo del body en req.rawBody antes
 // de parsearlo -- lo necesitan los webhooks de OTA (routes/webhooks/ota.routes.ts)
 // para verificar la firma HMAC contra los bytes exactos recibidos, ya que
 // el express.json() global corre antes de llegar a cualquier ruta y deja
@@ -104,7 +104,7 @@ app.use('/api/', generalRateLimiter);
 app.use('/api/', sanitizeInput);
 app.use(metricsMiddleware);
 
-// ventana4 (bloque 2): panel admin estatico (HTML/CSS/JS vanilla). Las
+// panel admin estatico (HTML/CSS/JS vanilla). Las
 // paginas piden datos a /api/v1/admin/* con el JWT guardado en
 // localStorage -- servir estos archivos no expone nada, la proteccion
 // real vive en las rutas de la API (authenticateToken + requireRole).

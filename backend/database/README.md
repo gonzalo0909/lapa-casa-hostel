@@ -1,9 +1,9 @@
-# Ventana 1 — Base de datos (Channel Manager, Lapa Casa Hostel)
+# Base de datos — Channel Manager Lapa Casa Hostel
 
 Capa SQL completa: extensiones, ENUMs, 17 tablas, constraint `EXCLUDE`
 anti-overbooking, funciones de pricing/disponibilidad/locks, triggers y
 procedimientos programados. Es deliberadamente independiente de Prisma:
-Ventana 2 introduce el schema de Prisma **sincronizado** con lo que hay
+El schema de Prisma está **sincronizado** con lo que hay
 acá (ver `REQUISITO CRÍTICO #6` del Prompt Maestro — Prisma consume estas
 funciones vía `$queryRaw`, nunca reimplementa la lógica).
 
@@ -77,7 +77,7 @@ Jerarquía de mecanismos anti-overbooking, de mayor a menor autoridad:
    antes de bloquear para prevenir deadlocks entre transacciones concurrentes.
 3. **`trg_prevent_overbooking`** — backstop con mensaje de error claro,
    redundante a propósito con la verificación que hará la capa de aplicación
-   (Ventana 2) antes del `INSERT`.
+   ( antes del `INSERT`.
 
 El mecanismo de liberación real es `trg_release_beds_on_status_change`: al
 pasar una reserva a `cancelled` o `no_show`, borra sus filas de
@@ -100,14 +100,14 @@ pasar una reserva a `cancelled` o `no_show`, borra sus filas de
 | `calculate_cancellation_refund(final_price, check_in, cancel_at)` | STABLE | tramos de `cancellation_policies` |
 | `get_min_nights(check_in)` | STABLE | mínimo de noches por temporada |
 
-Ventana 2 debe invocarlas todas vía `$queryRaw` / `$executeRaw` de Prisma.
+Prisma debe invocarlas todas vía `$queryRaw` / `$executeRaw` de Prisma.
 Ninguna debe reimplementarse en JavaScript.
 
 ## Decisiones de diseño que van más allá del Maestro (documentadas a propósito)
 
 - **`payment_type` y `payment_provider`**: no están en la lista literal de
   "ESTADOS DEL SISTEMA" del Maestro, pero son necesarios para modelar
-  depósito/saldo y Stripe/MercadoPago. Se agregan en Ventana 1 para no violar
+  depósito/saldo y Stripe/MercadoPago. Se agregan en las migraciones iniciales para no violar
   la política de "nunca `ALTER TYPE` en silencio en una ventana posterior".
 - **`reservations.guest_gender`**: no aparece explícito en el Maestro, pero es
   necesario para poder validar la regla "solo mujeres en F1-F7 hasta 48h antes".
@@ -121,7 +121,7 @@ Ninguna debe reimplementarse en JavaScript.
   tramos fijos que no debe reimplementarse en JS.
 - **Carnaval en `system_config`**: sembrado solo para 2026 y 2027 como
   ejemplo — requiere verificación y mantenimiento anual contra el calendario
-  oficial (ver Maestro, alerta de Ventana 6). Cualquier fecha fuera de esos
+  oficial (ver Maestro, ver MAINTENANCE.md). Cualquier fecha fuera de esos
   años cae en el cálculo mensual genérico (alta/media/baja), **no** en
   Carnaval, hasta que se cargue el año correspondiente.
 
@@ -144,7 +144,7 @@ Ninguna debe reimplementarse en JavaScript.
 Corren contra Postgres real (no mocks), limpian sus propios datos al final
 y son re-ejecutables sin dejar residuos.
 
-## Pendiente para Ventana 2
+## Completado en implementación actual
 
 - `prisma/schema.prisma` sincronizado con este schema (UUID, todos los enums,
   incluido `pending_ota_confirmation`)
@@ -154,6 +154,6 @@ y son re-ejecutables sin dejar residuos.
 - El código TypeScript viejo bajo `backend/src/` (services, routes,
   repositories) queda obsoleto: fue escrito contra un schema distinto
   (`cuid`, sin `reservation_beds`/`channels`/etc.) y será reemplazado
-  íntegramente en Ventana 2. `backend/src/database/prisma/seed.ts` quedó
+  íntegramente en el schema de Prisma. `backend/src/database/prisma/seed.ts` quedó
   además colgando sin su `schema.prisma` (se borró en esta ventana junto con
   las migraciones viejas, incompatibles con este diseño).
