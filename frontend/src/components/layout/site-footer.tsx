@@ -28,6 +28,9 @@ export const SiteFooter: React.FC<SiteFooterProps> = async ({ locale = 'pt' }) =
           <Link href={`/${locale}/grupos`} className="text-xs text-primary hover:underline">
             {t('grupos')}
           </Link>
+          <Link href={`/${locale}/tour`} className="text-xs text-primary hover:underline">
+            {t('tour')}
+          </Link>
           <Link href={`/${locale}/privacy`} className="text-xs text-primary hover:underline">
             {t('privacy')}
           </Link>
