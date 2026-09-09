@@ -9,9 +9,11 @@ import { validate } from '../../middleware/validation';
 import { createPaymentIntentHandler } from './create-payment-intent';
 import { confirmPaymentHandler } from './confirm-payment';
 import { processDepositHandler } from './process-deposit';
+import { depositMpCardHandler } from './deposit-mp-card';
 import { handleWebhookHandler } from './handle-webhook';
 import releaseDepositRouter from './release-deposit';
 import markReceivedAtDeskRouter from './mark-received-at-desk';
+import { query } from '../../config/database';
 import { paymentService } from '../../services/payment-service';
 import { bookingService } from '../../services/booking-service';
 import { groupPaymentService } from '../../services/group-payment-service';
@@ -100,6 +102,18 @@ router.post('/stripe-checkout', validate(StripeCheckoutSchema), async (req, res,
   }
 });
 
+// GET /payments/surcharge — devuelve el card_surcharge_percent de system_config
+router.get('/surcharge', async (_req, res, next) => {
+  try {
+    const { rows } = await query<{ value: number }>(
+      `SELECT value FROM system_config WHERE key = 'card_surcharge_percent'`
+    );
+    res.json(ApiResponse.success({ cardSurchargePercent: rows[0]?.value ?? 0 }));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /payments/intent
 router.post('/intent', createPaymentIntentHandler);
 
@@ -108,6 +122,9 @@ router.post('/confirm', confirmPaymentHandler);
 
 // POST /payments/deposit
 router.post('/deposit', processDepositHandler);
+
+// POST /payments/deposit-mp-card — pago con tarjeta brasileña via MP (token del SDK)
+router.post('/deposit-mp-card', depositMpCardHandler);
 
 // ── Pago Grupal (Feature 2) ──────────────────────────────────────────────────
 

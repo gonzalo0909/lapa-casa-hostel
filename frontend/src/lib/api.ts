@@ -408,6 +408,11 @@ export const paymentAPI = {
   ) => api.post('/payments/deposit', { reservationId, provider, installments }),
 
   /**
+   * Obtiene el porcentaje de recargo para tarjeta (card_surcharge_percent de system_config)
+   */
+  getSurcharge: () => api.get('/payments/surcharge'),
+
+  /**
    * Get payment status
    */
   getStatus: (paymentId: string) => api.get(`/payments/${paymentId}/status`),
