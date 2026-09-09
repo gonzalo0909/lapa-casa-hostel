@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapa_casa_hostel';
+  'postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapacasario';
 
 // Mismo criterio que src/config/database.ts: Supabase en produccion exige
 // SSL. Sin esto, migrate.js falla al conectar (npm run start encadena

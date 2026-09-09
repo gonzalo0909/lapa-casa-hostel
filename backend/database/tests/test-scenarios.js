@@ -16,7 +16,7 @@ require('dotenv').config();
 
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapa_casa_hostel';
+  'postgresql://lapa_dev:lapa_dev_pw@localhost:5432/lapacasario';
 
 const pool = new Pool({ connectionString });
 
@@ -133,7 +133,7 @@ async function assignBed(client, reservationId, bedId, checkIn, checkOut) {
 // Escenario 1: reserva directa feliz, precio y deposito correctos
 // ------------------------------------------------------------
 async function testHappyPath(client) {
-  const guestId = await createGuest(client, 'sc1@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc1@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'direct');
   const bedId = await getBedId(client, 'C1');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -173,8 +173,8 @@ async function testRealConcurrency(client) {
   const bedId = await getBedId(client, 'TC1');
   const channelId = await getChannelId(client, 'direct');
 
-  const guestA = await createGuest(client, 'sc2-a@test.lapacasahostel.internal', 'mixed');
-  const guestB = await createGuest(client, 'sc2-b@test.lapacasahostel.internal', 'mixed');
+  const guestA = await createGuest(client, 'sc2-a@test.lapacasario.internal', 'mixed');
+  const guestB = await createGuest(client, 'sc2-b@test.lapacasario.internal', 'mixed');
 
   const checkIn = '2027-09-01';
   const checkOut = '2027-09-03';
@@ -232,7 +232,7 @@ async function testRealConcurrency(client) {
 // el trigger de aplicacion deshabilitado.
 // ------------------------------------------------------------
 async function testExcludeIsFinalAuthority(client) {
-  const guestId = await createGuest(client, 'sc3@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc3@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'direct');
   const bedId = await getBedId(client, 'C2');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -266,7 +266,7 @@ async function testExcludeIsFinalAuthority(client) {
 // Escenario 4: OTA con webhook (Booking.com) -> confirmed inmediato, sin timeout
 // ------------------------------------------------------------
 async function testOtaWebhookChannel(client) {
-  const guestId = await createGuest(client, 'sc4@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc4@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'booking');
   const bedId = await getBedId(client, 'C3');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -294,7 +294,7 @@ async function testOtaWebhookChannel(client) {
 // pero igual bloquea la cama de inmediato (verificacion atomica).
 // ------------------------------------------------------------
 async function testOtaIcalOnlyChannel(client) {
-  const guestId = await createGuest(client, 'sc5@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc5@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'hostelworld');
   const bedId = await getBedId(client, 'C4');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -320,7 +320,7 @@ async function testOtaIcalOnlyChannel(client) {
 // Escenario 6: sp_cleanup_expired_pending cancela y libera camas
 // ------------------------------------------------------------
 async function testExpiredPendingCleanup(client) {
-  const guestId = await createGuest(client, 'sc6@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc6@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'direct');
   const bedId = await getBedId(client, 'C5');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -352,7 +352,7 @@ async function testExpiredPendingCleanup(client) {
 // aunque sean "viejas", sp_cleanup_expired_pending no las toca.
 // ------------------------------------------------------------
 async function testOtaExemptFromTimeout(client) {
-  const guestId = await createGuest(client, 'sc7@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc7@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'airbnb');
   const bedId = await getBedId(client, 'C6');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -375,7 +375,7 @@ async function testOtaExemptFromTimeout(client) {
 // Escenario 8: sp_release_no_show marca no_show y libera la cama
 // ------------------------------------------------------------
 async function testNoShowRelease(client) {
-  const guestId = await createGuest(client, 'sc8@test.lapacasahostel.internal', 'mixed');
+  const guestId = await createGuest(client, 'sc8@test.lapacasario.internal', 'mixed');
   const channelId = await getChannelId(client, 'direct');
   const bedId = await getBedId(client, 'C7');
   const roomTypeId = await getRoomTypeId(client, 'mixto_7');
@@ -419,7 +419,7 @@ async function testFlexibleConversion(client) {
   const flexRoomId = await getRoomTypeId(client, 'flexible_7');
   const bedF2 = await getBedId(client, 'F2'); // F1 se deja libre para no interferir con otros escenarios que puedan correr en paralelo
 
-  const guestId = await createGuest(client, 'sc9-10-11@test.lapacasahostel.internal', 'female');
+  const guestId = await createGuest(client, 'sc9-10-11@test.lapacasario.internal', 'female');
   const channelId = await getChannelId(client, 'direct');
   const rB = await createReservation(client, {
     reservationNumber: 'LCH-SC10-0001', guestId, channelId, guestGender: 'female',
@@ -561,7 +561,7 @@ async function cleanup(client) {
   // y sp_release_no_show en los escenarios 6 y 8 antes de poder borrar la reserva.
   await client.query(`DELETE FROM audit_logs WHERE reservation_id IN (SELECT id FROM reservations WHERE reservation_number LIKE 'LCH-SC%')`);
   await client.query(`DELETE FROM reservations WHERE reservation_number LIKE 'LCH-SC%'`);
-  await client.query(`DELETE FROM guests WHERE email LIKE '%@test.lapacasahostel.internal'`);
+  await client.query(`DELETE FROM guests WHERE email LIKE '%@test.lapacasario.internal'`);
   await client.query(`DELETE FROM reservation_beds WHERE bed_id IN (SELECT id FROM beds WHERE bed_code = 'TC1')`);
   await client.query(`DELETE FROM beds WHERE bed_code = 'TC1'`);
   await client.query(`DELETE FROM room_types WHERE code = 'test_conc'`);

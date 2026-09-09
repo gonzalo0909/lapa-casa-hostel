@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # lapa-casa-hostel/scripts/backup-db.sh
-# ventana6
 #
 # Backup del Supabase real (proyecto rpowardrcwnhbkzjsiok) via pg_dump
 # directo contra DATABASE_URL. Supabase ya hace backups automaticos

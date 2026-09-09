@@ -59,9 +59,7 @@
 - **`DATABASE_URL`** (password de Supabase): Supabase dashboard → proyecto
   `rpowardrcwnhbkzjsiok` → Project Settings → Database → Connection string → rotar →
   actualizar en Fly.io (`fly secrets set DATABASE_URL=... -a <app-backend>` —
-  nunca commitear la
-  contraseña real — ver el incidente documentado en el Maestro,
-  prompts/combo-VENTANA-1-completa.md).
+  nunca commitear la contraseña real).
 - **`JWT_SECRET`**: rotarlo invalida todas las sesiones admin activas (fuerza
   re-login) — no rotar en horario de uso activo del panel sin avisar.
 - **`ADMIN_PASSWORD_HASH`**: generar con

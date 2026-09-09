@@ -59,7 +59,7 @@ export const authenticateToken = async (
     // (misma secret, distinto iss/aud) sean rechazados explícitamente.
     const decoded = jwt.verify(token, secret, {
       issuer: 'lapa-casa-hostel',
-      audience: 'lapa-casa-hostel-api',
+      audience: 'lapacasario-api',
     }) as AuthPayload;
 
     // M-03: rechazar tokens revocados (logout explícito)
@@ -139,7 +139,7 @@ export const authenticateOwnerToken = async (
   try {
     const decoded = jwt.verify(token, secret, {
       issuer: 'lapa-casa-hostel',
-      audience: 'lapa-casa-hostel-api',
+      audience: 'lapacasario-api',
     }) as AuthPayload;
 
     if (decoded.role !== 'owner' || !decoded.ownerId) {

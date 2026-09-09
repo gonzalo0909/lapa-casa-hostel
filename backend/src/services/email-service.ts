@@ -747,7 +747,7 @@ export class EmailService {
     const t = LABELS[language];
 
     // URL de reseña de Google Maps (configurable via env var)
-    const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/lapacasahostel/review';
+    const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/lapacasario/review';
 
     const html = renderEmailTemplate('review-request', {
       emailTitle: t.reviewRequestTitle,

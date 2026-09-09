@@ -26,7 +26,7 @@ export const handleWebhookHandler = async (
       res.status(400).json(ApiResponse.error('Falta stripe-signature'));
       return;
     }
-    // ventana6: la verificacion de firma de Stripe necesita los bytes
+    // La verificación de firma de Stripe necesita los bytes
     // EXACTOS del body, no el objeto ya parseado por el express.json()
     // global de app.ts -- ese mismo parser guarda el buffer crudo en
     // req.rawBody antes de parsear (verify callback), igual que ya

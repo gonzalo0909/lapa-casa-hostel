@@ -6,10 +6,9 @@ Supabase nuevo**.
 
 > **Stack actual:** Frontend → Vercel · Backend + Worker → Fly.io · DB → Supabase.
 
-> Antes de seguir esta guía: Ventanas 3 (pagos), 4 (colas/emails/Sheets/admin) y 5
-> (iCal/OTAs) deben estar verificadas de punta a punta, no solo escritas (ver
-> `prompts/combo-VENTANA-6-completa.md`, sección "CONTEXTO PREVIO"). Desplegar pagos
-> sin probar o iCal sin auditar es desplegar bugs conocidos a producción.
+> Antes de seguir esta guía: pagos, colas/emails/Sheets/admin e iCal/OTAs deben estar
+> verificados de punta a punta. Desplegar pagos sin probar o iCal sin auditar es
+> desplegar bugs conocidos a producción.
 
 ## 1. Servicios
 
@@ -137,6 +136,4 @@ Ver `scripts/` en la raíz del repo:
 
 ## 11. Checklist pre-producción
 
-Ver la lista completa (con estado real, no aspiracional) en
-`prompts/combo-VENTANA-6-completa.md`, sección "Checklist pre-producción", y en
-`docs/MAINTENANCE.md` para las tareas recurrentes.
+Ver las tareas recurrentes en `docs/MAINTENANCE.md`.

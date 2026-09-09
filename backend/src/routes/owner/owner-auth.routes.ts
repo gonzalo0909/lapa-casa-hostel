@@ -175,7 +175,7 @@ router.post('/refresh', async (req, res, next) => {
     try {
       decoded = jwt.verify(incomingRefresh, secret, {
         issuer: 'lapa-casa-hostel',
-        audience: 'lapa-casa-hostel-api',
+        audience: 'lapacasario-api',
       }) as AuthPayload;
     } catch (verifyErr) {
       if (verifyErr instanceof jwt.TokenExpiredError) {

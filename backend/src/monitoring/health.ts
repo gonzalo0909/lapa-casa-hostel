@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/monitoring/health.ts
-// ventana6
 //
 // Health check extendido, mas alla del `testConnection()` basico que ya
 // vive en app.ts (GET /health, el que usa Fly.io como healthCheckPath).

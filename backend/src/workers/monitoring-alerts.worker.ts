@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/workers/monitoring-alerts.worker.ts
-// ventana6
 
 import { type Job, Worker } from 'bullmq';
 import { getQueueConnection } from '../queues/connection';

@@ -53,7 +53,7 @@ app.use(cors(corsOptions));
 // M-02: parsear cookies para leer el httpOnly JWT del panel admin
 app.use(cookieParser());
 
-// ventana6: limite de tamano de payload por endpoint (entregable 6). Se
+// Límite de tamaño de payload por endpoint. Se
 // chequea el header Content-Length ANTES de dejar que express.json() lea
 // el body -- el limite del propio express.json (10mb, mas abajo) queda
 // como cota dura general para todo lo que no matchea un prefijo mas
@@ -96,7 +96,7 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api/', generalRateLimiter);
-// ventana6: sanitizacion de inputs contra XSS -- limpia markup/script en
+// Sanitización de inputs contra XSS — limpia markup/script en
 // todo el body y query antes de que llegue a cualquier ruta (ver
 // middleware/validation.ts). Los webhooks de OTA ya capturaron su
 // rawBody arriba para la verificacion HMAC, asi que esto no interfiere

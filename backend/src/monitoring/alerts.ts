@@ -1,5 +1,4 @@
 // lapa-casa-hostel/backend/src/monitoring/alerts.ts
-// ventana6
 //
 // Alertas configurables del checklist de Ventana 6. Dos ya estaban
 // resueltas antes de esta ventana y no se duplican aca:

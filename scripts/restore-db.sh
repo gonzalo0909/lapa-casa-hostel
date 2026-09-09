@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # lapa-casa-hostel/scripts/restore-db.sh
-# ventana6
 #
 # Restaura un backup generado por backup-db.sh. DESTRUCTIVO -- sobrescribe
 # datos existentes en la base de destino. Pide confirmacion explicita

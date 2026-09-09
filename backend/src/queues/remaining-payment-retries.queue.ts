@@ -12,10 +12,7 @@
 // de tarjeta guardado) -- esa infraestructura no existe todavia en el
 // repo. Por eso un "reintento" aca es: verificar si el pago ya se
 // completo y, si no, reenviar el recordatorio con un link de pago activo
-// (el huesped tiene que volver a interactuar). Es coherente con el
-// estado real de Ventana 3 (pagos no probados end-to-end, ver
-// prompts/combo-VENTANA-4-completa.md, CONTEXTO PREVIO). Agregar cobro
-// automatico silencioso es trabajo de Ventana 3, no de esta cola.
+// (el huesped tiene que volver a interactuar).
 //
 // Al agotar los 3 intentos, se escala con un admin-alert (resolucion
 // manual) -- eso si esta completo, no es una limitacion.
