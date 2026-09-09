@@ -14,6 +14,18 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
+import Image from 'next/image';
+import {
+  Check,
+  ArrowRight,
+  MapPin,
+  Calendar,
+  MessageCircle,
+  ChevronLeft,
+  Clock,
+  Users,
+  Globe,
+} from 'lucide-react';
 import { StructuredData } from '@/components/seo/structured-data';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { locales, defaultLocale, type Locale } from '@/i18n';
@@ -651,39 +663,53 @@ export default async function TourPage({ params }: { params: { locale: string } 
     })),
   };
 
-  const STOP_ICONS = ['🏔️', '🚡', '🏖️', '🏛️', '🎨'];
-
   return (
     <main className="min-h-screen bg-background">
       <StructuredData data={TourSchema} />
       <StructuredData data={faqSchema} />
 
-      {/* ── Hero ── */}
-      <section className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-4 pt-6">
+      {/* ── Hero con imagen de los Arcos da Lapa ── */}
+      <section className="relative overflow-hidden border-b border-border">
+        {/* imagen de fondo — la misma que usa el header del motor de hostel */}
+        <div className="absolute inset-0">
+          <Image
+            src="/img/arcos-lapa.png"
+            alt="Arcos da Lapa, Rio de Janeiro"
+            fill
+            priority
+            className="object-cover object-center"
+          />
+          {/* overlay oscuro para legibilidad del texto */}
+          <div className="absolute inset-0 bg-foreground/60" />
+        </div>
+
+        {/* back link */}
+        <div className="relative max-w-3xl mx-auto px-4 pt-6">
           <Link
             href={`/${locale}/hostel`}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors"
           >
-            ← {c.backLabel}
+            <ChevronLeft className="h-3.5 w-3.5" />
+            {c.backLabel}
           </Link>
         </div>
-        <div className="max-w-3xl mx-auto px-4 pb-14 pt-8">
-          {/* eyebrow */}
-          <p className="text-xs font-display font-semibold tracking-[0.18em] uppercase text-secondary mb-5">
+
+        {/* contenido del hero */}
+        <div className="relative max-w-3xl mx-auto px-4 pb-14 pt-6">
+          <p className="text-xs font-display font-semibold tracking-[0.18em] uppercase text-white/60 mb-5 flex items-center gap-1.5">
+            <MapPin className="h-3 w-3" />
             Rio de Janeiro · Brasil
           </p>
-          {/* titular en Cormorant — la misma fuente que usa el motor de reservas */}
-          <h1 className="font-serif font-semibold leading-[1.1] text-foreground mb-5"
-              style={{ fontSize: 'clamp(2.6rem, 6vw, 3.8rem)' }}>
+          <h1
+            className="font-serif font-semibold leading-[1.1] text-white mb-5"
+            style={{ fontSize: 'clamp(2.4rem, 6vw, 3.6rem)' }}
+          >
             {c.headline}
           </h1>
-          {/* tagline en Poppins medium — acento de color */}
-          <p className="font-display font-medium text-lg text-primary mb-5 tracking-tight">
+          <p className="font-display font-medium text-lg text-white/80 mb-5 tracking-tight">
             {c.tagline}
           </p>
-          {/* intro en Inter — lectura cómoda */}
-          <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">{c.intro}</p>
+          <p className="text-sm text-white/70 leading-relaxed max-w-2xl">{c.intro}</p>
         </div>
       </section>
 
@@ -697,7 +723,7 @@ export default async function TourPage({ params }: { params: { locale: string } 
           <ul className="space-y-3.5">
             {c.packageItems.map((item, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
-                <span className="text-primary mt-0.5 flex-shrink-0 font-bold text-base">✓</span>
+                <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={2.5} />
                 <span>{item}</span>
               </li>
             ))}
@@ -709,19 +735,15 @@ export default async function TourPage({ params }: { params: { locale: string } 
           <h2 className="font-display font-semibold text-xl text-foreground mb-7 tracking-tight">
             {c.stopsTitle}
           </h2>
-          <div className="space-y-5">
+          <div className="space-y-6">
             {c.stops.map((stop, i) => (
               <div key={i} className="flex gap-4 items-start">
-                {/* número + icono */}
-                <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
-                  <span className="text-lg leading-none">{STOP_ICONS[i]}</span>
-                  <span className="text-[10px] font-display font-bold text-primary/60 tabular-nums">
-                    0{i + 1}
-                  </span>
+                {/* número */}
+                <div className="flex-shrink-0 w-8 h-8 rounded-full border border-primary/30 bg-primary/8 text-primary flex items-center justify-center text-xs font-display font-bold tabular-nums">
+                  {String(i + 1).padStart(2, '0')}
                 </div>
-                <div className="pt-0.5">
-                  {/* nombre de la parada en Cormorant */}
-                  <p className="font-serif font-semibold text-lg text-foreground leading-tight">
+                <div className="pt-1">
+                  <p className="font-serif font-semibold text-[1.1rem] text-foreground leading-tight">
                     {stop.name}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
@@ -733,27 +755,42 @@ export default async function TourPage({ params }: { params: { locale: string } 
           </div>
         </section>
 
+        {/* ── Practical info — 3 pills + lista ── */}
+        <section className="py-12 border-b border-border">
+          <h2 className="font-display font-semibold text-xl text-foreground mb-6 tracking-tight">
+            {c.practicalTitle}
+          </h2>
+          {/* chips de datos clave */}
+          <div className="flex flex-wrap gap-2.5 mb-7">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-display font-medium text-foreground">
+              <Clock className="h-3.5 w-3.5 text-primary" />
+              8–10 h
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-display font-medium text-foreground">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              máx. 8
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-display font-medium text-foreground">
+              <Globe className="h-3.5 w-3.5 text-primary" />
+              PT · EN · ES
+            </span>
+          </div>
+          <ul className="space-y-3">
+            {c.practicalItems.map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
+                <ArrowRight className="h-3.5 w-3.5 text-secondary mt-0.5 flex-shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* ── Guide ── */}
         <section className="py-12 border-b border-border">
           <h2 className="font-display font-semibold text-xl text-foreground mb-4 tracking-tight">
             {c.whoTitle}
           </h2>
           <p className="text-muted-foreground leading-relaxed text-sm">{c.whoBody}</p>
-        </section>
-
-        {/* ── Practical info ── */}
-        <section className="py-12 border-b border-border">
-          <h2 className="font-display font-semibold text-xl text-foreground mb-5 tracking-tight">
-            {c.practicalTitle}
-          </h2>
-          <ul className="space-y-3">
-            {c.practicalItems.map((item, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
-                <span className="text-secondary mt-0.5 flex-shrink-0 font-bold">→</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* ── FAQ ── */}
@@ -769,11 +806,9 @@ export default async function TourPage({ params }: { params: { locale: string } 
               >
                 <summary className="flex justify-between items-center gap-4 px-5 py-4 cursor-pointer text-sm font-display font-medium text-foreground list-none select-none hover:bg-muted/40 transition-colors">
                   {item.q}
-                  <span className="text-muted-foreground flex-shrink-0 text-xs group-open:rotate-180 transition-transform duration-200">
-                    ▾
-                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0 rotate-90 group-open:-rotate-90 transition-transform duration-200" />
                 </summary>
-                <p className="px-5 pb-5 pt-1 text-sm text-muted-foreground leading-relaxed border-t border-border">
+                <p className="px-5 pb-5 pt-2 text-sm text-muted-foreground leading-relaxed border-t border-border">
                   {item.a}
                 </p>
               </details>
@@ -785,9 +820,9 @@ export default async function TourPage({ params }: { params: { locale: string } 
         <div className="py-6 border-b border-border text-sm text-muted-foreground">
           <Link
             href={`/${locale}/santa-teresa`}
-            className="inline-flex items-center gap-2 hover:text-foreground transition-colors group"
+            className="inline-flex items-center gap-2 hover:text-foreground transition-colors"
           >
-            <span>🗺️</span>
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="underline underline-offset-2">
               {locale === 'pt'
                 ? 'Conheça o bairro de Santa Teresa antes de chegar'
@@ -807,9 +842,10 @@ export default async function TourPage({ params }: { params: { locale: string } 
         {/* ── CTA ── */}
         <section className="py-12">
           <div className="bg-card border border-border rounded-2xl p-8 md:p-10">
-            {/* título en Cormorant */}
-            <h2 className="font-serif font-semibold text-foreground mb-3"
-                style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.1rem)' }}>
+            <h2
+              className="font-serif font-semibold text-foreground mb-3"
+              style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.1rem)' }}
+            >
               {c.ctaTitle}
             </h2>
             <p className="text-sm text-muted-foreground mb-7 leading-relaxed max-w-lg">{c.ctaBody}</p>
@@ -818,7 +854,8 @@ export default async function TourPage({ params }: { params: { locale: string } 
                 href={`/${locale}/hostel`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold hover:opacity-90 transition-opacity"
               >
-                📅 {c.ctaBtn}
+                <Calendar className="h-4 w-4" />
+                {c.ctaBtn}
               </Link>
               <a
                 href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530'}`}
@@ -826,7 +863,8 @@ export default async function TourPage({ params }: { params: { locale: string } 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#25D366] text-white text-sm font-display font-semibold hover:opacity-90 transition-opacity"
               >
-                💬 {c.ctaWa}
+                <MessageCircle className="h-4 w-4" />
+                {c.ctaWa}
               </a>
             </div>
           </div>
