@@ -137,7 +137,7 @@ router.post('/group-session', validate(GroupSessionSchema), async (req, res, nex
     } = req.body as z.infer<typeof GroupSessionSchema>;
 
     // La página /group-payment/:token la sirve el backend, no el frontend
-    const baseUrl = appBaseUrl || process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
+    const baseUrl = appBaseUrl || process.env.APP_URL || 'https://api.lapacasario.com';
     const result = await groupPaymentService.createGroupSession({
       checkIn, checkOut, totalBeds, nights,
       guestGender: guestGender ?? 'mixed',

@@ -1,23 +1,18 @@
-> **Actualizado 2026-09-02:** este documento describía un plan aspiracional
-> (Vercel + Render) que nunca se implementó tal cual. El dominio
-> `lapacasario.com` ya está comprado (Porkbun) y el stack real terminó
-> siendo distinto: backend+worker en **Fly.io** (no Render), frontend
-> **sigue en Render por ahora** (migración a Vercel planeada, sin fecha
-> fija). `docs/DEPLOY.md` es la guía completa y detallada — este archivo
-> es el resumen rápido.
-
 # Deploy Recordatorio — lapacasario.com
 
 ## Stack real (hoy)
-- **Frontend + landing**: Render (`lapa-casa-hostel-frontend`, `lapa-casa-hostel-landing`) — migración a Vercel pendiente
+- **Frontend (Next.js)**: Vercel — proyecto `lapa-frontend`, root `frontend/`
+- **Landing estática**: Vercel — proyecto `lapa-landing`, root `public/landing/`
 - **Backend + worker**: Fly.io, app `lapa-casa-hostel` (dos process groups: `app` y `worker`, ver `backend/fly.toml`)
 - **Dominio**: `lapacasario.com`, comprado en Porkbun
-- **Base de datos**: Supabase (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — no gestionada por Render ni por Fly
+- **Base de datos**: Supabase (proyecto `rpowardrcwnhbkzjsiok`, región `sa-east-1`) — no gestionada por Vercel ni por Fly
 
 ## Dominios ya configurados
-| Dominio | Apunta a | DNS |
+
+| Dominio | Apunta a | DNS (Porkbun) |
 |---|---|---|
-| `lapacasario.com` (+ `www`) | Frontend en Render | ALIAS/CNAME → `lapa-casa-hostel-frontend-313b.onrender.com` |
+| `lapacasario.com` | Landing en Vercel (`lapa-landing`) | ALIAS/CNAME → dominio que da Vercel |
+| `www.lapacasario.com` | Frontend en Vercel (`lapa-frontend`) | CNAME → `cname.vercel-dns.com` |
 | `api.lapacasario.com` | Backend en Fly.io | A + AAAA + CNAME que muestra Fly → Certificates |
 
 ---
@@ -43,19 +38,31 @@ Todo se hace desde el dashboard web de Fly (fly.io/dashboard), sin instalar nada
 
 ---
 
-## Deploy del frontend (Render, por ahora)
+## Deploy del frontend y landing (Vercel)
 
-Ya está desplegado como `lapa-casa-hostel-frontend` en Render, con `lapacasario.com`
-y `www.lapacasario.com` como Custom Domains apuntando ahí. Variables clave:
-```
-NEXT_PUBLIC_API_URL=https://api.lapacasario.com/api/v1
-NEXT_PUBLIC_SITE_URL=https://www.lapacasario.com
-NEXT_PUBLIC_SENTRY_DSN=https://...@o....ingest.sentry.io/...   # Proyecto lapa-frontend en sentry.io
-```
+Dos proyectos separados en Vercel, ambos conectados al mismo repo:
 
-Cuando se migre a Vercel: nuevo proyecto ahí con las mismas variables, y cambiar
-el DNS de `lapacasario.com`/`www` del ALIAS de Render al que dé Vercel — no hay
-que tocar nada del backend en Fly.
+### Proyecto `lapa-frontend` (Next.js)
+- Root Directory: `frontend`
+- Framework: Next.js (auto-detectado)
+- Branch de producción: `definitivo2026`
+- Dominio: `www.lapacasario.com`
+- Variables de entorno (Settings → Environment Variables):
+  ```
+  NEXT_PUBLIC_API_URL=https://api.lapacasario.com/api/v1
+  NEXT_PUBLIC_SITE_URL=https://www.lapacasario.com
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+  NEXT_PUBLIC_MP_PUBLIC_KEY=APP_USR-xxxxx
+  NEXT_PUBLIC_WHATSAPP_NUMBER=5521xxxxxxxxx
+  ```
+- Vercel auto-deploya en cada push a `definitivo2026`.
+
+### Proyecto `lapa-landing` (estático)
+- Root Directory: `public/landing`
+- Framework: Other
+- Branch de producción: `definitivo2026`
+- Dominio: `lapacasario.com` (sin www)
+- Sin variables de entorno.
 
 ---
 
@@ -81,8 +88,9 @@ Así en Google Maps aparecen como negocios independientes con SEO propio.
 
 - [x] Comprar dominio lapacasario.com
 - [x] Deploy backend en Fly.io
-- [x] Deploy frontend en Render (Vercel pendiente)
-- [x] Configurar DNS (`api.` → Fly, raíz/`www` → Render)
+- [x] Deploy frontend en Vercel
+- [x] Deploy landing en Vercel
+- [x] Configurar DNS (`api.` → Fly, `www` → Vercel frontend, raíz → Vercel landing)
 - [ ] Probar formulario de reserva hostel (end-to-end)
 - [ ] Probar formulario de reserva apartamentos (end-to-end)
 - [ ] Verificar que /apartamentos NO muestra tab de hostel
@@ -90,4 +98,3 @@ Así en Google Maps aparecen como negocios independientes con SEO propio.
 - [ ] Configurar Google Business Profile (dos fichas)
 - [ ] Cargar apartamentos reales en la DB
 - [ ] Cargar fotos de apartamentos
-- [ ] Migrar frontend a Vercel

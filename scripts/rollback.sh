@@ -1,67 +1,68 @@
 #!/usr/bin/env bash
 # lapa-casa-hostel/scripts/rollback.sh
-# ventana6
 #
-# Vuelve un servicio de Render (landing o frontend -- backend/worker ya
-# no estan en Render, se mudaron a Fly.io, ver docs/DEPLOY.md seccion 9
-# para el rollback de esos dos) al deploy anterior exitoso, via la API
-# REST de Render (no via Deploy Hook -- rollback requiere listar deploys
-# y necesita un API key con permiso de lectura/escritura sobre el
-# servicio, no solo el hook de un solo uso).
+# Vuelve un proyecto de Vercel (lapa-frontend o lapa-landing) al deploy
+# anterior exitoso, via la API REST de Vercel.
+#
+# Backend/worker ya no están en Render ni en Vercel — corren en Fly.io
+# (ver docs/DEPLOY.md sección 10 para el rollback de esos dos).
 #
 # Uso:
-#   RENDER_API_KEY=rnd_xxx RENDER_SERVICE_ID=srv-xxx ./scripts/rollback.sh
+#   VERCEL_TOKEN=xxx VERCEL_PROJECT_ID=prj_xxx ./scripts/rollback.sh
 #
-# RENDER_API_KEY: dashboard -> Account Settings -> API Keys.
-# RENDER_SERVICE_ID: se ve en la URL del servicio en el dashboard, o con
-#   curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services | jq
+# VERCEL_TOKEN: dashboard → Account Settings → Tokens → Create.
+# VERCEL_PROJECT_ID: dashboard → proyecto → Settings → General →
+#   Project ID (empieza con "prj_"). O con:
+#   curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
+#     "https://api.vercel.com/v9/projects?limit=20" | jq '.[].id'
+#
+# El script lista los últimos 10 deploys "READY" (exitosos) del proyecto,
+# y promueve a producción el segundo (el inmediatamente anterior al actual).
+# Para elegir uno distinto, ajustar el índice en la línea "PREVIOUS_ID=".
 
 set -euo pipefail
 
-API_KEY="${RENDER_API_KEY:-}"
-SERVICE_ID="${RENDER_SERVICE_ID:-}"
+API_KEY="${VERCEL_TOKEN:-}"
+PROJECT_ID="${VERCEL_PROJECT_ID:-}"
 
-if [[ -z "$API_KEY" || -z "$SERVICE_ID" ]]; then
-  echo "Faltan RENDER_API_KEY y/o RENDER_SERVICE_ID (ver docs/DEPLOY.md)." >&2
+if [[ -z "$API_KEY" || -z "$PROJECT_ID" ]]; then
+  echo "Faltan VERCEL_TOKEN y/o VERCEL_PROJECT_ID (ver docs/DEPLOY.md)." >&2
   exit 1
 fi
 
-echo "Buscando el ultimo deploy 'live' anterior al actual para $SERVICE_ID..."
+echo "Buscando el último deploy 'READY' anterior al actual para $PROJECT_ID..."
 
 DEPLOYS_JSON=$(curl -sS \
   -H "Authorization: Bearer $API_KEY" \
-  "https://api.render.com/v1/services/${SERVICE_ID}/deploys?limit=20")
+  "https://api.vercel.com/v6/deployments?projectId=${PROJECT_ID}&limit=10&state=READY&target=production")
 
-# El primer elemento es el deploy actual; se busca el siguiente con
-# status "live" para volver a ese commit.
-PREVIOUS_DEPLOY_ID=$(echo "$DEPLOYS_JSON" | node -e '
+# El primer elemento es el deploy actual; el segundo es el anterior.
+PREVIOUS_ID=$(echo "$DEPLOYS_JSON" | node -e '
   const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
-  const live = data.map(d => d.deploy).filter(d => d && d.status === "live");
-  if (live.length < 2) { process.exit(1); }
-  console.log(live[1].id);
+  const deploys = data.deployments || [];
+  if (deploys.length < 2) { process.exit(1); }
+  console.log(deploys[1].uid);
 ')
 
-if [[ -z "${PREVIOUS_DEPLOY_ID:-}" ]]; then
-  echo "No se encontro un deploy 'live' anterior para hacer rollback." >&2
+if [[ -z "${PREVIOUS_ID:-}" ]]; then
+  echo "No se encontró un deploy anterior READY para hacer rollback." >&2
+  echo "Verificar en el dashboard de Vercel → Deployments." >&2
   exit 1
 fi
 
-echo "Deploy anterior encontrado: $PREVIOUS_DEPLOY_ID"
+echo "Deploy anterior encontrado: $PREVIOUS_ID"
 read -r -p "Confirmar rollback a este deploy? [y/N] " CONFIRM
 if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
   echo "Cancelado."
   exit 0
 fi
 
-# Endpoint confirmado contra la documentacion publica de Render
-# (POST /v1/services/{serviceId}/rollback, api-docs.render.com/reference/
-# rollback-deploy) al escribir este script -- verificar que no haya
-# cambiado si esto empieza a devolver 4xx.
+# Promover el deploy anterior a producción (Instant Rollback de Vercel).
 curl -sS -X POST \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  "https://api.render.com/v1/services/${SERVICE_ID}/rollback" \
-  -d "{\"deployId\": \"${PREVIOUS_DEPLOY_ID}\"}"
+  "https://api.vercel.com/v9/projects/${PROJECT_ID}/promote/${PREVIOUS_ID}"
 
 echo
-echo "Rollback solicitado. Verificar en el dashboard de Render y con ./scripts/health-check.sh"
+echo "Rollback solicitado. Verificar en el dashboard de Vercel (Deployments)"
+echo "y con ./scripts/health-check.sh una vez que el alias se propague."

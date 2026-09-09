@@ -611,7 +611,7 @@ export class GroupPaymentService {
     }
 
     const memberId = claimedRows[0].id;
-    const appBaseUrl = process.env.APP_URL || 'https://lapa-casa-hostel-api.onrender.com';
+    const appBaseUrl = process.env.APP_URL || 'https://api.lapacasario.com';
     const successUrl = `${appBaseUrl}/group-payment/${input.sessionToken}?status=success`;
     const cancelUrl = `${appBaseUrl}/group-payment/${input.sessionToken}?status=cancel`;
 

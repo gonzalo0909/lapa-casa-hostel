@@ -233,7 +233,7 @@ const nextConfig = {
         : false,
   },
 
-  // Output configuration — standalone incompatible con 'next start' en Render
+  // Output configuration — Vercel detecta Next.js automáticamente; no requiere 'standalone'
   distDir: '.next',
   poweredByHeader: false,
   compress: true,

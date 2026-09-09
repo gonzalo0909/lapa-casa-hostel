@@ -47,12 +47,12 @@
 - **Tasas de cambio** (`exchange_rates`): el seed inicial es un baseline ilustrativo
   (`manual` como `source`) — evaluar si conectar una API real de tasas antes de
   operar con montos en USD/EUR a escala.
-- Revisar el plan de Render (frontend/landing), Fly.io (backend/worker), Supabase y
+- Revisar el plan de Vercel (frontend/landing), Fly.io (backend/worker), Supabase y
   Upstash: si el volumen de reservas creció, reevaluar el upgrade a un tier pago.
-  El riesgo de perder un webhook por cold-start ya no aplica al backend —
+  El riesgo de perder un webhook por cold-start no aplica al backend —
   `backend/fly.toml` tiene `min_machines_running = 1`, la máquina que recibe
-  webhooks no se apaga — pero sí sigue aplicando al frontend/landing en Render si
-  están en el plan free.
+  webhooks no se apaga. Vercel no tiene cold-starts en funciones serverless del
+  plan Hobby en adelante.
 
 ## Rotación de credenciales
 

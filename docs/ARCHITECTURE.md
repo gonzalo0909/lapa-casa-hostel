@@ -21,12 +21,11 @@
               colas + rate limiting
 
    Frontend (Next.js, motor de reservas real) y landing estática:
-   Render, procesos aparte del backend. Ver docs/DEPLOY.md.
+   Vercel, procesos aparte del backend. Ver docs/DEPLOY.md.
 ```
 
 - **Backend**: Node/Express, un solo proceso HTTP (`src/server.ts` → `src/app.ts`).
-  Corre en Fly.io desde 2026-09-02 (antes en Render — ver `render.yaml` y
-  `docs/DEPLOY.md` para el detalle de la migración).
+  Corre en Fly.io (ver `backend/fly.toml`).
 - **Workers**: proceso separado (`src/workers/index.ts`, `npm run worker`), consume
   las colas BullMQ. Sin `REDIS_URL` no arranca — el servidor HTTP sigue funcionando
   igual (reservas se siguen creando), pero nada asíncrono se procesa. También en
@@ -35,11 +34,10 @@
   es dato derivado, recalculable — nunca se lee como fuente de verdad en decisiones de
   negocio.
 - **Frontend**: `frontend/` (Next.js App Router) ya tiene el motor de reservas real
-  (hostel + apartamentos) conectado a la API, en 6 idiomas. Corre en Render, proceso
+  (hostel + apartamentos) conectado a la API, en 6 idiomas. Corre en Vercel, proceso
   separado del backend.
 - **Landing estática**: `public/landing/` servida en el dominio raíz (info de contacto
-  + links directos a las OTAs) mientras el dueño decide pasar el dominio raíz al
-  frontend real. También en Render.
+  + links directos a las OTAs). También en Vercel.
 
 ## Requisito crítico #6: SQL como única implementación de negocio
 

@@ -229,7 +229,7 @@ profile `tools`).
 > un script inexistente, y el manifiesto de Kubernetes referenciaba un
 > Secret sin la clave que su propio StatefulSet necesitaba. Se
 > eliminaron junto con el resto de `infrastructure/`. El deploy real de
-> producción es en Render -- ver **[docs/DEPLOY.md](../DEPLOY.md)** para
+> producción es en Vercel (frontend/landing) y Fly.io (backend/worker) -- ver **[docs/DEPLOY.md](../DEPLOY.md)** para
 > el procedimiento completo y actualizado.
 
 ### Manual/local build

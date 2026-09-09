@@ -1,86 +1,11 @@
 # lapa-casa-hostel/render.yaml
 #
-# Backend API + worker de colas se mudaron a Fly.io (2026-09-02) --
-# api.lapacasario.com corre ahi ahora (ver backend/fly.toml), no en
-# Render. Este archivo quedo solo con lo que sigue en Render: la landing
-# estatica y el frontend Next.js (motor de reservas). Ver docs/DEPLOY.md.
-
-services:
-  # Landing estatica (info de contacto + links directos a las OTAs).
-  # Ocupa el dominio raiz por ahora; el frontend real (motor de reservas,
-  # ver servicio siguiente) queda en su propio subdominio hasta que el
-  # dueno decida pasar el dominio raiz a el.
-  - type: web
-    name: lapa-casa-hostel-landing
-    env: static
-    branch: definitivo2026
-    rootDir: public/landing
-    buildCommand: ""
-    staticPublishPath: .
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
-    autoDeploy: true
-
-  # Frontend real (Next.js App Router): motor de reservas conectado a la
-  # API real, rutas por idioma /pt /es /en /fr /de. output:'standalone' en
-  # next.config.js funciona igual con "next start" (confirmado localmente),
-  # asi que se usa el mismo buildCommand/startCommand simple que el resto.
-  - type: web
-    name: lapa-casa-hostel-frontend
-    env: node
-    region: oregon
-    plan: free
-    branch: definitivo2026
-    rootDir: frontend
-    # --include=dev: next.config.js importa @next/bundle-analyzer sin
-    # condicion (solo su USO es condicional a ANALYZE=true), y es una
-    # devDependency -- con NODE_ENV=production npm salta devDependencies
-    # por defecto y el build tira MODULE_NOT_FOUND. Mismo patron que ya
-    # usa el backend arriba.
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: npm run start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      # sync: false = se cargan a mano en el dashboard de Render.
-      # Valores reales:
-      #   NEXT_PUBLIC_SITE_URL → https://www.lapacasario.com
-      #   NEXT_PUBLIC_API_URL  → https://api.lapacasario.com/api/v1 (Fly.io, no Render)
-      - key: NEXT_PUBLIC_SITE_URL
-        sync: false
-      # lib/api.ts arma las rutas como `${NEXT_PUBLIC_API_URL}/availability/...`
-      # -- el backend real las expone bajo /api/v1 (ver backend/src/app.ts),
-      # asi que el prefijo tiene que venir incluido aca o cada llamada
-      # devuelve "Route not found".
-      - key: NEXT_PUBLIC_API_URL
-        sync: false
-      # Claves publicas/publishable -- seguras para exponer en el cliente,
-      # a diferencia de STRIPE_SECRET_KEY/MP_ACCESS_TOKEN (esas solo viven
-      # en el backend, ver arriba). Cargadas a mano en el dashboard.
-      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: NEXT_PUBLIC_MP_PUBLIC_KEY
-        sync: false
-    autoDeploy: true
-
-# El backend API y el worker de colas BullMQ (cobro de saldo a 7 dias,
-# emails programados, liberacion de holds vencidos, sync con
-# Airbnb/Hostelworld cada 5 min) corren en Fly.io -- ver backend/fly.toml
-# (dos process groups, "app" y "worker", misma imagen Docker). No hay
-# bloque "databases" acá: la base es la Supabase real (proyecto
-# rpowardrcwnhbkzjsiok), no una base gestionada por Render ni por Fly.
+# ARCHIVADO — frontend y landing migraron a Vercel (ver docs/DEPLOY.md y
+# docs/DEPLOY-RECORDATORIO.md). El backend+worker ya estaban en Fly.io
+# desde 2026-09-02. Este archivo ya no define servicios activos; se
+# conserva solo como referencia histórica.
 #
-# Dominios custom: lapacasario.com/www -> landing/frontend (Render,
-# Settings -> Custom Domains por servicio); api.lapacasario.com ->
-# backend (Fly, ver backend/fly.toml y Certificates en el dashboard de
-# Fly). Ver docs/DEPLOY.md.
+# Stack actual:
+#   Frontend (Next.js) + Landing estática → Vercel
+#   Backend + Worker (BullMQ)             → Fly.io (ver backend/fly.toml)
+#   Base de datos                         → Supabase (rpowardrcwnhbkzjsiok)
