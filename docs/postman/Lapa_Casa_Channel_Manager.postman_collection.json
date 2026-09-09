@@ -15,7 +15,7 @@
       "name": "System",
       "item": [
         {
-          "name": "Health (basico, usado por Render)",
+          "name": "Health (basico, usado por Fly.io como healthCheckPath)",
           "request": { "method": "GET", "url": "{{baseUrl}}/health" },
           "response": []
         },
