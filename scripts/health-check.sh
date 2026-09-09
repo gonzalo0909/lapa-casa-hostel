@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # lapa-casa-hostel/scripts/health-check.sh
-# ventana6
 #
 # Verifica que los servicios publicos esten respondiendo. Pensado para
 # correr a mano despues de un deploy, o desde un cron/monitor externo
@@ -8,8 +7,8 @@
 # algo esta mal, para que un pipeline lo pueda usar como gate.
 #
 # Uso:
-#   BACKEND_URL=https://api.lapacasahostel.com \
-#   LANDING_URL=https://lapacasahostel.com \
+#   BACKEND_URL=https://api.lapacasario.com \
+#   FRONTEND_URL=https://lapacasario.com \
 #   ./scripts/health-check.sh
 #
 # Por defecto apunta a localhost (desarrollo).
@@ -17,7 +16,7 @@
 set -uo pipefail
 
 BACKEND_URL="${BACKEND_URL:-http://localhost:3001}"
-LANDING_URL="${LANDING_URL:-http://localhost:8080}"
+FRONTEND_URL="${FRONTEND_URL:-http://localhost:3000}"
 
 FAILED=0
 
@@ -47,8 +46,8 @@ check "rooms"         "${BACKEND_URL}/api/v1/rooms"
 check "ical export"   "${BACKEND_URL}/api/v1/ical/export"
 
 echo
-echo "== Landing =="
-check "landing" "${LANDING_URL}/"
+echo "== Frontend =="
+check "frontend" "${FRONTEND_URL}/"
 
 echo
 echo "== Health extendido (informativo, no falla el script) =="

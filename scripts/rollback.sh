@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lapa-casa-hostel/scripts/rollback.sh
 #
-# Vuelve un proyecto de Vercel (lapa-frontend o lapa-landing) al deploy
+# Vuelve el proyecto de Vercel (lapa-frontend) al deploy
 # anterior exitoso, via la API REST de Vercel.
 #
 # Backend/worker ya no están en Render ni en Vercel — corren en Fly.io
