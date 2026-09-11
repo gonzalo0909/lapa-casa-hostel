@@ -16,6 +16,7 @@ import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { StructuredData } from '@/components/seo/structured-data';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { TourConfigurator } from '@/components/tour/tour-configurator';
 import { locales, defaultLocale, type Locale } from '@/i18n';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lapacasario.com';
@@ -758,6 +759,9 @@ export default async function TourPage({ params }: { params: { locale: string } 
             ))}
           </div>
         </section>
+
+        {/* ── Tour configurator ── */}
+        <TourConfigurator locale={locale} />
 
         {/* ── Cross-link ── */}
         <div className="mt-8 mb-2 text-sm text-muted-foreground">
