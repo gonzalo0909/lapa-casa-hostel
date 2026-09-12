@@ -10,7 +10,7 @@ import { Users, Calendar, Hotel, MapPin, Check } from 'lucide-react';
 // ─── Pricing constants ──────────────────────────────────────────────────────
 
 const GUIDE_DAY         = 250;   // R$/día (guía privado)
-const VAN_DAY           = 500;   // R$/día (Sprinter hasta 13 pax)
+const VAN_DAY           = 1000;  // R$/día (Sprinter hasta 13 pax)
 const HOSTEL_COMMISSION = 40;    // R$/persona (comisión fija hostel)
 const HOSTEL_NIGHT      = 65;    // R$/noche/persona
 const HOSTEL_NIGHTS     = 2;     // noches incluidas en el paquete
