@@ -14,8 +14,8 @@ const VAN_DAY           = 1000;  // R$/día (Sprinter hasta 13 pax)
 const HOSTEL_COMMISSION = 40;    // R$/persona (comisión fija hostel)
 const HOSTEL_NIGHT      = 65;    // R$/noche/persona
 const HOSTEL_NIGHTS     = 2;     // noches incluidas en el paquete
-const MIN_PEOPLE        = 2;
-const MAX_PEOPLE        = 13;
+const MIN_PEOPLE        = 6;
+const MAX_PEOPLE        = 12;
 const WHATSAPP_NUMBER   = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5521977157530';
 
 // ─── Attractions data ────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Reservar por WhatsApp', wappNote: 'El guía confirma en menos de 2 hs',
     noStops: 'Sin paradas seleccionadas',
     free: 'Gratis', perPerson: '/persona', nationalPrice: 'ingreso nacional', promoLabel: 'Promo Brasil',
-    minMax: 'Mínimo 2 · máximo 13 · Sprinter 15 plazas',
+    minMax: 'Mínimo 6 · máximo 12 · Sprinter 15 plazas',
     guideVanNote: (cost, people) => `Guía + van: R$${cost}/persona con ${people} — a más personas, menos por cabeza`,
     daysNote: (d) => d === 1 ? 'Guía + van por 1 día' : 'Guía + van por 2 días (precio doble)',
     selaron: 'Escadaria Selarón + Lapa', selaron_d: 'Salida desde el hostel, a pie',
@@ -141,7 +141,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Reservar pelo WhatsApp', wappNote: 'O guia confirma em menos de 2h',
     noStops: 'Nenhuma parada selecionada',
     free: 'Grátis', perPerson: '/pessoa', nationalPrice: 'ingresso nacional', promoLabel: 'Promo Brasil',
-    minMax: 'Mínimo 2 · máximo 13 · Sprinter 15 lugares',
+    minMax: 'Mínimo 6 · máximo 12 · Sprinter 15 lugares',
     guideVanNote: (cost, people) => `Guia + van: R$${cost}/pessoa com ${people} — quanto mais pessoas, menos por cabeça`,
     daysNote: (d) => d === 1 ? 'Guia + van por 1 dia' : 'Guia + van por 2 dias (preço dobrado)',
     selaron: 'Escadaria Selarón + Lapa', selaron_d: 'Saída do hostel, a pé',
@@ -173,7 +173,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Book via WhatsApp', wappNote: 'Guide confirms in under 2 hours',
     noStops: 'No stops selected yet',
     free: 'Free', perPerson: '/person', nationalPrice: 'national ticket', promoLabel: 'Promo Brasil',
-    minMax: 'Min 2 · max 13 · 15-seat Sprinter',
+    minMax: 'Min 6 · max 12 · 15-seat Sprinter',
     guideVanNote: (cost, people) => `Guide + van: R$${cost}/person for ${people} — more people, less per head`,
     daysNote: (d) => d === 1 ? 'Guide + van for 1 day' : 'Guide + van for 2 days (double price)',
     selaron: 'Selarón Steps + Lapa', selaron_d: 'Walking distance from the hostel',
@@ -205,7 +205,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Per WhatsApp buchen', wappNote: 'Guide bestätigt in unter 2 Stunden',
     noStops: 'Noch keine Stopps gewählt',
     free: 'Kostenlos', perPerson: '/Person', nationalPrice: 'Nationaltarif', promoLabel: 'Promo Brasil',
-    minMax: 'Min 2 · max 13 · Sprinter 15 Sitze',
+    minMax: 'Min 6 · max 12 · Sprinter 15 Sitze',
     guideVanNote: (cost, people) => `Guide + Van: R$${cost}/Person für ${people} — mehr Personen, weniger pro Kopf`,
     daysNote: (d) => d === 1 ? 'Guide + Van für 1 Tag' : 'Guide + Van für 2 Tage (doppelter Preis)',
     selaron: 'Selarón-Treppe + Lapa', selaron_d: 'Zu Fuß vom Hostel erreichbar',
@@ -237,7 +237,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Réserver via WhatsApp', wappNote: 'Le guide confirme en moins de 2h',
     noStops: 'Aucune étape sélectionnée',
     free: 'Gratuit', perPerson: '/personne', nationalPrice: 'tarif national', promoLabel: 'Promo Brasil',
-    minMax: 'Min 2 · max 13 · Sprinter 15 places',
+    minMax: 'Min 6 · max 12 · Sprinter 15 places',
     guideVanNote: (cost, people) => `Guide + van : R$${cost}/personne pour ${people} — plus on est, moins c'est cher`,
     daysNote: (d) => d === 1 ? 'Guide + van pour 1 jour' : 'Guide + van pour 2 jours (prix doublé)',
     selaron: 'Escalier Selarón + Lapa', selaron_d: 'À pied depuis l\'auberge',
@@ -269,7 +269,7 @@ const T: Record<Locale, Strings> = {
     wappBtn: 'Prenota via WhatsApp', wappNote: 'La guida conferma in meno di 2 ore',
     noStops: 'Nessuna tappa selezionata',
     free: 'Gratis', perPerson: '/persona', nationalPrice: 'biglietto nazionale', promoLabel: 'Promo Brasil',
-    minMax: 'Min 2 · max 13 · Sprinter 15 posti',
+    minMax: 'Min 6 · max 12 · Sprinter 15 posti',
     guideVanNote: (cost, people) => `Guida + van: R$${cost}/persona per ${people} — più persone, meno a testa`,
     daysNote: (d) => d === 1 ? 'Guida + van per 1 giorno' : 'Guida + van per 2 giorni (prezzo doppio)',
     selaron: 'Scalinata Selarón + Lapa', selaron_d: 'A piedi dall\'ostello',
@@ -321,7 +321,7 @@ interface TourConfiguratorProps {
 export function TourConfigurator({ locale }: TourConfiguratorProps) {
   const t = T[(locale as Locale) in T ? (locale as Locale) : 'es'];
 
-  const [people,   setPeople]   = useState(4);
+  const [people,   setPeople]   = useState(6);
   const [days,     setDays]     = useState(1);
   const [hostel,   setHostel]   = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set(['selaron', 'santateresa']));
