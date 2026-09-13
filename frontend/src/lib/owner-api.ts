@@ -26,7 +26,7 @@ export interface OwnerDocument {
   reviewNotes: string | null;
 }
 
-export const CURRENT_TERM_VERSION = '2.0';
+export const CURRENT_TERM_VERSION = '2.1';
 
 export interface Apartment {
   id: string;
@@ -98,11 +98,22 @@ export const ownerApartmentsAPI = {
   update: (
     id: string,
     data: Partial<
-      Pick<Apartment, 'name' | 'description' | 'neighborhood' | 'bedrooms' | 'bathrooms' | 'amenities' | 'address' | 'address_number' | 'cep'>
+      Pick<Apartment, 'name' | 'description' | 'neighborhood' | 'bedrooms' | 'bathrooms' | 'amenities' | 'address' | 'address_number' | 'cep' | 'base_price'>
     >,
   ) =>
     api.put<{ success: boolean; data: Apartment; message: string }>(
       `/owner/apartments/${id}`,
+      data,
+    ),
+
+  getPricing: (id: string) =>
+    api.get<{ success: boolean; data: { min_price_brl: number | null; max_price_brl: number | null; bot_enabled: boolean; notes: string | null } | null }>(
+      `/owner/apartments/${id}/pricing`,
+    ),
+
+  updatePricing: (id: string, data: { min_price_brl?: number | null; max_price_brl?: number | null; bot_enabled?: boolean; notes?: string }) =>
+    api.put<{ success: boolean; data: unknown; message: string }>(
+      `/owner/apartments/${id}/pricing`,
       data,
     ),
 

@@ -73,6 +73,9 @@ const UpdateApartmentSchema = z
     address: z.string().optional(),
     address_number: z.string().max(20).optional(),
     cep: z.string().max(9).optional(),
+    // Precio base editable por el administrador: entra en el cálculo de
+    // precio de las reservas. Se acepta solo valores positivos.
+    base_price: z.number().positive().optional(),
   })
   .refine((v) => Object.values(v).some((x) => x !== undefined), {
     message: 'Nada para actualizar',
@@ -180,7 +183,7 @@ router.get('/:id', async (req, res, next) => {
 router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, description, neighborhood, bedrooms, bathrooms, amenities, address, address_number, cep } = req.body as z.infer<
+    const { name, description, neighborhood, bedrooms, bathrooms, amenities, address, address_number, cep, base_price } = req.body as z.infer<
       typeof UpdateApartmentSchema
     >;
 
@@ -223,13 +226,17 @@ router.put('/:id', validate(UpdateApartmentSchema), async (req, res, next) => {
       params.push(cep || null);
       sets.push(`cep = ${p()}`);
     }
+    if (base_price !== undefined) {
+      params.push(base_price);
+      sets.push(`base_price = ${p()}`);
+    }
 
     params.push(id);
     const { rows } = await query(
       `UPDATE room_types SET ${sets.join(', ')}, updated_at = now()
        WHERE id = ${p()}
        RETURNING id, code, name, description, neighborhood, bedrooms, bathrooms, amenities,
-                 address, address_number, cep`,
+                 address, address_number, cep, base_price`,
       params,
     );
 

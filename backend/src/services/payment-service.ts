@@ -8,7 +8,7 @@ import { BookingRepository } from '../database/repositories/booking-repository';
 import { StripeHandler } from '../lib/payments/stripe-handler';
 import { MercadoPagoHandler } from '../lib/payments/mercado-pago-handler';
 import { notificationService } from './notification-service';
-import { scheduleRemainingPayment } from '../queues/remaining-payment.queue';
+import { scheduleRemainingPayment, scheduleApartmentRemainingPayment } from '../queues/remaining-payment.queue';
 import { enqueueSheetsExport } from '../queues/sheets-export.queue';
 import { query } from '../config/database';
 import { logger } from '../utils/logger';
@@ -242,7 +242,23 @@ export class PaymentService {
       );
 
       if (payment.payment_type === 'deposit' && Number(bookingWithGuest.remaining_amount) > 0) {
-        await scheduleRemainingPayment(bookingWithGuest.id, new Date(bookingWithGuest.check_in_date));
+        // Apartamentos: el 70% se cobra la mañana del check-in (Cláusula 3.2).
+        // Hostel: se cobra 7 días antes (modelo clásico).
+        const { rows: aptRows } = await query<{ count: string }>(
+          `SELECT COUNT(*) AS count
+           FROM reservation_beds rb
+           JOIN beds b ON b.id = rb.bed_id
+           JOIN room_types rt ON rt.id = b.room_type_id
+           WHERE rb.reservation_id = $1 AND rt.property_type = 'apartment'`,
+          [bookingWithGuest.id]
+        );
+        const isApartment = parseInt(aptRows[0]?.count ?? '0') > 0;
+
+        if (isApartment) {
+          await scheduleApartmentRemainingPayment(bookingWithGuest.id, new Date(bookingWithGuest.check_in_date));
+        } else {
+          await scheduleRemainingPayment(bookingWithGuest.id, new Date(bookingWithGuest.check_in_date));
+        }
 
         const oneDayBeforeCheckIn = new Date(new Date(bookingWithGuest.check_in_date).getTime() - 24 * 60 * 60 * 1000);
         await notificationService.scheduleNotification('welcome', bookingWithGuest, oneDayBeforeCheckIn);

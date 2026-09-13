@@ -152,6 +152,10 @@ export const createBookingHandler = async (
       return;
     }
 
+    // Horas hasta el check-in -- usado más abajo para determinar el modo de
+    // pago en reservas de apartamento (Cláusula 3.2 / 3.3 Termo de Adesão v2.1).
+    const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
+
     if (checkOut <= checkIn) {
       res.status(400).json(ApiResponse.error('Check-out date must be after check-in date'));
       return;
@@ -273,6 +277,28 @@ export const createBookingHandler = async (
           });
         }
       }
+    }
+
+    // ── Modo de pago para apartamentos (Cláusula 3 Termo de Adesão v2.1) ─────
+    // 24–48h de antecedencia → 100% al reservar (remaining = 0).
+    // ≥48h de antecedencia  → modelo normal 30% / 70%.
+    // Hostel (camas) no se ve afectado.
+    const allRoomIds = bookingData.rooms.map((r) => r.roomId);
+    const { rows: aptTypeRows } = await query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM room_types WHERE id = ANY($1::uuid[]) AND property_type = 'apartment'`,
+      [allRoomIds]
+    );
+    const isApartmentBooking = parseInt(aptTypeRows[0]?.count ?? '0') > 0;
+
+    if (isApartmentBooking && hoursUntilCheckIn < 48) {
+      // Cobro completo al momento de la reserva
+      pricingDetails.depositAmount = pricingDetails.totalPrice;
+      pricingDetails.depositPercent = 100;
+      pricingDetails.remainingAmount = 0;
+      logger.info('Apartamento: pago 100% al reservar (antecedencia < 48h)', {
+        hoursUntilCheckIn: Math.round(hoursUntilCheckIn),
+        totalPrice: pricingDetails.totalPrice,
+      });
     }
 
     // Check per-room availability
@@ -527,7 +553,16 @@ export const createBookingHandler = async (
               // en el INSERT (booking-service.ts), la única fuente de verdad.
               depositDueDate: booking.pending_expires_at,
               remainingAmount: pricingDetails.remainingAmount,
-              remainingDueDate: new Date(checkIn.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+              // Apartamentos ≥48h: 70% vence la mañana del check-in (8am SP).
+              // Apartamentos <48h: remaining = 0, esta fecha es irrelevante.
+              // Hostel: 7 días antes del check-in (modelo clásico).
+              remainingDueDate: isApartmentBooking
+                ? (() => {
+                    const morning = new Date(checkIn);
+                    morning.setUTCHours(11, 0, 0, 0); // 8:00 AM São Paulo = 11:00 UTC
+                    return morning.toISOString();
+                  })()
+                : new Date(checkIn.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
             },
             // Expiración real del hold (5 min) para que el frontend arme el
             // contador regresivo con el dato correcto, no un valor inventado.
