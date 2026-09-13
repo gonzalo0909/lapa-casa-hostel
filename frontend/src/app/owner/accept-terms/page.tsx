@@ -140,7 +140,7 @@ function ContractText() {
       <h2 className="text-center text-base font-semibold">
         TERMO DE ADESÃO — ADMINISTRADOR DE APARTAMENTO<br />
         Lapa Casa Rio — Plataforma de Hospedagem<br />
-        Versão 2.0
+        Versão {CURRENT_TERM_VERSION}
       </h2>
 
       <p className="text-center text-xs text-neutral-500 mt-1 mb-6">
@@ -186,28 +186,51 @@ function ContractText() {
 
       <Section title="CLÁUSULA 3 — MODELO DE PAGAMENTO">
         <p>
-          <strong>3.1 Sinal confirmatório (30%).</strong> No ato da reserva, o hóspede paga
-          diretamente à Plataforma, via processador licenciado, o equivalente a <strong>30%</strong> do
-          valor total da estadia, a título de arras confirmatórias. Esse valor é retido pela
-          Plataforma até a confirmação de check-in.
+          <strong>3.1 Antecedência mínima.</strong> A Plataforma não aceita reservas para o
+          mesmo dia. Toda reserva deve ser realizada com antecedência mínima de{' '}
+          <strong>24 (vinte e quatro) horas</strong> em relação ao horário de check-in.
         </p>
         <p>
-          <strong>3.2 Pagamento direto ao Administrador (70%).</strong> O saldo remanescente de
-          <strong> 70%</strong> é pago pelo hóspede <strong>diretamente ao Administrador no ato do check-in</strong>,
-          podendo ser realizado em dinheiro, PIX, cartão ou outro meio aceito pelo Administrador.
-          Esse valor nunca transita pela Plataforma.
+          <strong>3.2 Reservas com 48 h ou mais de antecedência — pagamento em duas etapas.</strong>{' '}
+          Quando a reserva for realizada com 48 horas ou mais de antecedência:
+        </p>
+        <ul>
+          <li>
+            <strong>Etapa 1 — Sinal (30%):</strong> no ato da reserva, o hóspede paga{' '}
+            <strong>30%</strong> do valor total à Plataforma, via processador licenciado, a título
+            de arras confirmatórias.
+          </li>
+          <li>
+            <strong>Etapa 2 — Saldo (70%):</strong> na manhã do dia do check-in, a Plataforma
+            envia ao hóspede um link de pagamento seguro para o saldo de{' '}
+            <strong>70%</strong> restante. O pagamento deve ser concluído antes do horário de
+            check-in.
+          </li>
+        </ul>
+        <p>
+          <strong>3.3 Reservas com 24 h a 48 h de antecedência — pagamento integral.</strong>{' '}
+          Quando a reserva for realizada entre 24 e 48 horas antes do check-in, o hóspede paga{' '}
+          <strong>100%</strong> do valor total no ato da reserva, via processador licenciado.
         </p>
         <p>
-          <strong>3.3 Repasse do sinal após confirmação.</strong> Após a confirmação de check-in
-          pelo Administrador no painel, a Plataforma repassa ao Administrador o saldo do sinal
-          de 30%, já descontadas as taxas previstas na Cláusula 4.
+          <strong>3.4 Cancelamento automático por falta de pagamento do saldo.</strong>{' '}
+          Se o hóspede não efetuar o pagamento do saldo de 70% (Cláusula 3.2, Etapa 2) antes
+          do horário de check-in, a reserva será <strong>cancelada automaticamente</strong> pela
+          Plataforma. Nesse caso, o sinal de 30% já pago é retido como compensação ao
+          Administrador, após dedução das taxas previstas na Cláusula 4.
         </p>
         <p>
-          <strong>3.4 Pagamento via cartão — sobretaxa.</strong> Quando o hóspede optar por
-          pagar com cartão de crédito ou débito, será cobrada uma sobretaxa de <strong>10%</strong> sobre o valor
-          do sinal de 30%, destinada a cobrir os custos de processamento de cartão (taxa do
-          gateway + proteção contra estornos). Essa sobretaxa é arcada pelo hóspede e informada
-          de forma transparente no checkout.
+          <strong>3.5 Repasse ao Administrador.</strong> Após a confirmação de check-in pelo
+          Administrador no painel, a Plataforma repassa ao Administrador o valor total
+          arrecadado (30% + 70%, conforme o caso), já descontadas as taxas previstas na
+          Cláusula 4.
+        </p>
+        <p>
+          <strong>3.6 Pagamento via cartão — sobretaxa.</strong> Quando o hóspede optar por
+          pagar com cartão de crédito ou débito, será cobrada uma sobretaxa de{' '}
+          <strong>10%</strong> sobre o valor processado, destinada a cobrir os custos de
+          processamento de cartão (taxa do gateway + proteção contra estornos). Essa sobretaxa
+          é arcada pelo hóspede e informada de forma transparente no checkout.
         </p>
       </Section>
 
