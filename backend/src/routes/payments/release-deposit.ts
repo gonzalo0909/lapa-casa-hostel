@@ -101,10 +101,19 @@ router.post(
       const r = reservationRows[0];
 
       // 2. Validaciones de estado
-      if (r.status !== 'confirmed' && r.status !== 'checked-in' && r.status !== 'checked-out') {
+      // no_show: el huésped no se presentó -- el admin retiene el 30% de arras
+      // como compensación (Cláusula 5.4 del Termo de Adesão). El depósito se
+      // libera igualmente para que el admin reciba el 25% retenido tras
+      // descontar la comisión.
+      if (
+        r.status !== 'confirmed' &&
+        r.status !== 'checked-in' &&
+        r.status !== 'checked-out' &&
+        r.status !== 'no_show'
+      ) {
         throw new AppError(
           `No se puede liberar el depósito: la reserva está en estado "${r.status}". ` +
-          'Debe estar confirmada o haber hecho check-in.',
+          'Debe estar confirmada, en check-in, check-out o no-show.',
           400
         );
       }

@@ -22,11 +22,28 @@ export const remainingPaymentQueue = createSafeQueue<RemainingPaymentJobData>('r
   attempts: 1
 });
 
-/** Encola el cobro de saldo para 7 dias antes del check-in (o de inmediato si esa fecha ya paso). */
+/** Encola el cobro de saldo para 7 dias antes del check-in (o de inmediato si esa fecha ya paso).
+ *  Uso: reservas de hostel (camas). */
 export async function scheduleRemainingPayment(reservationId: string, checkInDate: Date): Promise<void> {
   const sevenDaysBefore = new Date(checkInDate.getTime() - 7 * 24 * 60 * 60 * 1000);
   const delay = Math.max(0, sevenDaysBefore.getTime() - Date.now());
   // BullMQ no permite ":" en un jobId custom (lo usa como separador interno
   // de claves de Redis) -- "-" como separador.
   await remainingPaymentQueue.add('charge-remaining-balance', { reservationId }, { delay, jobId: `remaining-payment-${reservationId}` });
+}
+
+/** Encola el cobro del saldo de 70% para las 8:00 AM (hora São Paulo = UTC-3)
+ *  del día de check-in. Uso exclusivo: apartamentos con antecedencia ≥48h
+ *  (Cláusula 3.2 del Termo de Adesão v2.1). Brasil no usa horario de verano
+ *  desde 2019, por lo que UTC-3 es fijo. */
+export async function scheduleApartmentRemainingPayment(reservationId: string, checkInDate: Date): Promise<void> {
+  // 8:00 AM São Paulo = 11:00 UTC (UTC-3 fijo)
+  const checkInMorning = new Date(checkInDate);
+  checkInMorning.setUTCHours(11, 0, 0, 0);
+  const delay = Math.max(0, checkInMorning.getTime() - Date.now());
+  await remainingPaymentQueue.add(
+    'charge-remaining-balance',
+    { reservationId },
+    { delay, jobId: `remaining-payment-${reservationId}` }
+  );
 }
