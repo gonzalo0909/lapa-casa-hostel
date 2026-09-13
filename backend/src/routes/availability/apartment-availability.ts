@@ -6,12 +6,9 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
-import { AvailabilityService } from '../../services/availability-service';
 import { pricingService } from '../../services/pricing-service';
 import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
-
-const availabilityService = new AvailabilityService();
 
 export const checkApartmentAvailabilityHandler = async (
   req: Request<{}, {}, {}, { checkIn?: string; checkOut?: string }>,
@@ -63,7 +60,7 @@ export const checkApartmentAvailabilityHandler = async (
       id: string; code: string; name: string; capacity: number; base_price: string;
     }>(
       `SELECT id, code, name, capacity, base_price
-       FROM room_types WHERE property_type = 'apartment' ORDER BY base_price, name`
+       FROM room_types WHERE property_type = 'apartment' ORDER BY name`
     );
 
     // Fotos de todos los apartamentos en una sola query (evitar N+1)
@@ -79,15 +76,27 @@ export const checkApartmentAvailabilityHandler = async (
       return acc;
     }, {});
 
+    // Ocupación de todos los apartamentos en una sola query.
+    // Única condición de disponibilidad: que no haya reserva activa solapada.
+    // No se filtra por is_active ni por precio — un apartamento siempre
+    // aparece; solo se oculta si está reservado en esas fechas.
+    const { rows: occupiedRows } = await query<{ room_type_id: string }>(
+      `SELECT DISTINCT b.room_type_id
+       FROM reservation_beds rb
+       JOIN beds b ON b.id = rb.bed_id
+       JOIN reservations r ON r.id = rb.reservation_id
+       WHERE b.room_type_id = ANY($1::uuid[])
+         AND r.status NOT IN ('cancelled', 'rejected')
+         AND daterange(rb.check_in, rb.check_out, '[)') && daterange($2::date, $3::date, '[)')`,
+      [apartments.map(a => a.id), checkIn, checkOut]
+    );
+    const occupiedIds = new Set(occupiedRows.map(r => r.room_type_id));
+
     const apartmentsWithAvailability = await Promise.all(
       apartments.map(async (apt) => {
-        const avail = await availabilityService.checkRoomAvailability(apt.id, checkIn, checkOut);
-        const basePrice = parseFloat(apt.base_price);
+        const basePrice = parseFloat(apt.base_price) || 0;
+        const available = !occupiedIds.has(apt.id);
 
-        // Un apartamento es 1 room con 1 "cama" (la unidad completa) --
-        // reusa el mismo motor de precios que ya usa el hostel via
-        // /availability/quote, en vez de recalcular temporada a mano
-        // (ver REQUISITO CRITICO #6 en pricing-service.ts).
         try {
           const pricing = await pricingService.calculateTotalPrice({
             checkInDate: checkIn,
@@ -105,14 +114,14 @@ export const checkApartmentAvailabilityHandler = async (
             seasonMultiplier: pricing.seasonMultiplier,
             seasonType: pricing.seasonType,
             depositAmount: pricing.depositAmount,
-            available: avail.availableBeds > 0,
+            available,
             photos: (photosByApt[apt.id] ?? []).map(p => ({
               id: p.id, url: p.image_url, isPrimary: p.is_primary, altText: p.alt_text,
             })),
           };
         } catch (pricingError) {
-          // p.ej. Carnaval con menos noches del minimo -- no tumbar todo
-          // el listado por un apartamento no elegible en estas fechas.
+          // Si el cálculo de precio falla (ej. Carnaval con menos noches del mínimo),
+          // el apartamento sigue apareciendo — la disponibilidad no depende del precio.
           logger.warn('Apartment pricing unavailable for date range', {
             apartmentId: apt.id,
             checkIn, checkOut,
@@ -127,8 +136,8 @@ export const checkApartmentAvailabilityHandler = async (
             priceTotal: basePrice * nights,
             seasonMultiplier: 1,
             seasonType: 'media' as const,
-            depositAmount: 0,
-            available: false,
+            depositAmount: basePrice * nights * 0.3,
+            available,
             photos: (photosByApt[apt.id] ?? []).map(p => ({
               id: p.id, url: p.image_url, isPrimary: p.is_primary, altText: p.alt_text,
             })),
