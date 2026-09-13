@@ -110,10 +110,16 @@ function ContractPT() {
       </Section>
 
       <Section title="CLÁUSULA 3 — MODELO DE PAGAMENTO">
-        <p><strong>3.1 Sinal confirmatório (30%).</strong> No ato da reserva, o hóspede paga diretamente à Plataforma, via processador licenciado, o equivalente a <strong>30%</strong> do valor total da estadia, a título de arras confirmatórias. Esse valor é retido pela Plataforma até a confirmação de check-in.</p>
-        <p><strong>3.2 Pagamento direto ao Administrador (70%).</strong> O saldo remanescente de <strong>70%</strong> é pago pelo hóspede <strong>diretamente ao Administrador no ato do check-in</strong>, podendo ser realizado em dinheiro, PIX, cartão ou outro meio aceito pelo Administrador. Esse valor nunca transita pela Plataforma.</p>
-        <p><strong>3.3 Repasse do sinal após confirmação.</strong> Após a confirmação de check-in pelo Administrador no painel, a Plataforma repassa ao Administrador o saldo do sinal de 30%, já descontadas as taxas previstas na Cláusula 4.</p>
-        <p><strong>3.4 Pagamento via cartão — sobretaxa.</strong> Quando o hóspede optar por pagar com cartão de crédito ou débito, será cobrada uma sobretaxa de <strong>10%</strong> sobre o valor do sinal de 30%, destinada a cobrir os custos de processamento de cartão (taxa do gateway + proteção contra estornos). Essa sobretaxa é arcada pelo hóspede e informada de forma transparente no checkout.</p>
+        <p><strong>3.1 Antecedência mínima.</strong> A Plataforma não aceita reservas para o mesmo dia. O prazo mínimo de antecedência é de <strong>24 horas</strong> antes do check-in.</p>
+        <p><strong>3.2 Reservas com mais de 48 horas de antecedência — pagamento em duas etapas.</strong></p>
+        <ul>
+          <li><strong>Etapa 1 (no ato da reserva):</strong> o hóspede paga <strong>30%</strong> do valor total da estadia à Plataforma, via processador licenciado, a título de arras confirmatórias.</li>
+          <li><strong>Etapa 2 (na manhã do check-in):</strong> a Plataforma envia automaticamente ao hóspede um link de pagamento para quitação do saldo de <strong>70%</strong>. O hóspede deve efetuar o pagamento antes do horário de check-in.</li>
+        </ul>
+        <p><strong>3.3 Reservas com 24 a 48 horas de antecedência — pagamento integral.</strong> O hóspede paga <strong>100%</strong> do valor total no ato da reserva, via processador licenciado.</p>
+        <p><strong>3.4 Não pagamento do saldo de 70%.</strong> Se o hóspede não efetuar o pagamento do saldo de 70% antes do check-in, a reserva é cancelada automaticamente e o Administrador retém o sinal de 30% (após dedução das taxas da Cláusula 4), sem direito a reembolso pelo hóspede.</p>
+        <p><strong>3.5 Repasse ao Administrador.</strong> Após a confirmação de check-in, a Plataforma repassa ao Administrador o valor total recebido (30% + 70%), já descontadas as taxas previstas na Cláusula 4.</p>
+        <p><strong>3.6 Pagamento via cartão — sobretaxa.</strong> Quando o hóspede optar por pagar com cartão de crédito ou débito, será cobrada uma sobretaxa de <strong>10%</strong> sobre o valor pago online, destinada a cobrir os custos de processamento. Essa sobretaxa é arcada pelo hóspede e informada de forma transparente no checkout.</p>
       </Section>
 
       <Section title="CLÁUSULA 4 — COMISSÃO E TAXAS">
@@ -241,10 +247,16 @@ function ContractES() {
       </Section>
 
       <Section title="CLÁUSULA 3 — MODELO DE PAGO">
-        <p><strong>3.1 Señal confirmatoria (30%).</strong> Al momento de la reserva, el huésped paga directamente a la Plataforma, vía procesador autorizado, el equivalente al <strong>30%</strong> del valor total de la estadía, en concepto de arras confirmatorias. Ese valor es retenido por la Plataforma hasta la confirmación del check-in.</p>
-        <p><strong>3.2 Pago directo al Administrador (70%).</strong> El saldo restante del <strong>70%</strong> es pagado por el huésped <strong>directamente al Administrador en el momento del check-in</strong>, pudiendo realizarse en efectivo, PIX, tarjeta u otro medio aceptado por el Administrador. Ese valor nunca transita por la Plataforma.</p>
-        <p><strong>3.3 Transferencia de la señal tras la confirmación.</strong> Tras la confirmación del check-in por el Administrador en el panel, la Plataforma transfiere al Administrador el saldo de la señal del 30%, ya deducidas las tasas previstas en la Cláusula 4.</p>
-        <p><strong>3.4 Pago con tarjeta — recargo.</strong> Cuando el huésped opte por pagar con tarjeta de crédito o débito, se cobrará un recargo del <strong>10%</strong> sobre el valor de la señal del 30%, destinado a cubrir los costos de procesamiento de tarjeta (tasa de pasarela + protección contra contracargos). Este recargo es asumido por el huésped e informado de forma transparente en el checkout.</p>
+        <p><strong>3.1 Anticipación mínima.</strong> La Plataforma no acepta reservas para el mismo día. La anticipación mínima es de <strong>24 horas</strong> antes del check-in.</p>
+        <p><strong>3.2 Reservas con más de 48 horas de anticipación — pago en dos etapas.</strong></p>
+        <ul>
+          <li><strong>Etapa 1 (al reservar):</strong> el huésped paga el <strong>30%</strong> del valor total de la estadía a la Plataforma, vía procesador autorizado, en concepto de arras confirmatorias.</li>
+          <li><strong>Etapa 2 (la mañana del check-in):</strong> la Plataforma envía automáticamente al huésped un link de pago para abonar el saldo del <strong>70%</strong>. El huésped debe pagar antes del horario de check-in.</li>
+        </ul>
+        <p><strong>3.3 Reservas con 24 a 48 horas de anticipación — pago íntegro.</strong> El huésped paga el <strong>100%</strong> del valor total al momento de la reserva, vía procesador autorizado.</p>
+        <p><strong>3.4 No pago del saldo del 70%.</strong> Si el huésped no abona el saldo del 70% antes del check-in, la reserva se cancela automáticamente y el Administrador retiene la señal del 30% (tras deducción de las tasas de la Cláusula 4), sin derecho a reembolso por parte del huésped.</p>
+        <p><strong>3.5 Transferencia al Administrador.</strong> Tras la confirmación del check-in, la Plataforma transfiere al Administrador el valor total recibido (30% + 70%), ya deducidas las tasas previstas en la Cláusula 4.</p>
+        <p><strong>3.6 Pago con tarjeta — recargo.</strong> Cuando el huésped opte por pagar con tarjeta de crédito o débito, se cobrará un recargo del <strong>10%</strong> sobre el valor pagado online, destinado a cubrir los costos de procesamiento. Este recargo es asumido por el huésped e informado de forma transparente en el checkout.</p>
       </Section>
 
       <Section title="CLÁUSULA 4 — COMISIÓN Y TASAS">
