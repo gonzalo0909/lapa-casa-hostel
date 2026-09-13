@@ -56,11 +56,31 @@ export const checkApartmentAvailabilityHandler = async (
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    // Una sola query: apartamentos + disponibilidad.
+    // available = true si NO existe reserva activa solapada con las fechas.
+    // No se filtra por is_active ni por precio.
     const { rows: apartments } = await query<{
-      id: string; code: string; name: string; capacity: number; base_price: string;
+      id: string; code: string; name: string; capacity: number; base_price: string; available: boolean;
     }>(
-      `SELECT id, code, name, capacity, base_price
-       FROM room_types WHERE property_type = 'apartment' ORDER BY name`
+      `SELECT
+         rt.id,
+         rt.code,
+         rt.name,
+         rt.capacity,
+         rt.base_price,
+         NOT EXISTS (
+           SELECT 1
+           FROM reservation_beds rb
+           JOIN beds b ON b.id = rb.bed_id
+           JOIN reservations res ON res.id = rb.reservation_id
+           WHERE b.room_type_id = rt.id
+             AND res.status NOT IN ('cancelled', 'rejected')
+             AND daterange(rb.check_in, rb.check_out, '[)') && daterange($1::date, $2::date, '[)')
+         ) AS available
+       FROM room_types rt
+       WHERE rt.property_type = 'apartment'
+       ORDER BY rt.name`,
+      [checkIn, checkOut]
     );
 
     // Fotos de todos los apartamentos en una sola query (evitar N+1)
@@ -76,26 +96,10 @@ export const checkApartmentAvailabilityHandler = async (
       return acc;
     }, {});
 
-    // Ocupación de todos los apartamentos en una sola query.
-    // Única condición de disponibilidad: que no haya reserva activa solapada.
-    // No se filtra por is_active ni por precio — un apartamento siempre
-    // aparece; solo se oculta si está reservado en esas fechas.
-    const { rows: occupiedRows } = await query<{ room_type_id: string }>(
-      `SELECT DISTINCT b.room_type_id
-       FROM reservation_beds rb
-       JOIN beds b ON b.id = rb.bed_id
-       JOIN reservations r ON r.id = rb.reservation_id
-       WHERE b.room_type_id = ANY($1::uuid[])
-         AND r.status NOT IN ('cancelled', 'rejected')
-         AND daterange(rb.check_in, rb.check_out, '[)') && daterange($2::date, $3::date, '[)')`,
-      [apartments.map(a => a.id), checkIn, checkOut]
-    );
-    const occupiedIds = new Set(occupiedRows.map(r => r.room_type_id));
-
     const apartmentsWithAvailability = await Promise.all(
       apartments.map(async (apt) => {
         const basePrice = parseFloat(apt.base_price) || 0;
-        const available = !occupiedIds.has(apt.id);
+        const available = apt.available;
 
         try {
           const pricing = await pricingService.calculateTotalPrice({
