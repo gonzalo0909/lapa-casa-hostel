@@ -66,8 +66,10 @@ export default function OwnerApartmentEditPage() {
   const [uploading, setUploading] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
+  const [savingPricing, setSavingPricing] = useState(false);
+  const [pricingMessage, setPricingMessage] = useState<string | null>(null);
 
-  // Form state
+  // Form state — informações gerais
   const [aptName, setAptName] = useState('');
   const [description, setDescription] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -77,15 +79,22 @@ export default function OwnerApartmentEditPage() {
   const [address, setAddress] = useState('');
   const [addressNumber, setAddressNumber] = useState('');
   const [cep, setCep] = useState('');
+  const [basePrice, setBasePrice] = useState('');
+
+  // Form state — preços dinâmicos
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [botEnabled, setBotEnabled] = useState(true);
 
   // Ref to avoid duplicate CEP lookups on rapid typing
   const cepLookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadData = useCallback(async () => {
     try {
-      const [aptRes, photosRes] = await Promise.all([
+      const [aptRes, photosRes, pricingRes] = await Promise.all([
         ownerApartmentsAPI.getById(params.id),
         ownerApartmentsAPI.listPhotos(params.id),
+        ownerApartmentsAPI.getPricing(params.id),
       ]);
       const apt = aptRes.data;
       setApartment(apt);
@@ -98,7 +107,14 @@ export default function OwnerApartmentEditPage() {
       setAddress(apt.address ?? '');
       setAddressNumber(apt.address_number ?? '');
       setCep(apt.cep ? formatCep(apt.cep) : '');
+      setBasePrice(apt.base_price?.toString() ?? '');
       setPhotos(photosRes.data.photos);
+      const pricing = pricingRes.data;
+      if (pricing) {
+        setMinPrice(pricing.min_price_brl?.toString() ?? '');
+        setMaxPrice(pricing.max_price_brl?.toString() ?? '');
+        setBotEnabled(pricing.bot_enabled);
+      }
     } catch (err) {
       setError(handleAPIError(err, 'pt'));
     }
@@ -164,6 +180,7 @@ export default function OwnerApartmentEditPage() {
         address: address || undefined,
         address_number: addressNumber || undefined,
         cep: cepDigits || undefined,
+        base_price: basePrice ? parseFloat(basePrice) : undefined,
       });
       setSaveMessage('Alterações salvas com sucesso.');
       // Update heading if name changed
@@ -174,6 +191,25 @@ export default function OwnerApartmentEditPage() {
       setError(handleAPIError(err, 'pt'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSavePricing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setPricingMessage(null);
+    setSavingPricing(true);
+    try {
+      await ownerApartmentsAPI.updatePricing(params.id, {
+        min_price_brl: minPrice ? parseFloat(minPrice) : null,
+        max_price_brl: maxPrice ? parseFloat(maxPrice) : null,
+        bot_enabled: botEnabled,
+      });
+      setPricingMessage('Configuração de preços salva.');
+    } catch (err) {
+      setError(handleAPIError(err, 'pt'));
+    } finally {
+      setSavingPricing(false);
     }
   };
 
@@ -332,6 +368,17 @@ export default function OwnerApartmentEditPage() {
                   helperText="Separadas por vírgula, ex: Wi-Fi, Ar condicionado, Cozinha"
                 />
 
+                {/* Preço base */}
+                <Input
+                  label="Preço base (R$)"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={basePrice}
+                  onChange={(e) => setBasePrice(e.target.value)}
+                  helperText="Valor usado no cálculo de novas reservas"
+                />
+
                 {error && (
                   <Alert variant="danger">
                     <AlertDescription>{error}</AlertDescription>
@@ -345,6 +392,57 @@ export default function OwnerApartmentEditPage() {
 
                 <Button type="submit" disabled={saving} className="w-full justify-center">
                   {saving ? 'Salvando...' : 'Salvar alterações'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Preços dinâmicos */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle size="sm">Preços dinâmicos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSavePricing} className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Preço mínimo (R$)"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    helperText="Deixe vazio para sem limite"
+                  />
+                  <Input
+                    label="Preço máximo (R$)"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    helperText="Deixe vazio para sem limite"
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={botEnabled}
+                    onChange={(e) => setBotEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-neutral-300 accent-neutral-900"
+                  />
+                  <span className="text-sm text-neutral-700">Habilitar ajuste automático de preços</span>
+                </label>
+
+                {pricingMessage && (
+                  <Alert variant="success">
+                    <AlertDescription>{pricingMessage}</AlertDescription>
+                  </Alert>
+                )}
+
+                <Button type="submit" disabled={savingPricing} className="w-full justify-center">
+                  {savingPricing ? 'Salvando...' : 'Salvar configuração de preços'}
                 </Button>
               </form>
             </CardContent>
