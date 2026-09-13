@@ -67,6 +67,24 @@
   <button id="activate-btn" class="hidden">Activar 2FA</button>
 </div>
 
+<div class="card">
+  <h2>Cambiar contraseña</h2>
+  <p>Mínimo 12 caracteres. Tras el cambio se cerrará la sesión y tendrás que entrar con la nueva contraseña.</p>
+  <div id="pw-msg"></div>
+  <div class="stack" style="max-width:320px">
+    <label>Contraseña actual
+      <input type="password" id="pw-current" autocomplete="current-password">
+    </label>
+    <label>Nueva contraseña
+      <input type="password" id="pw-new" autocomplete="new-password">
+    </label>
+    <label>Confirmar nueva contraseña
+      <input type="password" id="pw-confirm" autocomplete="new-password">
+    </label>
+    <button id="pw-submit">Cambiar contraseña</button>
+  </div>
+</div>
+
 </main>
 <script src="/admin/js/api.js"></script>
 <script src="/admin/js/nav.js"></script>

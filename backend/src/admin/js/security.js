@@ -98,4 +98,47 @@
   });
 
   loadStatus();
+
+  // ── Cambiar contraseña ────────────────────────────────────────────────
+  var pwCurrent = document.getElementById('pw-current');
+  var pwNew     = document.getElementById('pw-new');
+  var pwConfirm = document.getElementById('pw-confirm');
+  var pwSubmit  = document.getElementById('pw-submit');
+
+  function showPwMsg(text, type) {
+    var el = document.getElementById('pw-msg');
+    el.innerHTML = text ? '<div class="msg ' + type + '">' + text + '</div>' : '';
+  }
+
+  pwSubmit.addEventListener('click', async function () {
+    var current = pwCurrent.value;
+    var nw      = pwNew.value;
+    var confirm = pwConfirm.value;
+
+    if (!current || !nw || !confirm) {
+      showPwMsg('Completá todos los campos.', 'error');
+      return;
+    }
+    if (nw.length < 12) {
+      showPwMsg('La nueva contraseña debe tener al menos 12 caracteres.', 'error');
+      return;
+    }
+    if (nw !== confirm) {
+      showPwMsg('Las contraseñas no coinciden.', 'error');
+      return;
+    }
+
+    pwSubmit.disabled = true;
+    try {
+      await apiFetch('/admin/login/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword: current, newPassword: nw, confirmPassword: confirm }),
+      });
+      showPwMsg('Contraseña cambiada. Redirigiendo al login...', 'success');
+      setTimeout(function () { window.location.href = '/admin/'; }, 1500);
+    } catch (err) {
+      showPwMsg(err.message, 'error');
+      pwSubmit.disabled = false;
+    }
+  });
 })();

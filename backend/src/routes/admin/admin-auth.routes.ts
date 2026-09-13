@@ -9,12 +9,13 @@ import { Router } from 'express';
 import { z } from 'zod';
 import {
   verifyPassword,
+  hashPassword,
   generateToken,
   durationToMs,
   durationToSeconds,
   generateCsrfToken,
 } from '../../utils/encryption';
-import { authenticateToken } from '../../middleware/auth';
+import { authenticateToken, requireRole } from '../../middleware/auth';
 import { verifyCsrf } from '../../middleware/csrf';
 import { redisCache } from '../../config/redis';
 import { logger } from '../../utils/logger';
@@ -22,6 +23,18 @@ import { ApiResponse } from '../../utils/responses';
 import { validate } from '../../middleware/validation';
 import { getAdminTotpConfig, disableAdminTotp } from './admin-2fa.routes';
 import { verifyTotpToken, hashBackupCode } from '../../utils/totp';
+
+// Clave Redis donde se persiste el hash si el admin lo cambia en el panel.
+// Sin TTL -- el hash vive indefinidamente hasta que se cambie de nuevo.
+const ADMIN_PW_HASH_KEY = 'admin:password_hash';
+
+/** Obtiene el hash actual de la contraseña admin:
+ *  Redis tiene prioridad (cambio en panel) → si no, env var. */
+async function getAdminPasswordHash(): Promise<string | null> {
+  const stored = await redisCache.get<string>(ADMIN_PW_HASH_KEY);
+  if (stored) return stored;
+  return process.env.ADMIN_PASSWORD_HASH ?? null;
+}
 
 const LoginSchema = z.object({
   password: z.string().min(1),
@@ -39,7 +52,7 @@ router.post('/', validate(LoginSchema), async (req, res, next) => {
   try {
     const { password, totpToken } = req.body as z.infer<typeof LoginSchema>;
 
-    const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+    const passwordHash = await getAdminPasswordHash();
     if (!passwordHash) {
       logger.error('ADMIN_PASSWORD_HASH no configurado — login admin deshabilitado');
       res.status(500).json(ApiResponse.error('Login de administrador no configurado'));
@@ -152,7 +165,7 @@ router.post('/2fa-recovery', validate(RecoverySchema), async (req, res, next) =>
   try {
     const { password, backupCode } = req.body as z.infer<typeof RecoverySchema>;
 
-    const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+    const passwordHash = await getAdminPasswordHash();
     if (!passwordHash || !(await verifyPassword(password, passwordHash))) {
       logger.warn('Intento de recuperación de 2FA fallido -- contraseña inválida');
       res.status(401).json(ApiResponse.error('Credenciales inválidas'));
@@ -225,6 +238,71 @@ router.post('/logout', authenticateToken, verifyCsrf('lch_admin_csrf'), async (r
     next(error);
   }
 });
+
+const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(12, 'La nueva contraseña debe tener al menos 12 caracteres'),
+  confirmPassword: z.string().min(1),
+}).refine((d) => d.newPassword === d.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+});
+
+/**
+ * POST /admin/login/change-password
+ *
+ * Requiere autenticación admin. Cambia la contraseña del panel:
+ *   1. Verifica la contraseña actual
+ *   2. Hashea la nueva y la persiste en Redis (sin TTL)
+ *   3. Revoca el token activo para forzar re-login con la nueva contraseña
+ */
+router.post(
+  '/change-password',
+  authenticateToken,
+  requireRole(['admin']),
+  verifyCsrf('lch_admin_csrf'),
+  validate(ChangePasswordSchema),
+  async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body as z.infer<typeof ChangePasswordSchema>;
+
+      const currentHash = await getAdminPasswordHash();
+      if (!currentHash) {
+        res.status(500).json(ApiResponse.error('Contraseña admin no configurada'));
+        return;
+      }
+
+      if (!(await verifyPassword(currentPassword, currentHash))) {
+        logger.warn('Cambio de contraseña admin fallido — contraseña actual incorrecta');
+        res.status(401).json(ApiResponse.error('La contraseña actual es incorrecta'));
+        return;
+      }
+
+      const newHash = await hashPassword(newPassword);
+      // Persistir sin TTL — el hash vive hasta que se cambie de nuevo
+      await redisCache.set(ADMIN_PW_HASH_KEY, newHash, 0);
+
+      // Revocar el token actual para forzar re-login
+      const authHeader = req.headers['authorization'];
+      const cookieToken = (req.cookies as Record<string, string> | undefined)?.['lch_admin'];
+      const token = (authHeader && authHeader.split(' ')[1]) || cookieToken;
+      if (token) {
+        await redisCache.set(
+          `${REVOKED_PREFIX}${token}`,
+          '1',
+          durationToSeconds(process.env.JWT_EXPIRES_IN || '24h', 86400),
+        );
+      }
+      res.clearCookie('lch_admin', { httpOnly: true, sameSite: 'strict', path: '/' });
+      res.clearCookie('lch_admin_csrf', { httpOnly: false, sameSite: 'strict', path: '/' });
+
+      logger.info('Contraseña admin cambiada — sesión revocada');
+      res.status(200).json(ApiResponse.success(null, 'Contraseña cambiada. Iniciá sesión de nuevo.'));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export const adminAuthRouter = router;
 export { REVOKED_PREFIX };
