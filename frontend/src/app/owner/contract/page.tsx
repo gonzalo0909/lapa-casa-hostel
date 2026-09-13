@@ -384,10 +384,16 @@ function ContractFR() {
       </Section>
 
       <Section title="CLAUSE 3 — MODÈLE DE PAIEMENT">
-        <p><strong>3.1 Acompte confirmatoire (30%).</strong> Lors de la réservation, l&apos;hôte paie directement à la Plateforme, via le processeur agréé, l&apos;équivalent de <strong>30%</strong> du montant total du séjour, à titre d&apos;arrhes confirmatoires. Ce montant est retenu par la Plateforme jusqu&apos;à la confirmation du check-in.</p>
-        <p><strong>3.2 Paiement direct au Gestionnaire (70%).</strong> Le solde restant de <strong>70%</strong> est payé par l&apos;hôte <strong>directement au Gestionnaire lors du check-in</strong>, en espèces, PIX, carte ou tout autre moyen accepté par le Gestionnaire. Ce montant ne transite jamais par la Plateforme.</p>
-        <p><strong>3.3 Reversement de l&apos;acompte après confirmation.</strong> Après la confirmation du check-in par le Gestionnaire dans le panneau, la Plateforme reverse au Gestionnaire le solde de l&apos;acompte de 30%, déduction faite des frais prévus à la Clause 4.</p>
-        <p><strong>3.4 Paiement par carte — majoration.</strong> Lorsque l&apos;hôte opte pour un paiement par carte de crédit ou de débit, une majoration de <strong>10%</strong> est appliquée sur le montant de l&apos;acompte de 30%, destinée à couvrir les coûts de traitement par carte (frais de passerelle + protection contre les contestations). Cette majoration est à la charge de l&apos;hôte et clairement indiquée lors du paiement.</p>
+        <p><strong>3.1 Délai minimum.</strong> La Plateforme n&apos;accepte pas de réservations pour le jour même. Le délai minimum est de <strong>24 heures</strong> avant le check-in.</p>
+        <p><strong>3.2 Réservations avec plus de 48 heures d&apos;avance — paiement en deux étapes.</strong></p>
+        <ul>
+          <li><strong>Étape 1 (à la réservation) :</strong> l&apos;hôte paie <strong>30%</strong> du montant total du séjour à la Plateforme, via le processeur agréé, à titre d&apos;arrhes confirmatoires.</li>
+          <li><strong>Étape 2 (le matin du check-in) :</strong> la Plateforme envoie automatiquement à l&apos;hôte un lien de paiement pour régler le solde de <strong>70%</strong>. L&apos;hôte doit payer avant l&apos;heure de check-in.</li>
+        </ul>
+        <p><strong>3.3 Réservations avec 24 à 48 heures d&apos;avance — paiement intégral.</strong> L&apos;hôte paie <strong>100%</strong> du montant total au moment de la réservation, via le processeur agréé.</p>
+        <p><strong>3.4 Non-paiement du solde de 70%.</strong> Si l&apos;hôte n&apos;effectue pas le paiement du solde de 70% avant le check-in, la réservation est automatiquement annulée et le Gestionnaire conserve l&apos;acompte de 30% (après déduction des frais de la Clause 4), sans remboursement pour l&apos;hôte.</p>
+        <p><strong>3.5 Reversement au Gestionnaire.</strong> Après la confirmation du check-in, la Plateforme reverse au Gestionnaire le montant total reçu (30% + 70%), déduction faite des frais prévus à la Clause 4.</p>
+        <p><strong>3.6 Paiement par carte — majoration.</strong> Lorsque l&apos;hôte opte pour un paiement par carte de crédit ou de débit, une majoration de <strong>10%</strong> est appliquée sur le montant payé en ligne, destinée à couvrir les coûts de traitement. Cette majoration est à la charge de l&apos;hôte et clairement indiquée lors du paiement.</p>
       </Section>
 
       <Section title="CLAUSE 4 — COMMISSION ET FRAIS">
