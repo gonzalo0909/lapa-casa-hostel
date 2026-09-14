@@ -31,11 +31,8 @@ export const checkApartmentAvailabilityHandler = async (
       return;
     }
 
-    // Calcular la fecha mínima de check-in en hora de Sao Paulo.
-    // El check-in abre a las 12:00 BRT, por eso:
-    //   - Antes de las 12:00 BRT: hoy todavía no tiene check-in disponible
-    //     → mínimo es mañana.
-    //   - A partir de las 12:00 BRT: check-in abierto, hoy se acepta.
+    // Corte de las 12h: reservas para hoy solo se aceptan antes del mediodía.
+    // A partir de las 12:00 BRT el mínimo pasa a ser mañana.
     // Se usa formatToParts para extraer la hora de forma robusta (evita parsear
     // strings localizados que pueden variar según la plataforma).
     const now = new Date();
@@ -47,9 +44,9 @@ export const checkApartmentAvailabilityHandler = async (
     }).formatToParts(now);
     const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
 
-    // Mínimo válido: mañana si son antes de las 12h, hoy si ya son las 12h o más.
+    // Antes de las 12h → hoy permitido. A partir de las 12h → mínimo mañana.
     let minCheckIn = todayInSaoPaulo;
-    if (hourBrt < 12) {
+    if (hourBrt >= 12) {
       const [y, m, d] = todayInSaoPaulo.split('-').map(Number);
       const tomorrow = new Date(y, m - 1, d + 1);
       minCheckIn = tomorrow.getFullYear() +
@@ -59,7 +56,7 @@ export const checkApartmentAvailabilityHandler = async (
 
     if (checkIn < minCheckIn) {
       const msg = checkIn === todayInSaoPaulo
-        ? 'Las reservas para hoy están disponibles a partir de las 12h'
+        ? 'Las reservas para hoy solo se aceptan antes de las 12h'
         : 'La fecha de check-in no puede ser en el pasado';
       res.status(400).json(ApiResponse.error(msg));
       return;

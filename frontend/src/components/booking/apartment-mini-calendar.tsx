@@ -52,8 +52,8 @@ function todayDs(): string {
 
 /**
  * Espeja minCheckInDs() de apartment-engine.utils.ts.
- * Antes de las 12:00 BRT → mañana (check-in no abierto).
- * A partir de las 12:00 BRT → hoy (check-in abierto).
+ * Antes de las 12:00 BRT → hoy disponible.
+ * A partir de las 12:00 BRT → hoy bloqueado, devuelve mañana.
  */
 function minCheckInDs(): string {
   const now = new Date();
@@ -64,7 +64,7 @@ function minCheckInDs(): string {
   }).formatToParts(now);
   const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
   const todaySp = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(now);
-  if (hourBrt < 12) {
+  if (hourBrt >= 12) {
     const [y, m, d] = todaySp.split('-').map(Number);
     return toDs(new Date(y, m - 1, d + 1));
   }
