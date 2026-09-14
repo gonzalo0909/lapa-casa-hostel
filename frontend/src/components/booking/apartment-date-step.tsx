@@ -14,6 +14,7 @@ import {
   CARNAVAL_MIN_NIGHTS,
 } from '@/lib/apartment-seasons';
 import type { AptLocale } from './apartment-engine.types';
+import { MAX_APT_GUESTS } from './apartment-engine.types';
 import {
   parseDs,
   isCarnivalDs,
@@ -226,8 +227,8 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
           <button
             type="button"
             className={styles.gcntBtn}
-            disabled={guestCount >= 2}
-            onClick={() => onGuestCountChange(Math.min(2, guestCount + 1))}
+            disabled={guestCount >= MAX_APT_GUESTS}
+            onClick={() => onGuestCountChange(Math.min(MAX_APT_GUESTS, guestCount + 1))}
           >
             +
           </button>
