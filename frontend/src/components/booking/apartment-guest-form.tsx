@@ -668,25 +668,27 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               )}
             </div>
 
-            {/* Slot acompañante — solo visual, sin envío al servidor por ahora */}
-            <div className={styles.docUploadSlot}>
-              <input
-                ref={photoInputCompanion}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                className={styles.docUploadInput}
-                disabled
-              />
-              <button
-                type="button"
-                className={styles.docUploadBtn}
-                onClick={() => photoInputCompanion.current?.click()}
-                disabled
-              >
-                <Upload size={15} />
-                <span>{t('docUploadCompanion')}</span>
-              </button>
-            </div>
+            {/* Slot acompañante — visible solo si hay acompañantes declarados */}
+            {additionalGuests.length > 0 && (
+              <div className={styles.docUploadSlot}>
+                <input
+                  ref={photoInputCompanion}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                  className={styles.docUploadInput}
+                  disabled
+                />
+                <button
+                  type="button"
+                  className={styles.docUploadBtn}
+                  onClick={() => photoInputCompanion.current?.click()}
+                  disabled
+                >
+                  <Upload size={15} />
+                  <span>{t('docUploadCompanion')}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <p className={styles.docUploadFormats}>{t('docUploadFormats')}</p>
