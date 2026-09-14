@@ -11,12 +11,13 @@ import { logger } from '../../utils/logger';
 import { ApiResponse } from '../../utils/responses';
 
 export const checkApartmentAvailabilityHandler = async (
-  req: Request<{}, {}, {}, { checkIn?: string; checkOut?: string }>,
+  req: Request<{}, {}, {}, { checkIn?: string; checkOut?: string; guests?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { checkIn, checkOut } = req.query;
+    const { checkIn, checkOut, guests } = req.query;
+    const guestCount = guests ? Math.max(1, parseInt(guests, 10) || 1) : 1;
 
     if (!checkIn || !checkOut) {
       res.status(400).json(ApiResponse.error('checkIn y checkOut son requeridos (YYYY-MM-DD)'));
@@ -171,9 +172,10 @@ export const checkApartmentAvailabilityHandler = async (
     );
 
     logger.info('Apartment availability checked', {
-      checkIn, checkOut, nights,
+      checkIn, checkOut, nights, guestCount,
       total: apartments.length,
       available: apartmentsWithAvailability.filter(a => a.available).length,
+      fitsGuests: apartmentsWithAvailability.filter(a => a.available && a.capacity >= guestCount).length,
     });
 
     res.status(200).json(ApiResponse.success({

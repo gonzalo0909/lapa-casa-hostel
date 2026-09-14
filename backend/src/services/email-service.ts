@@ -112,6 +112,7 @@ const LABELS: Record<Language, Record<string, string>> = {
     greeting: 'Olá',
     bookingConfirmationTitle: 'Reserva Confirmada!',
     bookingConfirmationIntro: 'Recebemos sua reserva. Confira os detalhes abaixo:',
+    sameDayLabel: 'Valor total a pagar hoje',
     reservation: 'Reserva',
     checkIn: 'Check-in',
     checkOut: 'Check-out',
@@ -164,28 +165,29 @@ const LABELS: Record<Language, Record<string, string>> = {
     bookingExpiredHelp:
       'Se teve algum problema no pagamento ou precisa de ajuda, é só responder este email ou nos chamar no WhatsApp.',
     tryAgain: 'Reservar novamente',
-    checkinReminderTitle: 'Seu check-in e amanha!',
+    checkinReminderTitle: 'Seu check-in é amanhã!',
     checkinReminderIntro:
-      'So falta um dia! Estamos ansiosos para receber voce no Lapa Casa. Aqui estao as informacoes para o seu check-in:',
-    checkinReminderClosing: 'Qualquer duvida, e so responder este email ou nos chamar no WhatsApp.',
+      'Só falta um dia! Estamos ansiosos para receber você no Lapa Casa. Aqui estão as informações para o seu check-in:',
+    checkinReminderClosing: 'Qualquer dúvida, é só responder este email ou nos chamar no WhatsApp.',
     reviewRequestTitle: 'Como foi a sua estadia?',
-    reviewRequestIntro: 'Esperamos que sua estadia no Lapa Casa tenha sido otima!',
+    reviewRequestIntro: 'Esperamos que sua estadia no Lapa Casa tenha sido ótima!',
     reviewRequestBody:
-      'Sua opiniao e muito importante para nos e ajuda outros viajantes a conhecerem o Lapa Casa. Levaria apenas 2 minutinhos — ficariamos muito gratos!',
+      'Sua opinião é muito importante para nós e ajuda outros viajantes a conhecerem o Lapa Casa. Levaria apenas 2 minutinhos — ficaríamos muito gratos!',
     reviewRequestClosing: 'Obrigado pela sua visita. Esperamos te ver de novo em breve!',
-    leaveReview: 'Deixar uma avaliacao',
+    leaveReview: 'Deixar uma avaliação',
     referralRewardTitle: 'Seu presente chegou!',
     referralRewardIntro:
-      'Alguem que voce indicou acabou de fazer uma reserva no Lapa Casa -- obrigado por espalhar a palavra!',
+      'Alguém que você indicou acabou de fazer uma reserva no Lapa Casa — obrigado por espalhar a palavra!',
     referralRewardBody:
-      'Como agradecimento, aqui esta um codigo de 10% de desconto para a sua proxima estadia. Valido por 90 dias.',
-    referralRewardClosing: 'Esperamos ver voce de novo em breve!',
-    useReward: 'Reservar com este codigo',
+      'Como agradecimento, aqui está um código de 10% de desconto para a sua próxima estadia. Válido por 90 dias.',
+    referralRewardClosing: 'Esperamos ver você de novo em breve!',
+    useReward: 'Reservar com este código',
   },
   en: {
     greeting: 'Hello',
     bookingConfirmationTitle: 'Booking Confirmed!',
     bookingConfirmationIntro: 'We received your booking. Here are the details:',
+    sameDayLabel: 'Total amount due today',
     reservation: 'Booking',
     checkIn: 'Check-in',
     checkOut: 'Check-out',
@@ -259,6 +261,7 @@ const LABELS: Record<Language, Record<string, string>> = {
     greeting: 'Hola',
     bookingConfirmationTitle: '¡Reserva Confirmada!',
     bookingConfirmationIntro: 'Recibimos tu reserva. Estos son los detalles:',
+    sameDayLabel: 'Monto total a pagar hoy',
     reservation: 'Reserva',
     checkIn: 'Check-in',
     checkOut: 'Check-out',
@@ -310,15 +313,15 @@ const LABELS: Record<Language, Record<string, string>> = {
     bookingExpiredHelp:
       'Si tuviste algún problema con el pago o necesitás ayuda, respondé este email o escribinos por WhatsApp.',
     tryAgain: 'Reservar de nuevo',
-    checkinReminderTitle: 'Tu check-in es manana!',
+    checkinReminderTitle: '¡Tu check-in es mañana!',
     checkinReminderIntro:
-      'Solo falta un dia! Estamos ansiosos por recibirte en Lapa Casa. Aqui tenes todo lo que necesitas para el check-in:',
+      '¡Solo falta un día! Estamos ansiosos por recibirte en Lapa Casa. Aquí tenés todo lo que necesitás para el check-in:',
     checkinReminderClosing: 'Cualquier duda, respondé este email o escribinos por WhatsApp.',
-    reviewRequestTitle: 'Como fue tu estadía?',
-    reviewRequestIntro: 'Esperamos que tu estadía en Lapa Casa haya sido genial!',
+    reviewRequestTitle: '¿Cómo fue tu estadía?',
+    reviewRequestIntro: '¡Esperamos que tu estadía en Lapa Casa haya sido genial!',
     reviewRequestBody:
-      'Tu opinion es muy importante para nosotros y ayuda a otros viajeros a conocer Lapa Casa. Solo te lleva 2 minutos — te lo agradeceriamos mucho!',
-    reviewRequestClosing: 'Gracias por tu visita. Esperamos verte de nuevo pronto!',
+      'Tu opinión es muy importante para nosotros y ayuda a otros viajeros a conocer Lapa Casa. Solo te lleva 2 minutos — ¡te lo agradeceríamos mucho!',
+    reviewRequestClosing: '¡Gracias por tu visita. Esperamos verte de nuevo pronto!',
     leaveReview: 'Dejar una reseña',
     referralRewardTitle: '¡Llegó tu premio!',
     referralRewardIntro:
@@ -499,7 +502,48 @@ export class EmailService {
     const t = LABELS[language];
     const rooms = await getRoomsBreakdown(booking.id);
     const isApt = await isApartmentBooking(booking.id);
+
+    // La dirección del apartamento NO se revela en la confirmación —
+    // solo tras el pago del depósito (sendPaymentReceived). El hostel
+    // sí muestra su dirección fija desde el primer email.
     const addressHtml = buildAddressHtml(isApt, language);
+
+    // Horario de check-in según tipo de propiedad
+    const checkInTime = isApt ? '15:00 – 22:00' : '14:00 – 22:00';
+    const checkOutTime = '12:00';
+
+    // Detectar check-in el mismo día (hora São Paulo)
+    const todaySp = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+    }).format(new Date());
+    const checkInDs =
+      booking.check_in_date instanceof Date
+        ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(booking.check_in_date)
+        : String(booking.check_in_date).slice(0, 10);
+    const isSameDay = checkInDs === todaySp;
+
+    // Bloque saldo restante — prominente cuando queda algo por pagar
+    const remainingBlockHtml =
+      booking.remaining_amount > 0
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fff3cd;border-radius:8px;margin-bottom:20px;border:2px solid #f59e0b;">
+  <tr><td style="padding:16px 20px;">
+    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#92400e;letter-spacing:0.8px;text-transform:uppercase;">⚠️ ${escapeText(t.remaining)}</p>
+    <p style="margin:0 0 8px;font-size:28px;font-weight:bold;color:#1a1a1a;">${formatCurrency(booking.remaining_amount, language)}</p>
+    <p style="margin:0;font-size:14px;color:#92400e;">${escapeText(t.remainingDueNote)}</p>
+  </td></tr>
+</table>`
+        : `<p style="margin:0 0 20px;font-size:14px;color:#0a7d2c;font-weight:bold;">${escapeText(t.fullyPaid)}</p>`;
+
+    // Bloque check-in hoy: aviso del total completo a pagar en la recepción
+    const sameDayHtml =
+      isSameDay && booking.remaining_amount > 0
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-top:20px;border-left:4px solid #2e7d32;">
+  <tr><td style="padding:14px 18px;">
+    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">💳 ${escapeText(t.sameDayLabel ?? 'Valor total a pagar hoje')}</p>
+    <p style="margin:0;font-size:20px;font-weight:bold;color:#1a1a1a;">${formatCurrency(booking.final_price, language)}</p>
+  </td></tr>
+</table>`
+        : '';
 
     const html = renderEmailTemplate('booking-confirmation', {
       emailTitle: t.bookingConfirmationTitle,
@@ -513,25 +557,24 @@ export class EmailService {
       labelRooms: t.rooms,
       labelTotal: t.total,
       labelDeposit: t.deposit,
-      labelRemaining: t.remaining,
-      labelRemainingDueNote: t.remainingDueNote,
-      labelCheckInTime: t.checkInTime,
-      labelCheckOutTime: t.checkOutTime,
       guestName: booking.guest.full_name,
       reservationNumber: booking.reservation_number,
       checkInFormatted: formatDate(booking.check_in_date, language),
       checkOutFormatted: formatDate(booking.check_out_date, language),
+      checkInTime,
+      checkOutTime,
       nightsCount: booking.nights_count,
       roomsHtml: roomsListHtml(rooms),
       addressHtml,
       totalPriceFormatted: formatCurrency(booking.final_price, language),
       depositAmountFormatted: formatCurrency(booking.deposit_amount, language),
       depositPercent: Math.round(booking.deposit_percent * 100),
-      remainingAmountFormatted: formatCurrency(booking.remaining_amount, language),
+      remainingBlockHtml,
       paymentButtonHtml: paymentButtonHtml(
         `${FRONTEND_URL}/${language}/payment/${booking.id}`,
         t.payNow,
       ),
+      sameDayHtml,
     });
 
     return dispatch(
@@ -649,7 +692,11 @@ export class EmailService {
       wifiPassword: isApt ? '' : 'santateresa2024',
     });
 
-    return dispatch(booking.guest.email, t.welcomeTitle, html);
+    return dispatch(
+      booking.guest.email,
+      `${t.welcomeTitle} #${booking.reservation_number}`,
+      html,
+    );
   }
 
   async sendCancellationNotice(
@@ -741,10 +788,10 @@ export class EmailService {
     }).format(new Date(params.checkIn));
     const html = `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">Reserva grupal confirmada</h2>
-        <p style="font-size:14px;color:#555;margin-bottom:12px;">Hola ${escapeText(params.titularName)},</p>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">Reserva grupal confirmada!</h2>
+        <p style="font-size:14px;color:#555;margin-bottom:12px;">Olá ${escapeText(params.titularName)},</p>
         <p style="font-size:14px;color:#555;margin-bottom:20px;">
-          Todos los miembros de tu grupo completaron el pago. Tu reserva grupal en Lapa Casa Hostel esta confirmada.
+          Todos os membros do seu grupo concluíram o pagamento. Sua reserva grupal no Lapa Casa está confirmada!
         </p>
         <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#333;">
           <div><strong>Reserva:</strong> ${escapeText(params.reservationNumber)}</div>
@@ -769,20 +816,21 @@ export class EmailService {
   }): Promise<SendResult> {
     const html = `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">El tiempo del pago grupal expiró</h2>
-        <p style="font-size:14px;color:#555;margin-bottom:12px;">Hola ${escapeText(params.guestName)},</p>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">O tempo do pagamento grupal expirou</h2>
+        <p style="font-size:14px;color:#555;margin-bottom:12px;">Olá ${escapeText(params.guestName)},</p>
         <p style="font-size:14px;color:#555;margin-bottom:20px;">
-          El tiempo para completar el pago grupal expiró y tu lugar no fue confirmado. Si todavia queres reservar una cama en Lapa Casa Hostel, podes hacerlo directamente:
+          O tempo para concluir o pagamento grupal expirou e o seu lugar não foi confirmado.
+          Se ainda quiser reservar uma cama no Lapa Casa Hostel, você pode fazer isso diretamente:
         </p>
         <a href="${params.bookingUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:7px;text-decoration:none;">
-          Reservar mi cama
+          Reservar minha cama
         </a>
         <p style="margin-top:20px;font-size:13px;color:#888;">Lapa Casa Hostel — Rio de Janeiro</p>
       </div>
     `;
     return dispatch(
       params.guestEmail,
-      'Tu lugar en el grupo no fue confirmado — Lapa Casa Hostel',
+      'Seu lugar no grupo não foi confirmado — Lapa Casa Hostel',
       html,
     );
   }

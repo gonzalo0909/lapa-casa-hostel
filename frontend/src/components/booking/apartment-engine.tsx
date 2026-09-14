@@ -91,6 +91,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const [additionalGuests, setAdditionalGuests] = useState<AdditionalGuest[]>([]);
   /** Foto del documento del titular (se convierte a base64 y se envía al crear la reserva) */
   const [documentPhoto, setDocumentPhoto] = useState<File | null>(null);
+  /** Foto del documento del acompañante — obligatoria cuando guestCount > 1 */
+  const [companionDocumentPhoto, setCompanionDocumentPhoto] = useState<File | null>(null);
   /** Aceptación de términos — verificada en handleReserve antes de crear la reserva */
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -126,7 +128,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       setIsLoadingApartments(true);
       setError(null);
       try {
-        const res = await availabilityAPI.checkApartments({ checkIn: cin, checkOut: cout });
+        const res = await availabilityAPI.checkApartments({ checkIn: cin, checkOut: cout, guests: guestCount });
         setApartments(res?.data?.apartments ?? []);
       } catch (err) {
         setError(handleAPIError(err, locale));
@@ -134,7 +136,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         setIsLoadingApartments(false);
       }
     },
-    [locale],
+    [locale, guestCount],
   );
 
   // ── Manejadores de paso ──────────────────────────────────────────────────
@@ -163,7 +165,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       setIsLoadingApartments(true);
       setError(null);
       try {
-        const res = await availabilityAPI.checkApartments({ checkIn: newCin, checkOut: newCout });
+        const res = await availabilityAPI.checkApartments({ checkIn: newCin, checkOut: newCout, guests: guestCount });
         const apts: ApartmentAvailability[] = res?.data?.apartments ?? [];
         setApartments(apts);
         setSelectedApartment((prev) => {
@@ -206,6 +208,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
     const cpfHasLetter = /[a-zA-Z]/.test(guestForm.document);
     const cpfDigits = guestForm.document.replace(/\D/g, '');
     const cpfOk = cpfHasLetter ? true : cpfDigits.length === 11 ? validateCPF(cpfDigits) : false;
+    const companionPhotoOk = guestCount <= 1 || !!companionDocumentPhoto;
     const canReserve = !!(
       guestForm.fullName.trim() &&
       emailOk &&
@@ -213,7 +216,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       phoneOk &&
       cpfOk &&
       guestForm.arrivalTime &&
-      termsAccepted
+      termsAccepted &&
+      companionPhotoOk
     );
     if (!canReserve) {
       setError(t('formIncomplete'));
@@ -472,6 +476,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
             }}
             documentPhoto={documentPhoto}
             onDocumentPhotoChange={setDocumentPhoto}
+            companionDocumentPhoto={companionDocumentPhoto}
+            onCompanionDocumentPhotoChange={setCompanionDocumentPhoto}
             termsAccepted={termsAccepted}
             onTermsAcceptedChange={setTermsAccepted}
           />
@@ -578,7 +584,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
               </Modal>
             ) : isExpired ? (
               <div className={styles.errorBanner}>
-                A reserva expirou — as datas não estão mais retidas. Volte a tentar a reserva.
+                {t('reservationExpired')}
               </div>
             ) : (
               <>

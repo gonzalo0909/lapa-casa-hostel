@@ -613,7 +613,14 @@
     "apartmentOccupied": "Dieses Apartment ist an diesen Terminen belegt — andere sind möglicherweise verfügbar",
     "backToOriginalDates": "Zurück zu den ursprünglichen Terminen ({from} → {to})",
     "checkinCheckoutLegend": "Check-in/Check-out",
-    "periodLegend": "Zeitraum"
+    "periodLegend": "Zeitraum",
+    "couponLabel": "Haben Sie einen Rabattcode?",
+    "couponApply": "Anwenden",
+    "couponInvalid": "Ungültiger Code",
+    "couponError": "Fehler bei der Code-Validierung",
+    "couponApplied": "Code {code} angewendet",
+    "couponOriginalPrice": "Originalpreis",
+    "reservationExpired": "Reservierung abgelaufen — die Daten sind nicht mehr gesperrt. Bitte versuchen Sie es erneut."
   },
   "guestForm": {
     "title": "Gastinformationen",

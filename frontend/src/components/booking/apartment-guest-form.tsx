@@ -45,6 +45,9 @@ interface ApartmentGuestFormProps {
   /** Foto del documento del titular (File seleccionado por el usuario). */
   documentPhoto: File | null;
   onDocumentPhotoChange: (file: File | null) => void;
+  /** Foto del documento del acompañante — obligatoria cuando guestCount > 1. */
+  companionDocumentPhoto: File | null;
+  onCompanionDocumentPhotoChange: (file: File | null) => void;
   /** Aceptación de términos — elevada al motor para que handleReserve pueda verificarla. */
   termsAccepted: boolean;
   onTermsAcceptedChange: (v: boolean) => void;
@@ -73,6 +76,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onValidateCoupon,
   documentPhoto,
   onDocumentPhotoChange,
+  companionDocumentPhoto,
+  onCompanionDocumentPhotoChange,
   termsAccepted,
   onTermsAcceptedChange,
 }) => {
@@ -119,10 +124,10 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
         setCouponInput('');
         setCouponError(null);
       } else {
-        setCouponError(result?.message ?? 'Código inválido');
+        setCouponError(result?.message ?? t('couponInvalid'));
       }
     } catch {
-      setCouponError('Error al validar el código');
+      setCouponError(t('couponError'));
     } finally {
       setCouponLoading(false);
     }
@@ -145,12 +150,14 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     ? validateCPF(cpfDigits)
     : false;  // partial CPF: invalid once touched
 
+  const companionPhotoOk = guestCount <= 1 || !!companionDocumentPhoto;
   const canReserve = !!(
     guestForm.fullName.trim() &&
     emailOk && confirmEmailOk && phoneOk &&
     (cpfOk === true) &&
     guestForm.arrivalTime &&
-    termsAccepted
+    termsAccepted &&
+    companionPhotoOk
   );
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
@@ -252,7 +259,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           {appliedCoupon && (
             <>
               <div className={`${styles.summaryRow} text-muted-foreground`}>
-                <span>Precio original</span>
+                <span>{t('couponOriginalPrice')}</span>
                 <span className="line-through">R$ {totalPrice.toLocaleString('pt-BR')}</span>
               </div>
               <div className={`${styles.summaryRow} font-semibold text-success`}>
@@ -273,19 +280,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             {appliedCoupon ? (
               <div className="flex items-center justify-between gap-2 rounded-lg border border-success/30 bg-success-light px-3.5 py-2.5">
                 <span className="text-[13px] font-semibold text-success">
-                  🏷️ Código <code className="rounded bg-success-light px-1.5 py-px text-xs">{appliedCoupon.code}</code> aplicado
+                  🏷️ {t('couponApplied', { code: appliedCoupon.code })}
                 </span>
                 <button
                   type="button"
                   onClick={() => { onCouponRemove?.(); setCouponError(null); }}
                   className="cursor-pointer border-0 bg-transparent px-0.5 text-lg leading-none text-success"
-                  aria-label="Quitar cupón"
+                  aria-label={t('removeGuest')}
                 >×</button>
               </div>
             ) : (
               <div>
                 <label htmlFor="apt-coupon-code" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  ¿Tenés un código de descuento?
+                  {t('couponLabel')}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -304,7 +311,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                     disabled={couponLoading || !couponInput.trim()}
                     className={`rounded-md bg-info px-4 py-2 text-[13px] font-semibold text-white ${(couponLoading || !couponInput.trim()) ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
                   >
-                    {couponLoading ? '…' : 'Aplicar'}
+                    {couponLoading ? '…' : t('couponApply')}
                   </button>
                 </div>
                 {couponError && (
@@ -668,25 +675,45 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               )}
             </div>
 
-            {/* Slot acompañante — solo visual, sin envío al servidor por ahora */}
-            <div className={styles.docUploadSlot}>
-              <input
-                ref={photoInputCompanion}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                className={styles.docUploadInput}
-                disabled
-              />
-              <button
-                type="button"
-                className={styles.docUploadBtn}
-                onClick={() => photoInputCompanion.current?.click()}
-                disabled
-              >
-                <Upload size={15} />
-                <span>{t('docUploadCompanion')}</span>
-              </button>
-            </div>
+            {/* Slot acompañante — obligatorio cuando guestCount > 1 */}
+            {guestCount > 1 && (
+              <div className={`${styles.docUploadSlot} ${companionDocumentPhoto ? styles.docUploadSlotFilled : ''}`}>
+                <input
+                  ref={photoInputCompanion}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                  className={styles.docUploadInput}
+                  onChange={(e) => onCompanionDocumentPhotoChange(e.target.files?.[0] ?? null)}
+                />
+                <button
+                  type="button"
+                  className={styles.docUploadBtn}
+                  onClick={() => photoInputCompanion.current?.click()}
+                >
+                  {companionDocumentPhoto ? (
+                    <>
+                      <Check size={15} className={styles.docUploadCheckIcon} />
+                      <span className={styles.docUploadFileName}>{companionDocumentPhoto.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={15} />
+                      <span>{t('docUploadCompanion')} <span className={styles.req}>*</span></span>
+                    </>
+                  )}
+                </button>
+                {companionDocumentPhoto && (
+                  <button
+                    type="button"
+                    className={styles.docUploadClear}
+                    onClick={() => onCompanionDocumentPhotoChange(null)}
+                    aria-label={t('removeGuest')}
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <p className={styles.docUploadFormats}>{t('docUploadFormats')}</p>
