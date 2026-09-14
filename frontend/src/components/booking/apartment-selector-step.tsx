@@ -24,6 +24,7 @@ interface ApartmentSelectorStepProps {
   checkOut: string;
   nights: number;
   guestCount: number;
+  onGuestCountChange: (count: number) => void;
   apartments: ApartmentAvailability[];
   isLoading: boolean;
   selectedApartment: ApartmentAvailability | null;
@@ -40,6 +41,7 @@ export const ApartmentSelectorStep: React.FC<ApartmentSelectorStepProps> = ({
   checkOut,
   nights,
   guestCount,
+  onGuestCountChange,
   apartments,
   isLoading,
   selectedApartment,
@@ -71,6 +73,23 @@ export const ApartmentSelectorStep: React.FC<ApartmentSelectorStepProps> = ({
       <strong>{fmtDate(checkIn, locale)}</strong> →{' '}
       <strong>{fmtDate(checkOut, locale)}</strong> · {nights}{' '}
       {nights !== 1 ? t('nights') : t('night')}
+      <span className={styles.datePillGuests}>
+        <button
+          type="button"
+          className={styles.guestCounterBtn}
+          onClick={() => onGuestCountChange(Math.max(1, guestCount - 1))}
+          disabled={guestCount <= 1}
+          aria-label="-"
+        >−</button>
+        <span className={styles.guestCounterVal}>{guestCount} {guestCount === 1 ? t('guest') : t('guests')}</span>
+        <button
+          type="button"
+          className={styles.guestCounterBtn}
+          onClick={() => onGuestCountChange(Math.min(2, guestCount + 1))}
+          disabled={guestCount >= 2}
+          aria-label="+"
+        >+</button>
+      </span>
     </div>
   );
 

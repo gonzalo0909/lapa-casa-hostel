@@ -434,6 +434,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
             checkOut={checkOut ?? ''}
             nights={nights}
             guestCount={guestCount}
+            onGuestCountChange={setGuestCount}
             apartments={apartments}
             isLoading={isLoadingApartments}
             selectedApartment={selectedApartment}

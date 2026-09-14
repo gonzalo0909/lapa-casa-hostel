@@ -164,8 +164,9 @@
 .aptHeader { margin-bottom: 1.5rem; }
 .aptHeader h2 { font-family: var(--font-cormorant), Georgia, serif; font-size: 1.95rem; font-weight: 400; letter-spacing: -.01em; color: var(--fg); margin-bottom: .2rem; }
 .aptHeader p { font-size: .93rem; color: var(--fg-muted); }
-.datePill { display: inline-flex; align-items: center; gap: .4rem; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 999px; padding: .38rem 1rem; font-size: .88rem; color: var(--fg-muted); margin-bottom: 1.2rem; }
+.datePill { display: inline-flex; align-items: center; gap: .4rem; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 999px; padding: .38rem 1rem; font-size: .88rem; color: var(--fg-muted); margin-bottom: 1.2rem; flex-wrap: wrap; }
 .datePill strong { color: var(--fg); }
+.datePillGuests { display: inline-flex; align-items: center; gap: .3rem; margin-left: .4rem; border-left: 1px solid var(--border); padding-left: .6rem; }
 
 /* ── Apt grid ────────────────────────────────────────── */
 /* 2 columnas en desktop (min 300px); 1 columna en mobile */
