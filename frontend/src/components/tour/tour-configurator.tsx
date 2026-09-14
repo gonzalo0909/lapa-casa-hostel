@@ -5,7 +5,7 @@
 // El precio se calcula en tiempo real. El botón WhatsApp arma el mensaje automáticamente.
 
 import { useState, useCallback } from 'react';
-import { Users, Calendar, Hotel, MapPin, Check } from 'lucide-react';
+import { Hotel, Check } from 'lucide-react';
 
 // ─── Pricing constants ──────────────────────────────────────────────────────
 
@@ -341,7 +341,7 @@ export function TourConfigurator({ locale }: TourConfiguratorProps) {
 
   // WhatsApp message
   const stops = selectedAttrs.length > 0
-    ? selectedAttrs.map((a) => (t as Record<string, string>)[a.nameKey]).join(', ')
+    ? selectedAttrs.map((a) => (t as unknown as Record<string, string>)[a.nameKey]).join(', ')
     : '—';
   const waMsg = encodeURIComponent(
     `Hola! Quiero armar un tour personalizado:\n\n👥 Personas: ${people}\n📅 Días: ${days}\n📍 Paradas: ${stops}\n🏨 Hospedaje: ${hostel ? '2 noches incluidas' : 'No'}\n💰 Estimado: ${Math.round(result.total).toLocaleString('pt-BR')} R$/persona\n\n¿Tienen disponibilidad?`
@@ -460,8 +460,8 @@ export function TourConfigurator({ locale }: TourConfiguratorProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {ATTRACTIONS.map((a) => {
                 const isSelected = selected.has(a.id);
-                const name = (t as Record<string, string>)[a.nameKey] ?? a.nameKey;
-                const desc = (t as Record<string, string>)[a.descKey] ?? '';
+                const name = (t as unknown as Record<string, string>)[a.nameKey] ?? a.nameKey;
+                const desc = (t as unknown as Record<string, string>)[a.descKey] ?? '';
                 return (
                   <button
                     key={a.id}
@@ -530,7 +530,7 @@ export function TourConfigurator({ locale }: TourConfiguratorProps) {
                 {selectedAttrs.map((a) => (
                   <Row
                     key={a.id}
-                    label={(t as Record<string, string>)[a.nameKey] ?? a.id}
+                    label={(t as unknown as Record<string, string>)[a.nameKey] ?? a.id}
                     value={a.price === 0 ? t.free : `${fmt(a.price)}/p`}
                     indent
                   />

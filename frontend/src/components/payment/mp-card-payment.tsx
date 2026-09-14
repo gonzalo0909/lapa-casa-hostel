@@ -373,7 +373,7 @@ export function MpCardPayment({
       const opts = instData[0]?.payer_costs?.map(c => ({ n: c.installments, label: c.recommended_message })) ?? [];
       setInstallmentOpts(opts);
       if (opts.length > 0 && !opts.find(o => o.n === installments)) {
-        setInstallments(opts[0].n);
+        setInstallments(opts[0]!.n);
       }
     } catch {
       // silent — las cuotas son opcionales
@@ -417,7 +417,7 @@ export function MpCardPayment({
       return;
     }
     const expiryParts = expiry.replace(/\s/g, '').split('/');
-    if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length < 4) {
+    if (expiryParts.length !== 2 || expiryParts[0]!.length !== 2 || expiryParts[1]!.length < 4) {
       setError(T('errExpiry', locale));
       return;
     }
@@ -431,8 +431,8 @@ export function MpCardPayment({
       const tokenResult = await mp.createCardToken({
         cardNumber:          number.replace(/\s/g, ''),
         cardholderName:      name.trim(),
-        cardExpirationMonth: expiryParts[0],
-        cardExpirationYear:  expiryParts[1],
+        cardExpirationMonth: expiryParts[0]!,
+        cardExpirationYear:  expiryParts[1]!,
         securityCode:        cvv,
         identificationType:  'CPF',
         identificationNumber: cpf.replace(/\D/g, ''),
@@ -457,7 +457,7 @@ export function MpCardPayment({
         cpf:             cpf.replace(/\D/g, ''),
       });
 
-      const pmt = res.data.data.payment;
+      const pmt = res.data.payment;
 
       if (pmt.status === 'approved') {
         onSuccess({ paymentId: pmt.paymentId, amount: pmt.amount });

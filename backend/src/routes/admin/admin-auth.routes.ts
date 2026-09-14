@@ -32,7 +32,7 @@ const ADMIN_PW_HASH_KEY = 'admin:password_hash';
  *  Redis tiene prioridad (cambio en panel) → si no, env var. */
 async function getAdminPasswordHash(): Promise<string | null> {
   const stored = await redisCache.get<string>(ADMIN_PW_HASH_KEY);
-  if (stored) return stored;
+  if (stored) { return stored; }
   return process.env.ADMIN_PASSWORD_HASH ?? null;
 }
 
