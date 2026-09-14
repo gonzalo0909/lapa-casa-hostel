@@ -126,7 +126,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       setIsLoadingApartments(true);
       setError(null);
       try {
-        const res = await availabilityAPI.checkApartments({ checkIn: cin, checkOut: cout });
+        const res = await availabilityAPI.checkApartments({ checkIn: cin, checkOut: cout, guests: guestCount });
         setApartments(res?.data?.apartments ?? []);
       } catch (err) {
         setError(handleAPIError(err, locale));
@@ -134,7 +134,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
         setIsLoadingApartments(false);
       }
     },
-    [locale],
+    [locale, guestCount],
   );
 
   // ── Manejadores de paso ──────────────────────────────────────────────────
@@ -163,7 +163,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       setIsLoadingApartments(true);
       setError(null);
       try {
-        const res = await availabilityAPI.checkApartments({ checkIn: newCin, checkOut: newCout });
+        const res = await availabilityAPI.checkApartments({ checkIn: newCin, checkOut: newCout, guests: guestCount });
         const apts: ApartmentAvailability[] = res?.data?.apartments ?? [];
         setApartments(apts);
         setSelectedApartment((prev) => {
