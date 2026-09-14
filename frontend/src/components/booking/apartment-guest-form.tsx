@@ -45,6 +45,8 @@ interface ApartmentGuestFormProps {
   /** Foto del documento del titular (File seleccionado por el usuario). */
   documentPhoto: File | null;
   onDocumentPhotoChange: (file: File | null) => void;
+  /** Callback para cambiar la cantidad de huéspedes desde el resumen del paso 3. */
+  onGuestCountChange: (count: number) => void;
   /** Foto del documento del acompañante — obligatoria cuando guestCount > 1. */
   companionDocumentPhoto: File | null;
   onCompanionDocumentPhotoChange: (file: File | null) => void;
@@ -76,6 +78,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onValidateCoupon,
   documentPhoto,
   onDocumentPhotoChange,
+  onGuestCountChange,
   companionDocumentPhoto,
   onCompanionDocumentPhotoChange,
   termsAccepted,
@@ -242,7 +245,23 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           )}
           <div className={styles.summaryRow}>
             <span>{t('guests')}</span>
-            <span>{t('guestCount', { count: guestCount })}</span>
+            <div className={styles.guestCounterInline}>
+              <button
+                type="button"
+                className={styles.guestCounterBtn}
+                onClick={() => onGuestCountChange(Math.max(1, guestCount - 1))}
+                disabled={guestCount <= 1}
+                aria-label="-"
+              >−</button>
+              <span className={styles.guestCounterVal}>{guestCount}</span>
+              <button
+                type="button"
+                className={styles.guestCounterBtn}
+                onClick={() => onGuestCountChange(Math.min(2, guestCount + 1))}
+                disabled={guestCount >= 2}
+                aria-label="+"
+              >+</button>
+            </div>
           </div>
           <div className={styles.summaryRow}>
             <span>{t('checkIn')}</span>
