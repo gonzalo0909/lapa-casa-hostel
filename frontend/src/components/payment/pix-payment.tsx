@@ -133,33 +133,35 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
       )}
 
       <div className="space-y-3">
-        <div className="bg-card border border-border rounded-lg p-4">
-          <label htmlFor="pix-code" className="block text-sm font-medium text-foreground mb-2">
-            {T('codeLabel', locale)}
-          </label>
-          <div className="flex items-center gap-2">
+        {/* Código PIX — fondo claro explícito para que el código mono sea legible */}
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            <label htmlFor="pix-code" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {T('codeLabel', locale)}
+            </label>
+          </div>
+          <div className="bg-white dark:bg-gray-900 px-4 py-3 flex items-center gap-3">
             <input
               id="pix-code"
               type="text"
               value={qrCode}
               readOnly
-              className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-sm font-mono text-foreground"
+              className="flex-1 text-xs font-mono text-gray-800 dark:text-gray-200 bg-transparent border-none outline-none truncate"
             />
-            <Button type="button" onClick={copyPixCode} variant={copied ? 'success' : 'outline'} size="sm">
+            <Button type="button" onClick={copyPixCode} variant={copied ? 'success' : 'outline'} size="sm" className="shrink-0">
               {copied ? T('copied', locale) : T('copy', locale)}
             </Button>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-foreground">{T('amountLabel', locale)}</span>
-            <span className="text-xl font-bold text-foreground">R$ {amount.toFixed(2)}</span>
-          </div>
+        {/* Monto — destacado con fondo verde suave */}
+        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-5 py-4 flex justify-between items-center">
+          <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">{T('amountLabel', locale)}</span>
+          <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">R$ {amount.toFixed(2)}</span>
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <LoadingSpinner size="sm" />
         <span>{T('waiting', locale)}</span>
       </div>
@@ -184,10 +186,10 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
             T('alreadyPaid', locale)
           )}
         </Button>
-        <p className="text-xs text-muted-foreground text-center">{T('alreadyPaidHint', locale)}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center">{T('alreadyPaidHint', locale)}</p>
       </div>
 
-      <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
+      <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-4 border-t border-gray-100 dark:border-gray-800">
         <p>{T('autoConfirm', locale)}</p>
         <p className="mt-1">{T('dontClose', locale)}</p>
       </div>
