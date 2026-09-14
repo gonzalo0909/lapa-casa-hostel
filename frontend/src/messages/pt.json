@@ -590,6 +590,7 @@
     "docUploadCompanion": "Acompanhante — selecionar foto",
     "docUploadFormats": "Aceito: JPG, PNG, WEBP, HEIC ou PDF · Máx. 10 MB por arquivo",
     "termsAcceptText": "Li e concordo com o <link>Termo de Reserva e Hospedagem</link>, incluindo a política de cancelamento e a política de arras (depósito confirmatório)",
+    "termsLabel": "Termos de Reserva",
     "termsAcceptHint": "É necessário aceitar os termos para confirmar a reserva",
     "creatingBooking": "Criando reserva…",
     "confirmAndPay": "Confirmar e ir para pagamento",
