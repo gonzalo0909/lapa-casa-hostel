@@ -254,18 +254,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
           document: g.document,
           documentType: /[a-zA-Z]/.test(g.document) ? 'passaporte' : 'CPF',
         })),
-        // NOTA: no mandamos `arrivalTime` al backend directamente.
-        // create-booking.ts transforma el valor con replace('-', ':00 – ') + ':00',
-        // pensado para rangos tipo "14-16" → "14:00 – 16:00". Los horarios de
-        // este selector son puntuales (ej. "14:30"), sin guión, así que la
-        // transformación produciría "14:30:00" (roto). Lo armamos nosotros.
-        specialRequests:
-          [
-            guestForm.arrivalTime ? `Horário de chegada: ${guestForm.arrivalTime}` : null,
-            guestForm.specialRequests.trim() || null,
-          ]
-            .filter(Boolean)
-            .join('\n') || undefined,
+        arrivalTime: guestForm.arrivalTime || undefined,
+        specialRequests: guestForm.specialRequests.trim() || undefined,
         language: locale === 'de' || locale === 'fr' || locale === 'it' ? 'en' : locale,
         source: 'web',
         guestGender: 'mixed',

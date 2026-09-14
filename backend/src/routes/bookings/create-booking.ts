@@ -343,7 +343,12 @@ export const createBookingHandler = async (
       specialRequests:
         [
           bookingData.arrivalTime
-            ? `Horario de llegada: ${bookingData.arrivalTime.replace('-', ':00 – ')}:00`
+            ? `Horario de llegada: ${
+                // Soporta rangos "14-16" → "14:00 – 16:00" y horarios puntuales "14:30" → "14:30"
+                bookingData.arrivalTime.includes('-')
+                  ? bookingData.arrivalTime.replace('-', ':00 – ') + ':00'
+                  : bookingData.arrivalTime
+              }`
             : null,
           bookingData.specialRequests || null,
         ]
