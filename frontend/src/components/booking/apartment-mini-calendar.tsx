@@ -46,10 +46,6 @@ function fmtShort(ds: string | null, locale: string): string {
   const d = parseDs(ds);
   return String(d.getDate()).padStart(2, '0') + ' ' + monthShortLabel(d.getFullYear(), d.getMonth(), locale);
 }
-function todayDs(): string {
-  return toDs(new Date());
-}
-
 /**
  * Espeja minCheckInDs() de apartment-engine.utils.ts.
  * Antes de las 12:00 BRT → hoy disponible.
@@ -65,7 +61,7 @@ function minCheckInDs(): string {
   const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
   const todaySp = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(now);
   if (hourBrt >= 12) {
-    const [y, m, d] = todaySp.split('-').map(Number);
+    const [y, m, d] = todaySp.split('-').map(Number) as [number, number, number];
     return toDs(new Date(y, m - 1, d + 1));
   }
   return todaySp;

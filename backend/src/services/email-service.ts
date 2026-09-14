@@ -420,7 +420,7 @@ async function getApartmentAddress(
        LIMIT 1`,
       [reservationId],
     );
-    if (!rows[0]) return null;
+    if (!rows[0]) { return null; }
     return { street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
   } catch {
     return null;
