@@ -91,6 +91,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const [additionalGuests, setAdditionalGuests] = useState<AdditionalGuest[]>([]);
   /** Foto del documento del titular (se convierte a base64 y se envía al crear la reserva) */
   const [documentPhoto, setDocumentPhoto] = useState<File | null>(null);
+  /** Aceptación de términos — verificada en handleReserve antes de crear la reserva */
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // ── Cupón de descuento ───────────────────────────────────────────────────
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
@@ -210,7 +212,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
       confirmEmailOk &&
       phoneOk &&
       cpfOk &&
-      guestForm.arrivalTime
+      guestForm.arrivalTime &&
+      termsAccepted
     );
     if (!canReserve) {
       setError(t('formIncomplete'));
@@ -469,6 +472,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
             }}
             documentPhoto={documentPhoto}
             onDocumentPhotoChange={setDocumentPhoto}
+            termsAccepted={termsAccepted}
+            onTermsAcceptedChange={setTermsAccepted}
           />
         )}
 

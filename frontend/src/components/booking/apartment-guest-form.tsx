@@ -45,6 +45,9 @@ interface ApartmentGuestFormProps {
   /** Foto del documento del titular (File seleccionado por el usuario). */
   documentPhoto: File | null;
   onDocumentPhotoChange: (file: File | null) => void;
+  /** Aceptación de términos — elevada al motor para que handleReserve pueda verificarla. */
+  termsAccepted: boolean;
+  onTermsAcceptedChange: (v: boolean) => void;
 }
 
 export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
@@ -70,12 +73,13 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onValidateCoupon,
   documentPhoto,
   onDocumentPhotoChange,
+  termsAccepted,
+  onTermsAcceptedChange,
 }) => {
   const t = useTranslations('apartments');
 
   // ── Estado local ───────────────────────────────────────────────────────────
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const photoInputTitular = useRef<HTMLInputElement>(null);
   const photoInputCompanion = useRef<HTMLInputElement>(null);
 
@@ -792,7 +796,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               type="checkbox"
               className={styles.termsAcceptCheckbox}
               checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
+              onChange={(e) => onTermsAcceptedChange(e.target.checked)}
             />
             <span>
               {t.rich('termsAcceptText', {
