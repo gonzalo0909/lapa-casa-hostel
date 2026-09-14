@@ -131,22 +131,37 @@ export const createBookingHandler = async (
     const checkOut = new Date(bookingData.checkOut);
     const now = new Date();
 
-    // Ni fechas pasadas ni el mismo día (decisión explícita del dueño): un
-    // simple "checkIn < now" no alcanza para excluir HOY -- con now() a
-    // media mañana, una fecha de check-in de hoy sigue siendo "en el
-    // futuro" en términos de reloj puro. Se compara la fecha de calendario
-    // en America/Sao_Paulo (zona horaria operativa unica del sistema, ver
-    // 0004_pricing_functions.sql) contra la de check-in; esto ya cubre
-    // tambien cualquier fecha pasada, no solo hoy.
+    // Validación de fecha mínima de check-in en hora de Sao Paulo.
+    // Reservas para hoy se aceptan solo antes de las 12:00 BRT;
+    // a partir de las 12h el mínimo pasa a ser mañana.
     const todayInSaoPaulo = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'America/Sao_Paulo',
     }).format(now);
-    if (bookingData.checkIn <= todayInSaoPaulo) {
+    const hourParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Sao_Paulo',
+      hour: 'numeric',
+      hour12: false,
+    }).formatToParts(now);
+    const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
+
+    // minCheckIn: hoy si son antes de las 12h, mañana si ya pasó el mediodía.
+    let minCheckIn = todayInSaoPaulo;
+    if (hourBrt >= 12) {
+      const [y, m, d] = todayInSaoPaulo.split('-').map(Number);
+      const tomorrow = new Date(y, m - 1, d + 1);
+      minCheckIn = tomorrow.getFullYear() +
+        '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') +
+        '-' + String(tomorrow.getDate()).padStart(2, '0');
+    }
+
+    if (bookingData.checkIn < minCheckIn) {
       res
         .status(400)
         .json(
           ApiResponse.error(
-            'No se aceptan reservas para el mismo día -- elegí una fecha a partir de mañana',
+            bookingData.checkIn === todayInSaoPaulo
+              ? 'Las reservas para hoy solo se aceptan antes de las 12h'
+              : 'La fecha de check-in no puede ser en el pasado',
           ),
         );
       return;
