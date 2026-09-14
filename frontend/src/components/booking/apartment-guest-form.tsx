@@ -45,6 +45,9 @@ interface ApartmentGuestFormProps {
   /** Foto del documento del titular (File seleccionado por el usuario). */
   documentPhoto: File | null;
   onDocumentPhotoChange: (file: File | null) => void;
+  /** Foto del documento del acompañante — obligatoria cuando guestCount > 1. */
+  companionDocumentPhoto: File | null;
+  onCompanionDocumentPhotoChange: (file: File | null) => void;
   /** Aceptación de términos — elevada al motor para que handleReserve pueda verificarla. */
   termsAccepted: boolean;
   onTermsAcceptedChange: (v: boolean) => void;
@@ -73,6 +76,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onValidateCoupon,
   documentPhoto,
   onDocumentPhotoChange,
+  companionDocumentPhoto,
+  onCompanionDocumentPhotoChange,
   termsAccepted,
   onTermsAcceptedChange,
 }) => {
@@ -145,12 +150,14 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     ? validateCPF(cpfDigits)
     : false;  // partial CPF: invalid once touched
 
+  const companionPhotoOk = guestCount <= 1 || !!companionDocumentPhoto;
   const canReserve = !!(
     guestForm.fullName.trim() &&
     emailOk && confirmEmailOk && phoneOk &&
     (cpfOk === true) &&
     guestForm.arrivalTime &&
-    termsAccepted
+    termsAccepted &&
+    companionPhotoOk
   );
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
@@ -668,25 +675,43 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               )}
             </div>
 
-            {/* Slot acompañante — visible solo si hay acompañantes declarados */}
-            {additionalGuests.length > 0 && (
-              <div className={styles.docUploadSlot}>
+            {/* Slot acompañante — obligatorio cuando guestCount > 1 */}
+            {guestCount > 1 && (
+              <div className={`${styles.docUploadSlot} ${companionDocumentPhoto ? styles.docUploadSlotFilled : ''}`}>
                 <input
                   ref={photoInputCompanion}
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
                   className={styles.docUploadInput}
-                  disabled
+                  onChange={(e) => onCompanionDocumentPhotoChange(e.target.files?.[0] ?? null)}
                 />
                 <button
                   type="button"
                   className={styles.docUploadBtn}
                   onClick={() => photoInputCompanion.current?.click()}
-                  disabled
                 >
-                  <Upload size={15} />
-                  <span>{t('docUploadCompanion')}</span>
+                  {companionDocumentPhoto ? (
+                    <>
+                      <Check size={15} className={styles.docUploadCheckIcon} />
+                      <span className={styles.docUploadFileName}>{companionDocumentPhoto.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={15} />
+                      <span>{t('docUploadCompanion')} <span className={styles.req}>*</span></span>
+                    </>
+                  )}
                 </button>
+                {companionDocumentPhoto && (
+                  <button
+                    type="button"
+                    className={styles.docUploadClear}
+                    onClick={() => onCompanionDocumentPhotoChange(null)}
+                    aria-label={t('removeGuest')}
+                  >
+                    <X size={13} />
+                  </button>
+                )}
               </div>
             )}
           </div>
