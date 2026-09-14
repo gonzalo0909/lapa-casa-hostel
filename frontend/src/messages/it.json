@@ -590,6 +590,7 @@
     "docUploadCompanion": "Accompagnatore — seleziona foto",
     "docUploadFormats": "Accettati: JPG, PNG, WEBP, HEIC o PDF · Max. 10 MB per file",
     "termsAcceptText": "Ho letto e accetto il <link>Termine di Prenotazione e Soggiorno</link>, inclusa la politica di cancellazione e la politica di caparra confirmatoria",
+    "termsLabel": "Termini di Prenotazione",
     "termsAcceptHint": "È necessario accettare i termini per confermare la prenotazione",
     "creatingBooking": "Creazione prenotazione…",
     "confirmAndPay": "Conferma e vai al pagamento",

@@ -178,9 +178,16 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   );
 
 
-  // canReserve is computed above and available for use; the actual gate lives in
-  // the parent's onReserve handler, which calls setTouched before checking it.
-  void canReserve;
+  /** Lista de campos obligatorios pendientes (para mostrar al usuario qué falta). */
+  const missingFields: string[] = [];
+  if (!guestForm.fullName.trim())      missingFields.push(t('fullNameLabel'));
+  if (!emailOk)                        missingFields.push(t('emailLabel'));
+  if (!confirmEmailOk)                 missingFields.push(t('confirmEmailLabel'));
+  if (!phoneOk)                        missingFields.push(t('phoneLabel'));
+  if (cpfOk !== true)                  missingFields.push(t('documentLabel'));
+  if (!guestForm.arrivalTime)          missingFields.push(t('arrivalTimeLabel'));
+  if (!termsAccepted)                  missingFields.push(t('termsLabel'));
+  if (!companionPhotoOk)               missingFields.push(t('docUploadCompanion'));
 
   // ── Acompañantes: helpers ──────────────────────────────────────────────────
 
@@ -844,6 +851,13 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             <p className={styles.termsAcceptHint}>{t('termsAcceptHint')}</p>
           )}
         </div>
+
+        {/* Lista de campos pendientes — solo visible cuando el botón está bloqueado */}
+        {!canReserve && !isCreatingBooking && missingFields.length > 0 && (
+          <ul className={styles.missingFieldsList}>
+            {missingFields.map((f) => <li key={f}>{f}</li>)}
+          </ul>
+        )}
 
         {/* Botón Confirmar y pagar */}
         <button
