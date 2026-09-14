@@ -107,6 +107,11 @@ interface CreateBookingInput {
  * puntuales a mano (preferredBedIds), esas van primero en el orden --
  * pero siguen siendo candidatas nomás: la verificación real bajo lock en
  * createBooking() es la que decide si de verdad siguen libres.
+ *
+ * Para apartamentos se usa una query directa (NOT EXISTS) en vez de
+ * check_availability(), porque esa función filtra por is_gender_eligible
+ * basándose en el gender de la habitación -- un apartamento puede tener
+ * default_gender != 'mixed', lo que devuelve 0 resultados aunque esté libre.
  */
 const pickAvailableBedsInRoom = async (
   client: PoolClient,
@@ -117,6 +122,35 @@ const pickAvailableBedsInRoom = async (
   gender: 'mixed' | 'female' | 'male',
   preferredBedIds: string[] = [],
 ): Promise<string[]> => {
+  // Detectar si la habitación es un apartamento
+  const { rows: typeRows } = await client.query<{ property_type: string }>(
+    `SELECT property_type FROM room_types WHERE id = $1`,
+    [roomTypeId],
+  );
+  const isApartment = typeRows[0]?.property_type === 'apartment';
+
+  if (isApartment) {
+    // Apartamentos: elegir la cama si no tiene reserva activa solapada.
+    // Sin filtro de género — un apartamento es una unidad completa.
+    const { rows } = await client.query(
+      `SELECT b.id AS bed_id
+       FROM beds b
+       WHERE b.room_type_id = $1
+         AND NOT EXISTS (
+           SELECT 1
+           FROM reservation_beds rb
+           JOIN reservations res ON res.id = rb.reservation_id
+           WHERE rb.bed_id = b.id
+             AND res.status != 'cancelled'
+             AND daterange(rb.check_in, rb.check_out, '[)') && daterange($2::date, $3::date, '[)')
+         )
+       LIMIT $4`,
+      [roomTypeId, checkIn, checkOut, count],
+    );
+    return rows.map((r: any) => r.bed_id);
+  }
+
+  // Habitaciones del hostel: usar check_availability() con filtro de género.
   const { rows } = await client.query(
     `SELECT bed_id FROM check_availability($1::date, $2::date, $3::bed_gender)
      WHERE room_type_id = $4::uuid AND is_gender_eligible = true AND is_available = true
