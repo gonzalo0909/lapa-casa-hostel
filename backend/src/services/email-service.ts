@@ -395,6 +395,35 @@ async function isApartmentBooking(reservationId: string): Promise<boolean> {
   }
 }
 
+/**
+ * Obtiene la dirección del apartamento asociado a la reserva.
+ * La dirección viene de room_types.address / address_number / cep
+ * (cada apartamento es de un dueño distinto — es un marketplace).
+ * Retorna null si no hay dirección cargada o no es un apartamento.
+ */
+async function getApartmentAddress(
+  reservationId: string,
+): Promise<{ street: string; number: string | null; cep: string | null } | null> {
+  try {
+    const { rows } = await query<{ address: string; address_number: string | null; cep: string | null }>(
+      `SELECT rt.address, rt.address_number, rt.cep
+       FROM reservation_beds rb
+       JOIN beds b ON b.id = rb.bed_id
+       JOIN room_types rt ON rt.id = b.room_type_id
+       WHERE rb.reservation_id = $1
+         AND rt.property_type = 'apartment'
+         AND rt.address IS NOT NULL
+         AND rt.address != ''
+       LIMIT 1`,
+      [reservationId],
+    );
+    if (!rows[0]) return null;
+    return { street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
+  } catch {
+    return null;
+  }
+}
+
 function roomsListHtml(rooms: Array<{ name: string; beds: number }>): string {
   return rooms
     .map((r) => `<p style="margin:0 0 4px;font-size:14px;color:#444444;padding-left:8px;">• ${escapeText(r.name)}</p>`)
@@ -542,6 +571,12 @@ export class EmailService {
     const t = LABELS[language];
     const stillDue = booking.remaining_amount > 0;
 
+    // Para apartamentos: este email es el momento en que se revela la dirección.
+    // El huésped pagó el 30% — ahora tiene derecho a saber dónde está el apartamento.
+    const isApt = await isApartmentBooking(booking.id);
+    const aptAddress = isApt ? await getApartmentAddress(booking.id) : null;
+    const addressHtml = buildAddressHtml(isApt, language, aptAddress ?? undefined);
+
     const remainingSectionHtml = stillDue
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
            <tr><td style="padding:6px 0;font-size:14px;color:#555555;">${t.remainingStillDue}</td>
@@ -561,6 +596,7 @@ export class EmailService {
       reservationNumber: booking.reservation_number,
       amountFormatted: formatCurrency(amount, language),
       remainingSectionHtml,
+      addressHtml,
     });
 
     return dispatch(
@@ -574,15 +610,11 @@ export class EmailService {
     const language = resolveLanguage(booking.guest.language);
     const t = LABELS[language];
 
-    // Apartamentos: nunca se muestra la dirección en el email.
-    // La ubicación exacta se comunica por separado tras confirmar el pago.
+    // Para apartamentos: la bienvenida llega después de que el pago se confirmó,
+    // así que la dirección real ya puede mostrarse (viene de room_types en la BD).
     const isApt = await isApartmentBooking(booking.id);
-
-    const APT_ADDRESS_MSG: Record<Language, string> = {
-      pt: 'O endereço do apartamento será enviado por e-mail após a confirmação do pagamento.',
-      en: 'The apartment address will be sent by email once your payment is confirmed.',
-      es: 'La dirección del apartamento se enviará por correo una vez confirmado el pago.',
-    };
+    const aptAddress = isApt ? await getApartmentAddress(booking.id) : null;
+    const addressHtml = buildAddressHtml(isApt, language, aptAddress ?? undefined);
 
     const html = renderEmailTemplate('welcome-message', {
       emailTitle: t.welcomeTitle,
@@ -600,10 +632,7 @@ export class EmailService {
       guestName: booking.guest.full_name,
       checkInDateFormatted: formatDate(booking.check_in_date, language),
       checkInTime: isApt ? '15:00 – 22:00' : '14:00 – 22:00',
-      // Apartamento: mensaje de confidencialidad en lugar de dirección real
-      address: isApt
-        ? APT_ADDRESS_MSG[language]
-        : 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro',
+      addressHtml,
       wifiNetwork: isApt ? '' : 'LAPA_CASA_GUESTS',
       wifiPassword: isApt ? '' : 'santateresa2024',
     });
@@ -755,11 +784,9 @@ export class EmailService {
     const t = LABELS[language];
     const isApt = await isApartmentBooking(booking.id);
 
-    const APT_ADDRESS_MSG: Record<Language, string> = {
-      pt: 'O endereço sera enviado por e-mail em breve.',
-      en: 'The address will be sent to you by email shortly.',
-      es: 'La direccion se enviara por email pronto.',
-    };
+    // Checkin es mañana: la reserva ya está confirmada y pagada, mostrar dirección real
+    const aptAddress = isApt ? await getApartmentAddress(booking.id) : null;
+    const addressHtml = buildAddressHtml(isApt, language, aptAddress ?? undefined);
 
     const checkOutDate = new Date(booking.check_out_date);
     const html = renderEmailTemplate('checkin-reminder', {
@@ -781,9 +808,7 @@ export class EmailService {
       checkInFormatted: formatDate(booking.check_in_date, language),
       checkOutFormatted: formatDate(checkOutDate, language),
       checkInTime: isApt ? '15:00 – 22:00' : '14:00 – 22:00',
-      address: isApt
-        ? APT_ADDRESS_MSG[language]
-        : 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro',
+      addressHtml,
     });
 
     const subjects: Record<Language, string> = {
