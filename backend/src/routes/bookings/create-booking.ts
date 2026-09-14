@@ -201,26 +201,42 @@ export const createBookingHandler = async (
       return;
     }
 
-    // Check overall availability
-    const availability = await availabilityService.checkAvailability({
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      bedsNeeded: totalBedsRequested,
-    });
+    // Detectar apartamentos antes del OVERALL check para poder saltarlo si
+    // aplica. check_availability() es hostel-centric: usa is_gender_eligible,
+    // que devuelve false para apartamentos con default_gender != 'mixed', lo
+    // que produce falsos 409 cuando el hostel está lleno y el apartamento libre.
+    // Declarado acá para reutilizarlo también en el modo de pago más abajo.
+    const allRoomIds = bookingData.rooms.map((r) => r.roomId);
+    const { rows: aptTypeRows } = await query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM room_types WHERE id = ANY($1::uuid[]) AND property_type = 'apartment'`,
+      [allRoomIds],
+    );
+    const isApartmentBooking = parseInt(aptTypeRows[0]?.count ?? '0') > 0;
 
-    if (!availability.available) {
-      logger.warn('Insufficient availability', {
-        requested: totalBedsRequested,
-        available: availability.availableBeds,
+    // Check overall availability — solo para reservas del hostel.
+    // Para apartamentos se omite: el per-room check con NOT EXISTS que sigue
+    // es la autoridad real y no sufre el sesgo de is_gender_eligible.
+    if (!isApartmentBooking) {
+      const availability = await availabilityService.checkAvailability({
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        bedsNeeded: totalBedsRequested,
       });
-      res.status(409).json(
-        ApiResponse.error('Insufficient availability for requested dates', {
-          availableBeds: availability.availableBeds,
-          requestedBeds: totalBedsRequested,
-          alternativeDates: availability.alternativeDates,
-        }),
-      );
-      return;
+
+      if (!availability.available) {
+        logger.warn('Insufficient availability', {
+          requested: totalBedsRequested,
+          available: availability.availableBeds,
+        });
+        res.status(409).json(
+          ApiResponse.error('Insufficient availability for requested dates', {
+            availableBeds: availability.availableBeds,
+            requestedBeds: totalBedsRequested,
+            alternativeDates: availability.alternativeDates,
+          }),
+        );
+        return;
+      }
     }
 
     // Calculate pricing
@@ -298,13 +314,7 @@ export const createBookingHandler = async (
     // 24–48h de antecedencia → 100% al reservar (remaining = 0).
     // ≥48h de antecedencia  → modelo normal 30% / 70%.
     // Hostel (camas) no se ve afectado.
-    const allRoomIds = bookingData.rooms.map((r) => r.roomId);
-    const { rows: aptTypeRows } = await query<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM room_types WHERE id = ANY($1::uuid[]) AND property_type = 'apartment'`,
-      [allRoomIds]
-    );
-    const isApartmentBooking = parseInt(aptTypeRows[0]?.count ?? '0') > 0;
-
+    // isApartmentBooking ya fue calculado arriba junto al OVERALL check.
     if (isApartmentBooking && hoursUntilCheckIn < 48) {
       // Cobro completo al momento de la reserva
       pricingDetails.depositAmount = pricingDetails.totalPrice;
