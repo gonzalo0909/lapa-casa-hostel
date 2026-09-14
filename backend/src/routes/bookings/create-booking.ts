@@ -316,23 +316,58 @@ export const createBookingHandler = async (
       });
     }
 
-    // Check per-room availability
+    // Check per-room availability.
+    // Apartamentos usan una query directa (NOT EXISTS sobre reservation_beds)
+    // idéntica a la de apartment-availability.ts porque check_availability()
+    // está diseñada para el hostel (beds con is_active, géneros) y puede
+    // devolver 0 camas disponibles para unidades de apartamento aunque estén
+    // libres, causando un falso "Insufficient beds".
     for (const room of bookingData.rooms) {
-      const roomAvail = await availabilityService.checkRoomAvailability(
-        room.roomId,
-        bookingData.checkIn,
-        bookingData.checkOut,
+      const { rows: aptCheck } = await query<{ is_apartment: boolean }>(
+        `SELECT property_type = 'apartment' AS is_apartment FROM room_types WHERE id = $1`,
+        [room.roomId]
       );
+      const isApt = aptCheck[0]?.is_apartment ?? false;
 
-      if (roomAvail.availableBeds < room.bedsCount) {
-        res.status(409).json(
-          ApiResponse.error(`Insufficient beds in room ${room.roomId}`, {
-            roomId: room.roomId,
-            requested: room.bedsCount,
-            available: roomAvail.availableBeds,
-          }),
+      if (isApt) {
+        // Para apartamentos: available si NO existe reserva activa solapada.
+        const { rows: aptAvail } = await query<{ available: boolean }>(
+          `SELECT NOT EXISTS (
+             SELECT 1
+             FROM reservation_beds rb
+             JOIN beds b ON b.id = rb.bed_id
+             JOIN reservations res ON res.id = rb.reservation_id
+             WHERE b.room_type_id = $1
+               AND res.status != 'cancelled'
+               AND daterange(rb.check_in, rb.check_out, '[)') && daterange($2::date, $3::date, '[)')
+           ) AS available`,
+          [room.roomId, bookingData.checkIn, bookingData.checkOut]
         );
-        return;
+        if (!aptAvail[0]?.available) {
+          res.status(409).json(
+            ApiResponse.error('El apartamento ya no está disponible para esas fechas', {
+              roomId: room.roomId,
+            }),
+          );
+          return;
+        }
+      } else {
+        // Para habitaciones del hostel: usar check_availability() como antes.
+        const roomAvail = await availabilityService.checkRoomAvailability(
+          room.roomId,
+          bookingData.checkIn,
+          bookingData.checkOut,
+        );
+        if (roomAvail.availableBeds < room.bedsCount) {
+          res.status(409).json(
+            ApiResponse.error(`Insufficient beds in room ${room.roomId}`, {
+              roomId: room.roomId,
+              requested: room.bedsCount,
+              available: roomAvail.availableBeds,
+            }),
+          );
+          return;
+        }
       }
     }
 
