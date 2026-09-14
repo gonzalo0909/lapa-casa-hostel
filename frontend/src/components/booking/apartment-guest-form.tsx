@@ -153,16 +153,6 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     ? validateCPF(cpfDigits)
     : false;  // partial CPF: invalid once touched
 
-  // La foto del acompañante es opcional — no bloquea el botón de confirmar.
-  const companionPhotoOk = true;
-  const canReserve = !!(
-    guestForm.fullName.trim() &&
-    emailOk && confirmEmailOk && phoneOk &&
-    (cpfOk === true) &&
-    guestForm.arrivalTime &&
-    termsAccepted &&
-    companionPhotoOk
-  );
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
   const displayRemaining = displayTotal - displayDeposit;
@@ -182,16 +172,6 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   );
 
 
-  /** Lista de campos obligatorios pendientes (para mostrar al usuario qué falta). */
-  const missingFields: string[] = [];
-  if (!guestForm.fullName.trim())      missingFields.push(t('fullNameLabel'));
-  if (!emailOk)                        missingFields.push(t('emailLabel'));
-  if (!confirmEmailOk)                 missingFields.push(t('confirmEmailLabel'));
-  if (!phoneOk)                        missingFields.push(t('phoneLabel'));
-  if (cpfOk !== true)                  missingFields.push(t('documentLabel'));
-  if (!guestForm.arrivalTime)          missingFields.push(t('arrivalTimeLabel'));
-  if (!termsAccepted)                  missingFields.push(t('termsLabel'));
-  if (!companionPhotoOk)               missingFields.push(t('docUploadCompanion'));
 
   // ── Acompañantes: helpers ──────────────────────────────────────────────────
 
@@ -872,31 +852,12 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           )}
         </div>
 
-        {/* Lista de campos pendientes — solo visible cuando el botón está bloqueado */}
-        {!canReserve && !isCreatingBooking && missingFields.length > 0 && (
-          <ul className={styles.missingFieldsList}>
-            {missingFields.map((f) => (
-              <li key={f}>
-                {f === t('docUploadCompanion') ? (
-                  <button
-                    type="button"
-                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', textDecoration: 'underline', padding: 0, font: 'inherit' }}
-                    onClick={() => document.getElementById('apt-companion-upload')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                  >
-                    {f} ↑
-                  </button>
-                ) : f}
-              </li>
-            ))}
-          </ul>
-        )}
-
         {/* Botón Confirmar y pagar */}
         <button
           type="button"
           className={styles.btnReserve}
           onClick={onReserve}
-          disabled={isCreatingBooking || !canReserve}
+          disabled={isCreatingBooking}
         >
           {isCreatingBooking ? t('creatingBooking') : `${t('confirmAndPay')} →`}
         </button>
