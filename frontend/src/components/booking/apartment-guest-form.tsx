@@ -42,6 +42,9 @@ interface ApartmentGuestFormProps {
   onCouponRemove?: () => void;
   /** Valida un código de cupón contra el backend → retorna { valid, discount_percent, label, ... } */
   onValidateCoupon?: (code: string) => Promise<{ valid: boolean; discount_percent?: number; label?: string; code?: string; message?: string } | undefined>;
+  /** Foto del documento del titular (File seleccionado por el usuario). */
+  documentPhoto: File | null;
+  onDocumentPhotoChange: (file: File | null) => void;
 }
 
 export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
@@ -65,14 +68,14 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
   onCouponApply,
   onCouponRemove,
   onValidateCoupon,
+  documentPhoto,
+  onDocumentPhotoChange,
 }) => {
   const t = useTranslations('apartments');
 
   // ── Estado local ───────────────────────────────────────────────────────────
   const [cancelOpen, setCancelOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  /** Fotos de documentos: [titular, acompanhante] */
-  const [docPhotos, setDocPhotos] = useState<[File | null, File | null]>([null, null]);
   const photoInputTitular = useRef<HTMLInputElement>(null);
   const photoInputCompanion = useRef<HTMLInputElement>(null);
 
@@ -615,7 +618,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           </div>
         )}
 
-        {/* ── Upload de foto do documento (até 2 pessoas) ──────────────── */}
+        {/* ── Upload de foto do documento (titular) ──────────────── */}
         <div className={styles.docUploadSection}>
           <div className={styles.docUploadTitle}>
             <Camera size={15} /> {t('docUploadTitle')}
@@ -623,65 +626,63 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           <p className={styles.docUploadNote}>{t('docUploadNote')}</p>
 
           <div className={styles.docUploadSlots}>
-            {/* Slot 1 — Titular */}
-            {([0, 1] as const).map((slot) => {
-              const isCompanion = slot === 1;
-              const inputRef = isCompanion ? photoInputCompanion : photoInputTitular;
-              const file = docPhotos[slot];
-              return (
-                <div key={slot} className={`${styles.docUploadSlot} ${file ? styles.docUploadSlotFilled : ''}`}>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                    className={styles.docUploadInput}
-                    onChange={(e) => {
-                      const picked = e.target.files?.[0] ?? null;
-                      setDocPhotos((prev) => {
-                        const next: [File | null, File | null] = [...prev] as [File | null, File | null];
-                        next[slot] = picked;
-                        return next;
-                      });
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className={styles.docUploadBtn}
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    {file ? (
-                      <>
-                        <Check size={15} className={styles.docUploadCheckIcon} />
-                        <span className={styles.docUploadFileName}>{file.name}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={15} />
-                        <span>
-                          {isCompanion ? t('docUploadCompanion') : t('docUploadTitular')}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                  {file && (
-                    <button
-                      type="button"
-                      className={styles.docUploadClear}
-                      onClick={() =>
-                        setDocPhotos((prev) => {
-                          const next: [File | null, File | null] = [...prev] as [File | null, File | null];
-                          next[slot] = null;
-                          return next;
-                        })
-                      }
-                      aria-label={t('removeGuest')}
-                    >
-                      <X size={13} />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {/* Slot titular — foto enviada al servidor al confirmar la reserva */}
+            <div className={`${styles.docUploadSlot} ${documentPhoto ? styles.docUploadSlotFilled : ''}`}>
+              <input
+                ref={photoInputTitular}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                className={styles.docUploadInput}
+                onChange={(e) => onDocumentPhotoChange(e.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                className={styles.docUploadBtn}
+                onClick={() => photoInputTitular.current?.click()}
+              >
+                {documentPhoto ? (
+                  <>
+                    <Check size={15} className={styles.docUploadCheckIcon} />
+                    <span className={styles.docUploadFileName}>{documentPhoto.name}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={15} />
+                    <span>{t('docUploadTitular')}</span>
+                  </>
+                )}
+              </button>
+              {documentPhoto && (
+                <button
+                  type="button"
+                  className={styles.docUploadClear}
+                  onClick={() => onDocumentPhotoChange(null)}
+                  aria-label={t('removeGuest')}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Slot acompañante — solo visual, sin envío al servidor por ahora */}
+            <div className={styles.docUploadSlot}>
+              <input
+                ref={photoInputCompanion}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                className={styles.docUploadInput}
+                disabled
+              />
+              <button
+                type="button"
+                className={styles.docUploadBtn}
+                onClick={() => photoInputCompanion.current?.click()}
+                disabled
+              >
+                <Upload size={15} />
+                <span>{t('docUploadCompanion')}</span>
+              </button>
+            </div>
           </div>
 
           <p className={styles.docUploadFormats}>{t('docUploadFormats')}</p>

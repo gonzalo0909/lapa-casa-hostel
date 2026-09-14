@@ -89,6 +89,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   /** Acompañantes declarados por el titular en el checkout (excluyendo al titular) */
   const [additionalGuests, setAdditionalGuests] = useState<AdditionalGuest[]>([]);
+  /** Foto del documento del titular (se convierte a base64 y se envía al crear la reserva) */
+  const [documentPhoto, setDocumentPhoto] = useState<File | null>(null);
 
   // ── Cupón de descuento ───────────────────────────────────────────────────
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
@@ -219,6 +221,17 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
     setIsCreatingBooking(true);
     setError(null);
     try {
+      // Convertir foto del documento a base64 si el usuario la adjuntó
+      let documentPhotoBase64: string | undefined;
+      if (documentPhoto) {
+        documentPhotoBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Error al leer la foto del documento'));
+          reader.readAsDataURL(documentPhoto);
+        });
+      }
+
       const nameParts = guestForm.fullName.trim().split(/\s+/);
       const firstName = nameParts[0] ?? guestForm.fullName.trim();
       const lastName = nameParts.slice(1).join(' ') || firstName;
@@ -233,6 +246,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
           phone: guestForm.phone,
           country: guestForm.country,
           document: guestForm.document,
+          ...(documentPhotoBase64 ? { documentPhotoBase64 } : {}),
         },
         // Acompañantes declarados en el checkout (booking_guests)
         additionalGuests: additionalGuests.map((g) => ({
@@ -463,6 +477,8 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
               const res = await offersAPI.validate(code, selectedApartment.id, checkIn ?? '');
               return res?.data;
             }}
+            documentPhoto={documentPhoto}
+            onDocumentPhotoChange={setDocumentPhoto}
           />
         )}
 
