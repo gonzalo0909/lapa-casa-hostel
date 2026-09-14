@@ -684,7 +684,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
 
             {/* Slot acompañante — obligatorio cuando guestCount > 1 */}
             {guestCount > 1 && (
-              <div className={`${styles.docUploadSlot} ${companionDocumentPhoto ? styles.docUploadSlotFilled : ''}`}>
+              <div id="apt-companion-upload" className={`${styles.docUploadSlot} ${companionDocumentPhoto ? styles.docUploadSlotFilled : ''}`}>
                 <input
                   ref={photoInputCompanion}
                   type="file"
@@ -855,7 +855,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
         {/* Lista de campos pendientes — solo visible cuando el botón está bloqueado */}
         {!canReserve && !isCreatingBooking && missingFields.length > 0 && (
           <ul className={styles.missingFieldsList}>
-            {missingFields.map((f) => <li key={f}>{f}</li>)}
+            {missingFields.map((f) => (
+              <li key={f}>
+                {f === t('docUploadCompanion') ? (
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', textDecoration: 'underline', padding: 0, font: 'inherit' }}
+                    onClick={() => document.getElementById('apt-companion-upload')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  >
+                    {f} ↑
+                  </button>
+                ) : f}
+              </li>
+            ))}
           </ul>
         )}
 
