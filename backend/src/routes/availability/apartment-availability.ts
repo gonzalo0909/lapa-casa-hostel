@@ -61,6 +61,7 @@ export const checkApartmentAvailabilityHandler = async (
     // No se filtra por is_active ni por precio.
     const { rows: apartments } = await query<{
       id: string; code: string; name: string; capacity: number; base_price: string; available: boolean;
+      neighborhood: string | null; external_rating: string | null; external_review_count: number | null; external_rating_label: string | null;
     }>(
       `SELECT
          rt.id,
@@ -68,6 +69,10 @@ export const checkApartmentAvailabilityHandler = async (
          rt.name,
          rt.capacity,
          rt.base_price,
+         rt.neighborhood,
+         rt.external_rating,
+         rt.external_review_count,
+         rt.external_rating_label,
          NOT EXISTS (
            SELECT 1
            FROM reservation_beds rb
@@ -101,6 +106,22 @@ export const checkApartmentAvailabilityHandler = async (
         const basePrice = parseFloat(apt.base_price) || 0;
         const available = apt.available;
 
+        const sharedFields = {
+          id: apt.id,
+          code: apt.code,
+          name: apt.name,
+          capacity: apt.capacity,
+          basePrice,
+          available,
+          neighborhood: apt.neighborhood ?? undefined,
+          externalRating: apt.external_rating !== null ? parseFloat(apt.external_rating) : undefined,
+          externalReviewCount: apt.external_review_count ?? undefined,
+          externalRatingLabel: apt.external_rating_label ?? undefined,
+          photos: (photosByApt[apt.id] ?? []).map(p => ({
+            id: p.id, url: p.image_url, isPrimary: p.is_primary, altText: p.alt_text,
+          })),
+        };
+
         try {
           const pricing = await pricingService.calculateTotalPrice({
             checkInDate: checkIn,
@@ -109,19 +130,11 @@ export const checkApartmentAvailabilityHandler = async (
             totalBeds: 1,
           });
           return {
-            id: apt.id,
-            code: apt.code,
-            name: apt.name,
-            capacity: apt.capacity,
-            basePrice,
+            ...sharedFields,
             priceTotal: pricing.totalPrice,
             seasonMultiplier: pricing.seasonMultiplier,
             seasonType: pricing.seasonType,
             depositAmount: pricing.depositAmount,
-            available,
-            photos: (photosByApt[apt.id] ?? []).map(p => ({
-              id: p.id, url: p.image_url, isPrimary: p.is_primary, altText: p.alt_text,
-            })),
           };
         } catch (pricingError) {
           // Si el cálculo de precio falla (ej. Carnaval con menos noches del mínimo),
@@ -132,19 +145,11 @@ export const checkApartmentAvailabilityHandler = async (
             error: pricingError instanceof Error ? pricingError.message : 'Unknown error',
           });
           return {
-            id: apt.id,
-            code: apt.code,
-            name: apt.name,
-            capacity: apt.capacity,
-            basePrice,
+            ...sharedFields,
             priceTotal: basePrice * nights,
             seasonMultiplier: 1,
             seasonType: 'media' as const,
             depositAmount: basePrice * nights * 0.3,
-            available,
-            photos: (photosByApt[apt.id] ?? []).map(p => ({
-              id: p.id, url: p.image_url, isPrimary: p.is_primary, altText: p.alt_text,
-            })),
           };
         }
       })
