@@ -83,10 +83,8 @@ export const BCP47: Record<string, string> = {
   it: 'it-IT',
 };
 
-/** Capacidad máxima seleccionable en el contador de huéspedes del Paso 1.
- *  Refleja el apartamento más grande disponible; ajustar aquí si se añaden
- *  unidades de mayor capacidad. */
-export const MAX_APT_GUESTS = 4;
+/** Capacidad máxima seleccionable en el contador de huéspedes del Paso 1. */
+export const MAX_APT_GUESTS = 2;
 
 /** Horarios de check-in disponibles (cada 30 min, 14:00–22:00). */
 export const CHECKIN_TIMES = [
