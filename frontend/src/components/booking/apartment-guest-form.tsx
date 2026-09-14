@@ -124,10 +124,10 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
         setCouponInput('');
         setCouponError(null);
       } else {
-        setCouponError(result?.message ?? 'Código inválido');
+        setCouponError(result?.message ?? t('couponInvalid'));
       }
     } catch {
-      setCouponError('Error al validar el código');
+      setCouponError(t('couponError'));
     } finally {
       setCouponLoading(false);
     }
@@ -259,7 +259,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           {appliedCoupon && (
             <>
               <div className={`${styles.summaryRow} text-muted-foreground`}>
-                <span>Precio original</span>
+                <span>{t('couponOriginalPrice')}</span>
                 <span className="line-through">R$ {totalPrice.toLocaleString('pt-BR')}</span>
               </div>
               <div className={`${styles.summaryRow} font-semibold text-success`}>
@@ -280,19 +280,19 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
             {appliedCoupon ? (
               <div className="flex items-center justify-between gap-2 rounded-lg border border-success/30 bg-success-light px-3.5 py-2.5">
                 <span className="text-[13px] font-semibold text-success">
-                  🏷️ Código <code className="rounded bg-success-light px-1.5 py-px text-xs">{appliedCoupon.code}</code> aplicado
+                  🏷️ {t('couponApplied', { code: appliedCoupon.code })}
                 </span>
                 <button
                   type="button"
                   onClick={() => { onCouponRemove?.(); setCouponError(null); }}
                   className="cursor-pointer border-0 bg-transparent px-0.5 text-lg leading-none text-success"
-                  aria-label="Quitar cupón"
+                  aria-label={t('removeGuest')}
                 >×</button>
               </div>
             ) : (
               <div>
                 <label htmlFor="apt-coupon-code" className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  ¿Tenés un código de descuento?
+                  {t('couponLabel')}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -311,7 +311,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                     disabled={couponLoading || !couponInput.trim()}
                     className={`rounded-md bg-info px-4 py-2 text-[13px] font-semibold text-white ${(couponLoading || !couponInput.trim()) ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
                   >
-                    {couponLoading ? '…' : 'Aplicar'}
+                    {couponLoading ? '…' : t('couponApply')}
                   </button>
                 </div>
                 {couponError && (

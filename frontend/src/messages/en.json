@@ -613,7 +613,14 @@
     "apartmentOccupied": "This apartment is booked for those dates — others may be available",
     "backToOriginalDates": "Back to original dates ({from} → {to})",
     "checkinCheckoutLegend": "Check-in/Check-out",
-    "periodLegend": "Period"
+    "periodLegend": "Period",
+    "couponLabel": "Have a discount code?",
+    "couponApply": "Apply",
+    "couponInvalid": "Invalid code",
+    "couponError": "Error validating code",
+    "couponApplied": "Code {code} applied",
+    "couponOriginalPrice": "Original price",
+    "reservationExpired": "Reservation expired — dates are no longer held. Please try again."
   },
   "guestForm": {
     "title": "Guest Information",

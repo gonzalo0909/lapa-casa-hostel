@@ -584,7 +584,7 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
               </Modal>
             ) : isExpired ? (
               <div className={styles.errorBanner}>
-                A reserva expirou — as datas não estão mais retidas. Volte a tentar a reserva.
+                {t('reservationExpired')}
               </div>
             ) : (
               <>
