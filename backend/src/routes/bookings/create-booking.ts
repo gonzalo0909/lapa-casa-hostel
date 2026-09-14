@@ -169,7 +169,14 @@ export const createBookingHandler = async (
 
     // Horas hasta el check-in -- usado más abajo para determinar el modo de
     // pago en reservas de apartamento (Cláusula 3.2 / 3.3 Termo de Adesão v2.1).
-    const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
+    //
+    // new Date('2026-09-16') parsea como medianoche UTC, pero el huésped
+    // llega a las 14:00 BRT = 17:00 UTC. Sin ajuste, una reserva hecha hoy
+    // para pasado mañana mide ~38-46h en vez de ~55h y activa el cobro del
+    // 100% cuando debería cobrar solo el 30% de depósito.
+    const checkInAt14hBRT = new Date(bookingData.checkIn);
+    checkInAt14hBRT.setUTCHours(17, 0, 0, 0); // 14:00 BRT = 17:00 UTC
+    const hoursUntilCheckIn = (checkInAt14hBRT.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     if (checkOut <= checkIn) {
       res.status(400).json(ApiResponse.error('Check-out date must be after check-in date'));
