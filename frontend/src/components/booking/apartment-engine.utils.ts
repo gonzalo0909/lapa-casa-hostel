@@ -66,8 +66,9 @@ export function todayDs(): string {
 
 /**
  * Fecha mínima de check-in (YYYY-MM-DD) según la hora actual en São Paulo.
- * - Antes de las 12:00 BRT → hoy está disponible, devuelve la fecha de hoy.
- * - A partir de las 12:00 BRT → hoy ya cerró, devuelve la fecha de mañana.
+ * El check-in abre a las 12:00 BRT:
+ * - Antes de las 12:00 BRT → hoy no está disponible, devuelve mañana.
+ * - A partir de las 12:00 BRT → check-in abierto, devuelve hoy.
  * Espeja exactamente la validación del backend en apartment-availability.ts.
  */
 export function minCheckInDs(): string {
@@ -79,7 +80,7 @@ export function minCheckInDs(): string {
   }).formatToParts(now);
   const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
   const todaySp = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(now);
-  if (hourBrt >= 12) {
+  if (hourBrt < 12) {
     const [y, m, d] = todaySp.split('-').map(Number);
     return toDs(new Date(y, m - 1, d + 1));
   }
