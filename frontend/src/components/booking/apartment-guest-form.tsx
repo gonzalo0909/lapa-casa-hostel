@@ -153,7 +153,8 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
     ? validateCPF(cpfDigits)
     : false;  // partial CPF: invalid once touched
 
-  const companionPhotoOk = guestCount <= 1 || !!companionDocumentPhoto;
+  // La foto del acompañante es opcional — no bloquea el botón de confirmar.
+  const companionPhotoOk = true;
   const canReserve = !!(
     guestForm.fullName.trim() &&
     emailOk && confirmEmailOk && phoneOk &&
@@ -724,7 +725,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                   ) : (
                     <>
                       <Upload size={15} />
-                      <span>{t('docUploadCompanion')} <span className={styles.req}>*</span></span>
+                      <span>{t('docUploadCompanion')}</span>
                     </>
                   )}
                 </button>
