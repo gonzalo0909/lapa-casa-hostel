@@ -445,20 +445,27 @@ function buildAddressHtml(
 
   if (isApt) {
     if (aptAddress) {
-      const street = escapeText(`${aptAddress.street}${aptAddress.number ? ', ' + aptAddress.number : ''}`);
-      const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(aptAddress.street + (aptAddress.number ? ' ' + aptAddress.number : '') + ', Rio de Janeiro')}`;
+      const fullAddress = aptAddress.street + (aptAddress.number ? ', ' + aptAddress.number : '');
+      const street = escapeText(fullAddress);
+      const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}`;
+      const mapImgUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&zoom=15&size=560x180&scale=2&markers=color:red|${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&key=${process.env.GOOGLE_MAPS_API_KEY ?? ''}`;
+      const mapBlock = process.env.GOOGLE_MAPS_API_KEY
+        ? `<a href="${mapsUrl}"><img src="${mapImgUrl}" width="100%" style="display:block;border-radius:6px;margin-bottom:12px;" alt="Mapa" /></a>`
+        : '';
       const cepLine = aptAddress.cep ? `<p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${escapeText(aptAddress.cep)}</p>` : '';
-      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:24px;">
-  <tr><td style="padding:16px 20px;border-left:4px solid #2e7d32;border-radius:8px;">
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:16px;border-left:4px solid #2e7d32;">
+  <tr><td style="padding:16px 20px;">
     <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
-    <p style="margin:0 0 4px;font-size:16px;font-weight:bold;color:#1a1a1a;">${street}</p>
+    <p style="margin:0 0 4px;font-size:18px;font-weight:bold;color:#1a1a1a;">${street}</p>
     ${cepLine}
-    <a href="${mapsUrl}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:13px;font-weight:bold;padding:8px 16px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
+    ${mapBlock}
+    <a href="${mapsUrl}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:14px;font-weight:bold;padding:10px 20px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
   </td></tr>
 </table>`;
     }
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fff8e1;border-radius:8px;margin-bottom:24px;">
-  <tr><td style="padding:16px 20px;border-left:4px solid #f59e0b;border-radius:8px;">
+    // Apartamento sin dirección cargada aún: aviso prominente
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fff8e1;border-radius:8px;margin-bottom:16px;border-left:4px solid #f59e0b;">
+  <tr><td style="padding:16px 20px;">
     <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#92400e;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
     <p style="margin:0;font-size:14px;color:#555555;">${pendingMsg}</p>
   </td></tr>
@@ -466,13 +473,18 @@ function buildAddressHtml(
   }
 
   // Hostel
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:24px;">
-  <tr><td style="padding:16px 20px;border-left:4px solid #2e7d32;border-radius:8px;">
+  const mapsUrl = HOSTEL_MAPS_URL;
+  const mapImgUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(HOSTEL_STREET + ', Rio de Janeiro')}&zoom=15&size=560x180&scale=2&markers=color:red|${encodeURIComponent(HOSTEL_STREET + ', Rio de Janeiro')}&key=${process.env.GOOGLE_MAPS_API_KEY ?? ''}`;
+  const mapBlock = process.env.GOOGLE_MAPS_API_KEY
+    ? `<a href="${mapsUrl}"><img src="${mapImgUrl}" width="100%" style="display:block;border-radius:6px;margin-bottom:12px;" alt="Mapa" /></a>`
+    : '';
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:16px;border-left:4px solid #2e7d32;">
+  <tr><td style="padding:16px 20px;">
     <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
-    <p style="margin:0 0 2px;font-size:16px;font-weight:bold;color:#1a1a1a;">${HOSTEL_STREET}</p>
-    <p style="margin:0 0 2px;font-size:14px;color:#333333;">${HOSTEL_DISTRICT}, ${HOSTEL_CITY}</p>
-    <p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${HOSTEL_CEP}</p>
-    <a href="${HOSTEL_MAPS_URL}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:13px;font-weight:bold;padding:8px 16px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
+    <p style="margin:0 0 2px;font-size:18px;font-weight:bold;color:#1a1a1a;">${HOSTEL_STREET}</p>
+    <p style="margin:0 0 12px;font-size:14px;color:#333333;">${HOSTEL_DISTRICT}, ${HOSTEL_CITY} · CEP ${HOSTEL_CEP}</p>
+    ${mapBlock}
+    <a href="${mapsUrl}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:14px;font-weight:bold;padding:10px 20px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
   </td></tr>
 </table>`;
 }
