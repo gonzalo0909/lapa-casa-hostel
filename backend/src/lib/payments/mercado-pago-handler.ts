@@ -106,7 +106,7 @@ export class MercadoPagoPaymentHandler {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
-        'X-Idempotency-Key': `lch-${Date.now()}`,
+        'X-Idempotency-Key': `lca-${Date.now()}`,
       },
       body: JSON.stringify(body),
     });
