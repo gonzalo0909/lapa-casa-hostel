@@ -388,11 +388,11 @@ async function isApartmentBooking(reservationId: string): Promise<boolean> {
   }
 }
 
-function roomsListHtml(rooms: Array<{ name: string; beds: number }>, bedLabel: string): string {
+function roomsListHtml(rooms: Array<{ name: string; beds: number }>, bedLabel: string, bedLabelSingular: string): string {
   return rooms
     .map(
       (r) =>
-        `<p style="margin:0 0 4px;font-size:14px;color:#444444;padding-left:8px;">• ${escapeText(r.name)}: ${r.beds} ${bedLabel}</p>`,
+        `<p style="margin:0 0 4px;font-size:14px;color:#444444;padding-left:8px;">• ${escapeText(r.name)}: ${r.beds} ${r.beds === 1 ? bedLabelSingular : bedLabel}</p>`,
     )
     .join('');
 }
@@ -407,6 +407,7 @@ export class EmailService {
     const t = LABELS[language];
     const rooms = await getRoomsBreakdown(booking.id);
     const bedLabel = { pt: 'camas', en: 'beds', es: 'camas' }[language];
+    const bedLabelSingular = { pt: 'cama', en: 'bed', es: 'cama' }[language];
 
     const html = renderEmailTemplate('booking-confirmation', {
       emailTitle: t.bookingConfirmationTitle,
@@ -429,7 +430,7 @@ export class EmailService {
       checkInFormatted: formatDate(booking.check_in_date, language),
       checkOutFormatted: formatDate(booking.check_out_date, language),
       nightsCount: booking.nights_count,
-      roomsHtml: roomsListHtml(rooms, bedLabel),
+      roomsHtml: roomsListHtml(rooms, bedLabel, bedLabelSingular),
       totalPriceFormatted: formatCurrency(booking.final_price, language),
       depositAmountFormatted: formatCurrency(booking.deposit_amount, language),
       depositPercent: Math.round(booking.deposit_percent * 100),
@@ -546,7 +547,7 @@ export class EmailService {
       labelTip3: t.tip3,
       guestName: booking.guest.full_name,
       checkInDateFormatted: formatDate(booking.check_in_date, language),
-      checkInTime: isApt ? '15:00' : '14:00',
+      checkInTime: isApt ? '15:00 – 22:00' : '14:00 – 22:00',
       // Apartamento: mensaje de confidencialidad en lugar de dirección real
       address: isApt
         ? APT_ADDRESS_MSG[language]
@@ -727,7 +728,7 @@ export class EmailService {
       reservationNumber: booking.reservation_number,
       checkInFormatted: formatDate(booking.check_in_date, language),
       checkOutFormatted: formatDate(checkOutDate, language),
-      checkInTime: isApt ? '15:00' : '14:00',
+      checkInTime: isApt ? '15:00 – 22:00' : '14:00 – 22:00',
       address: isApt
         ? APT_ADDRESS_MSG[language]
         : 'Rua Silvio Romero 22, Santa Teresa, Rio de Janeiro',
