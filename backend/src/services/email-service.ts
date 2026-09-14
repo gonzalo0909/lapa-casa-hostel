@@ -25,6 +25,13 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'lapalandiarj@gmail.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://lapacasario.com';
 const WHATSAPP_CONTACT_URL = 'https://wa.me/5521977157530';
 
+// ---- Dirección física del hostel ----
+const HOSTEL_STREET   = 'Rua Silvio Romero, 22';
+const HOSTEL_DISTRICT = 'Santa Teresa';
+const HOSTEL_CITY     = 'Rio de Janeiro – RJ';
+const HOSTEL_CEP      = '20261-005'; // verificar si cambia
+const HOSTEL_MAPS_URL = 'https://maps.google.com/?q=Rua+Silvio+Romero+22+Santa+Teresa+Rio+de+Janeiro';
+
 let resendClient: Resend | null = null;
 let warnedNoApiKey = false;
 
@@ -388,13 +395,57 @@ async function isApartmentBooking(reservationId: string): Promise<boolean> {
   }
 }
 
-function roomsListHtml(rooms: Array<{ name: string; beds: number }>, bedLabel: string, bedLabelSingular: string): string {
+function roomsListHtml(rooms: Array<{ name: string; beds: number }>): string {
   return rooms
-    .map(
-      (r) =>
-        `<p style="margin:0 0 4px;font-size:14px;color:#444444;padding-left:8px;">• ${escapeText(r.name)}: ${r.beds} ${r.beds === 1 ? bedLabelSingular : bedLabel}</p>`,
-    )
+    .map((r) => `<p style="margin:0 0 4px;font-size:14px;color:#444444;padding-left:8px;">• ${escapeText(r.name)}</p>`)
     .join('');
+}
+
+function buildAddressHtml(
+  isApt: boolean,
+  lang: Language,
+  aptAddress?: { street: string; number: string | null; cep: string | null }
+): string {
+  const label = { pt: 'Endereço', en: 'Address', es: 'Dirección' }[lang];
+  const mapsLabel = { pt: 'Ver no Google Maps →', en: 'View on Google Maps →', es: 'Ver en Google Maps →' }[lang];
+  const pendingMsg = {
+    pt: 'O endereço exato será enviado por e-mail após a confirmação do pagamento.',
+    en: 'The exact address will be sent by email once your payment is confirmed.',
+    es: 'La dirección exacta se enviará por correo tras la confirmación del pago.',
+  }[lang];
+
+  if (isApt) {
+    if (aptAddress) {
+      const street = escapeText(`${aptAddress.street}${aptAddress.number ? ', ' + aptAddress.number : ''}`);
+      const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(aptAddress.street + (aptAddress.number ? ' ' + aptAddress.number : '') + ', Rio de Janeiro')}`;
+      const cepLine = aptAddress.cep ? `<p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${escapeText(aptAddress.cep)}</p>` : '';
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:24px;">
+  <tr><td style="padding:16px 20px;border-left:4px solid #2e7d32;border-radius:8px;">
+    <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 4px;font-size:16px;font-weight:bold;color:#1a1a1a;">${street}</p>
+    ${cepLine}
+    <a href="${mapsUrl}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:13px;font-weight:bold;padding:8px 16px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
+  </td></tr>
+</table>`;
+    }
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fff8e1;border-radius:8px;margin-bottom:24px;">
+  <tr><td style="padding:16px 20px;border-left:4px solid #f59e0b;border-radius:8px;">
+    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#92400e;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0;font-size:14px;color:#555555;">${pendingMsg}</p>
+  </td></tr>
+</table>`;
+  }
+
+  // Hostel
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:24px;">
+  <tr><td style="padding:16px 20px;border-left:4px solid #2e7d32;border-radius:8px;">
+    <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 2px;font-size:16px;font-weight:bold;color:#1a1a1a;">${HOSTEL_STREET}</p>
+    <p style="margin:0 0 2px;font-size:14px;color:#333333;">${HOSTEL_DISTRICT}, ${HOSTEL_CITY}</p>
+    <p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${HOSTEL_CEP}</p>
+    <a href="${HOSTEL_MAPS_URL}" style="display:inline-block;background-color:#2e7d32;color:#ffffff;font-size:13px;font-weight:bold;padding:8px 16px;border-radius:4px;text-decoration:none;">${mapsLabel}</a>
+  </td></tr>
+</table>`;
 }
 
 function escapeText(value: string): string {
@@ -406,8 +457,8 @@ export class EmailService {
     const language = resolveLanguage(booking.guest.language);
     const t = LABELS[language];
     const rooms = await getRoomsBreakdown(booking.id);
-    const bedLabel = { pt: 'camas', en: 'beds', es: 'camas' }[language];
-    const bedLabelSingular = { pt: 'cama', en: 'bed', es: 'cama' }[language];
+    const isApt = await isApartmentBooking(booking.id);
+    const addressHtml = buildAddressHtml(isApt, language);
 
     const html = renderEmailTemplate('booking-confirmation', {
       emailTitle: t.bookingConfirmationTitle,
@@ -430,7 +481,8 @@ export class EmailService {
       checkInFormatted: formatDate(booking.check_in_date, language),
       checkOutFormatted: formatDate(booking.check_out_date, language),
       nightsCount: booking.nights_count,
-      roomsHtml: roomsListHtml(rooms, bedLabel, bedLabelSingular),
+      roomsHtml: roomsListHtml(rooms),
+      addressHtml,
       totalPriceFormatted: formatCurrency(booking.final_price, language),
       depositAmountFormatted: formatCurrency(booking.deposit_amount, language),
       depositPercent: Math.round(booking.deposit_percent * 100),
