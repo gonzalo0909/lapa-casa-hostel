@@ -293,9 +293,9 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
         </div>
         <button
           type="button"
-          className={`${styles.btnContinue} ${checkIn && checkOut ? styles.btnContinueActive : ''}`}
+          className={`${styles.btnContinue} ${checkIn && checkOut && !minNightsWarn ? styles.btnContinueActive : ''}`}
           onClick={onContinue}
-          disabled={!checkIn || !checkOut}
+          disabled={!checkIn || !checkOut || minNightsWarn}
         >
           {tc('continue')} →
         </button>
