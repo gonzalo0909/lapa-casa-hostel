@@ -50,6 +50,26 @@ function todayDs(): string {
   return toDs(new Date());
 }
 
+/**
+ * Espeja minCheckInDs() de apartment-engine.utils.ts.
+ * Antes de las 12:00 BRT → hoy; a partir de las 12:00 BRT → mañana.
+ */
+function minCheckInDs(): string {
+  const now = new Date();
+  const hourParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    hour: 'numeric',
+    hour12: false,
+  }).formatToParts(now);
+  const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
+  const todaySp = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(now);
+  if (hourBrt >= 12) {
+    const [y, m, d] = todaySp.split('-').map(Number);
+    return toDs(new Date(y, m - 1, d + 1));
+  }
+  return todaySp;
+}
+
 function monthCells(
   y: number,
   m: number,
@@ -60,7 +80,7 @@ function monthCells(
 ): React.ReactNode {
   const dim = new Date(y, m + 1, 0).getDate();
   const fdow = new Date(y, m, 1).getDay();
-  const today = todayDs();
+  const today = minCheckInDs(); // fecha mínima seleccionable (corte 12h)
   const hasEnd = !!(cin && cout);
   const cells: React.ReactNode[] = [];
   for (let i = 0; i < fdow; i++) {

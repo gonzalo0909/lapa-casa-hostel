@@ -21,6 +21,7 @@ import {
   monthYearLabel,
   weekdayLabels,
   todayDs,
+  minCheckInDs,
 } from './apartment-engine.utils';
 
 interface ApartmentDateStepProps {
@@ -84,7 +85,7 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
   );
 
   const handleDayClick = (ds: string) => {
-    if (ds < todayDs()) { return; }
+    if (ds < minCheckInDs()) { return; }
     if (!checkIn || (checkIn && checkOut)) {
       onDatesChange(ds, null);
     } else if (ds <= checkIn) {
@@ -117,7 +118,8 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
       checkOut ||
       (checkIn && hoverDs && hoverDs > checkIn ? hoverDs : null);
     const hasEnd = !!(startDs && endDs);
-    const today_ = todayDs();
+    const today_ = todayDs();     // solo para pintar el punto "hoy"
+    const minDate = minCheckInDs(); // fecha mínima seleccionable (corte 12h)
     const cells: React.ReactNode[] = [];
 
     for (let i = 0; i < fdow; i++) {
@@ -131,7 +133,7 @@ export const ApartmentDateStep: React.FC<ApartmentDateStepProps> = ({
 
     for (let d = 1; d <= dim; d++) {
       const s = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const past = s < today_;
+      const past = s < minDate;
       const isToday = s === today_;
       const isCin = s === startDs;
       const isCout = s === checkOut;

@@ -31,19 +31,35 @@ export const checkApartmentAvailabilityHandler = async (
       return;
     }
 
-    // Comparar por fecha de calendario en America/Sao_Paulo (zona horaria
-    // operativa unica del sistema, ver create-booking.ts), no por
-    // "checkInDate < medianoche local del servidor". Esta ruta comparaba
-    // contra `now.setHours(0,0,0,0)`, que usa la TZ del proceso Node --
-    // tipicamente UTC en un contenedor sin TZ seteada (no hay ninguna en
-    // Dockerfile/.env.example). Brasil es UTC-3: durante la noche (21h-
-    // 23h59 BRT), el dia calendario en UTC ya avanzo al dia siguiente, asi
-    // que un check-in de HOY (valido, seleccionable en el calendario del
-    // paso 1) llegaba aca como "en el pasado" -- 400, el fetch fallaba, y
-    // el paso 2 quedaba con la grilla de apartamentos vacia.
-    const todayInSaoPaulo = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
-    if (checkIn < todayInSaoPaulo) {
-      res.status(400).json(ApiResponse.error('La fecha de check-in no puede ser en el pasado'));
+    // Calcular la fecha mínima de check-in en hora de Sao Paulo.
+    // Antes de las 12:00 BRT: se acepta check-in hoy.
+    // A partir de las 12:00 BRT: el mínimo es mañana (hoy ya no está disponible).
+    // Se usa formatToParts para extraer la hora de forma robusta (evita parsear
+    // strings localizados que pueden variar según la plataforma).
+    const now = new Date();
+    const todayInSaoPaulo = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(now);
+    const hourParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Sao_Paulo',
+      hour: 'numeric',
+      hour12: false,
+    }).formatToParts(now);
+    const hourBrt = parseInt(hourParts.find((p) => p.type === 'hour')!.value, 10);
+
+    // Mínimo válido: mañana si son las 12h o más, hoy si es antes del mediodía.
+    let minCheckIn = todayInSaoPaulo;
+    if (hourBrt >= 12) {
+      const [y, m, d] = todayInSaoPaulo.split('-').map(Number);
+      const tomorrow = new Date(y, m - 1, d + 1);
+      minCheckIn = tomorrow.getFullYear() +
+        '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') +
+        '-' + String(tomorrow.getDate()).padStart(2, '0');
+    }
+
+    if (checkIn < minCheckIn) {
+      const msg = checkIn === todayInSaoPaulo
+        ? 'Las reservas para hoy ya no están disponibles (check-in solo hasta las 12h)'
+        : 'La fecha de check-in no puede ser en el pasado';
+      res.status(400).json(ApiResponse.error(msg));
       return;
     }
 
