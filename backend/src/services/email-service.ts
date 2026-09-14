@@ -570,10 +570,11 @@ export class EmailService {
       depositAmountFormatted: formatCurrency(booking.deposit_amount, language),
       depositPercent: Math.round(booking.deposit_percent * 100),
       remainingBlockHtml,
-      paymentButtonHtml: paymentButtonHtml(
-        `${FRONTEND_URL}/${language}/payment/${booking.id}`,
-        t.payNow,
-      ),
+      // Solo mostrar botón de pago si queda saldo pendiente — si ya está
+      // totalmente pagado no tiene sentido mostrar "Pagar ahora".
+      paymentButtonHtml: booking.remaining_amount > 0
+        ? paymentButtonHtml(`${FRONTEND_URL}/${language}/payment/${booking.id}`, t.payNow)
+        : '',
       sameDayHtml,
     });
 
