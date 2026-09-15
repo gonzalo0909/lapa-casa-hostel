@@ -98,14 +98,14 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
           <div className="flex-1">
-            <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-1">{T('howTo', locale)}</h4>
-            <ol className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+            <h4 className="font-medium text-gray-900 mb-1">{T('howTo', locale)}</h4>
+            <ol className="text-sm text-gray-700 space-y-1">
               <li>{T('step1', locale)}</li>
               <li>{T('step2', locale)}</li>
               <li>{T('step3', locale)}</li>
@@ -134,9 +134,9 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
 
       <div className="space-y-3">
         {/* Monto — destacado con fondo verde suave */}
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-5 py-4 flex justify-between items-center">
-          <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">{T('amountLabel', locale)}</span>
-          <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">R$ {amount.toFixed(2)}</span>
+        <div className="rounded-lg bg-white border border-gray-200 px-5 py-4 flex justify-between items-center">
+          <span className="text-sm font-medium text-gray-700">{T('amountLabel', locale)}</span>
+          <span className="text-2xl font-bold text-gray-900">R$ {amount.toFixed(2)}</span>
         </div>
 
         {/* Código PIX — label arriba, código con botón copiar integrado */}
@@ -144,13 +144,13 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {T('codeLabel', locale)}
           </p>
-          <div className="flex items-center rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 pr-2">
+          <div className="flex items-center rounded-lg border-2 border-gray-200 bg-white pr-2">
             <input
               id="pix-code"
               type="text"
               value={qrCode}
               readOnly
-              className="flex-1 min-w-0 text-xs font-mono text-gray-700 dark:text-gray-200 bg-transparent border-none outline-none px-4 py-3 truncate"
+              className="flex-1 min-w-0 text-xs font-mono text-gray-700 bg-transparent border-none outline-none px-4 py-3 truncate"
             />
             <button
               type="button"
@@ -158,8 +158,8 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
               title={T('copy', locale)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 copied
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-gray-200'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
               {copied ? (
@@ -182,7 +182,7 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
         <LoadingSpinner size="sm" />
         <span>{T('waiting', locale)}</span>
       </div>
@@ -207,10 +207,10 @@ export function PixPayment({ paymentId, qrCode, qrCodeBase64, amount, locale = '
             T('alreadyPaid', locale)
           )}
         </Button>
-        <p className="text-xs text-gray-400 dark:text-gray-500 text-center">{T('alreadyPaidHint', locale)}</p>
+        <p className="text-xs text-gray-500 text-center">{T('alreadyPaidHint', locale)}</p>
       </div>
 
-      <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-4 border-t border-gray-100 dark:border-gray-800">
+      <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-200">
         <p>{T('autoConfirm', locale)}</p>
         <p className="mt-1">{T('dontClose', locale)}</p>
       </div>
