@@ -467,7 +467,10 @@
     "apartmentsTitle": "Apartamentos",
     "apartmentsDesc": "Unidades completas — privacidade, casais, estadias longas.",
     "apartmentsCta": "Ver apartamentos",
-    "note": "Mesmo site, mesmo motor de reservas — a diferença é o que você está alugando."
+    "note": "Mesmo site, mesmo motor de reservas — a diferença é o que você está alugando.",
+    "heroTitle": "Sua estadia no Rio de Janeiro",
+    "heroSubtitle": "Escolha a energia coletiva do hostel ou a privacidade de um apartamento próprio.",
+    "directBooking": "Reserva direta · Melhor preço garantido"
   },
   "apartments": {
     "stepDates": "Datas",

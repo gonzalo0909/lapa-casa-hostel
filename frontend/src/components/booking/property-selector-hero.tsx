@@ -3,13 +3,19 @@
 import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { BedDouble, Home, MapPin, ArrowRight } from "lucide-react"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import type { Locale } from "@/i18n"
 
 export function PropertySelectorHero() {
   const pathname = usePathname()
-  // Extract locale from path: /es, /pt, /en, /fr, /de
+  const t = useTranslations('propertySelector')
+
+  // Extract locale from path: /es, /pt, /en, /fr, /de, /it
   const localeMatch = pathname.match(/^\/([a-z]{2})\b/)
-  const locale = localeMatch ? localeMatch[1] : 'pt'
+  const locale = (localeMatch ? localeMatch[1] : 'pt') as Locale
+
   // Auditoría 17 secciones, sección 11: antes esto navegaba solo con
   // router.push() en un onClick -- las 2 páginas de mayor prioridad del
   // sitio (/hostel, /apartamentos) quedaban sin ningún <a href> crawleable
@@ -27,7 +33,7 @@ export function PropertySelectorHero() {
             <span className="font-serif text-xl tracking-tight text-cream">Lapa Casa</span>
             <span className="hidden text-xs uppercase tracking-[0.2em] text-cream/50 sm:inline">Rio de Janeiro</span>
           </div>
-          <nav className="flex flex-wrap gap-1.5">
+          <nav className="flex flex-wrap items-center gap-1.5">
             <Link
               href={hostelHref}
               className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-cream/70 transition-colors hover:border-white/40 hover:text-cream"
@@ -52,6 +58,7 @@ export function PropertySelectorHero() {
             >
               Guardavolumes
             </a>
+            <LanguageSwitcher currentLocale={locale} />
           </nav>
         </div>
       </header>
@@ -63,28 +70,28 @@ export function PropertySelectorHero() {
           Rio de Janeiro
         </div>
         <h1 className="mx-auto max-w-2xl text-balance font-serif text-3xl leading-tight sm:text-4xl">
-          Tu lugar en Rio de Janeiro
+          {t('heroTitle')}
         </h1>
         <p className="mx-auto mt-2 max-w-md text-pretty text-sm leading-relaxed text-cream/60 hidden sm:block">
-          Elige la energía compartida del hostel o la privacidad de un apartamento propio.
+          {t('heroSubtitle')}
         </p>
 
         <div className="mx-auto mt-6 grid max-w-4xl gap-4 sm:grid-cols-2">
           <PropertyPanel
-            title="Hostel"
+            title={t('hostelTitle')}
             location="Rio de Janeiro"
-            description="Camas en cuartos compartidos. Ideal para grupos, mochileros y viajeros sociales."
-            cta="Reservar cama"
+            description={t('hostelDesc')}
+            cta={t('hostelCta')}
             icon={<BedDouble className="h-5 w-5" />}
             tone="foliage"
             pattern="beds"
             href={hostelHref}
           />
           <PropertyPanel
-            title="Apartamentos"
+            title={t('apartmentsTitle')}
             location="Rio de Janeiro"
-            description="Espacios privados con cocina. Para parejas, familias y estadías largas."
-            cta="Reservar apartamento"
+            description={t('apartmentsDesc')}
+            cta={t('apartmentsCta')}
             icon={<Home className="h-5 w-5" />}
             tone="azulejo"
             pattern="windows"
@@ -93,7 +100,7 @@ export function PropertySelectorHero() {
         </div>
 
         <p className="mt-5 text-xs text-cream/40">
-          Reserva directa · Mejor precio garantizado
+          {t('directBooking')}
         </p>
       </main>
     </div>

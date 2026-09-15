@@ -467,7 +467,10 @@
     "apartmentsTitle": "Apartments",
     "apartmentsDesc": "Komplette private Einheiten — Paare, Privatsphäre, längere Aufenthalte.",
     "apartmentsCta": "Apartments ansehen",
-    "note": "Gleiche Website, gleiches Buchungssystem — der Unterschied ist, was du mietest."
+    "note": "Gleiche Website, gleiches Buchungssystem — der Unterschied ist, was du mietest.",
+    "heroTitle": "Ihr Aufenthalt in Rio de Janeiro",
+    "heroSubtitle": "Wählen Sie die gemeinsame Energie des Hostels oder die Privatsphäre einer eigenen Wohnung.",
+    "directBooking": "Direktbuchung · Bester Preis garantiert"
   },
   "apartments": {
     "stepDates": "Daten",

@@ -467,7 +467,10 @@
     "apartmentsTitle": "Appartements",
     "apartmentsDesc": "Unités privées complètes — couples, intimité, longs séjours.",
     "apartmentsCta": "Voir les appartements",
-    "note": "Même site, même moteur de réservation — la différence, c'est ce que vous louez."
+    "note": "Même site, même moteur de réservation — la différence, c'est ce que vous louez.",
+    "heroTitle": "Votre séjour à Rio de Janeiro",
+    "heroSubtitle": "Choisissez l'énergie partagée de l'auberge ou l'intimité d'un appartement privé.",
+    "directBooking": "Réservation directe · Meilleur prix garanti"
   },
   "apartments": {
     "stepDates": "Dates",
