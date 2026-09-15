@@ -25,12 +25,12 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'lapalandiarj@gmail.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://lapacasario.com';
 const WHATSAPP_CONTACT_URL = 'https://wa.me/5521977157530';
 
-// ---- Dirección física del hostel ----
-const HOSTEL_STREET   = 'Rua Silvio Romero, 22';
-const HOSTEL_DISTRICT = 'Santa Teresa';
-const HOSTEL_CITY     = 'Rio de Janeiro – RJ';
-const HOSTEL_CEP      = '20261-005'; // verificar si cambia
-const HOSTEL_MAPS_URL = 'https://maps.google.com/?q=Rua+Silvio+Romero+22+Santa+Teresa+Rio+de+Janeiro';
+// ---- Dirección física del hostel (configurable via variables de entorno) ----
+const HOSTEL_STREET   = process.env.HOSTEL_STREET   || 'Rua Silvio Romero, 22';
+const HOSTEL_DISTRICT = process.env.HOSTEL_DISTRICT || 'Santa Teresa';
+const HOSTEL_CITY     = process.env.HOSTEL_CITY     || 'Rio de Janeiro – RJ';
+const HOSTEL_CEP      = process.env.HOSTEL_CEP      || '20261-005';
+const HOSTEL_MAPS_URL = process.env.HOSTEL_MAPS_URL || `https://maps.google.com/?q=${encodeURIComponent((process.env.HOSTEL_STREET || 'Rua Silvio Romero, 22') + ', Rio de Janeiro')}`;
 
 let resendClient: Resend | null = null;
 let warnedNoApiKey = false;

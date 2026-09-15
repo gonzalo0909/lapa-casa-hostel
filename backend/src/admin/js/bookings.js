@@ -68,6 +68,7 @@ function renderTable() {
       <td>
         <button data-action="edit" data-id="${b.id}">Editar</button>
         <button data-action="resend" data-id="${b.id}">Reenviar email</button>
+        ${b.status !== 'cancelled' ? `<button data-action="cancel" data-id="${b.id}" data-num="${b.reservation_number}" style="background:#c0392b;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;">Cancelar</button>` : ''}
       </td>
     </tr>
   `).join('') || '<tr><td colspan="9" style="color:#888;">Sin reservas para estos filtros</td></tr>';
@@ -78,6 +79,20 @@ function renderTable() {
   tbody.querySelectorAll('button[data-action="resend"]').forEach(btn =>
     btn.addEventListener('click', () => resendConfirmation(btn.dataset.id))
   );
+  tbody.querySelectorAll('button[data-action="cancel"]').forEach(btn =>
+    btn.addEventListener('click', () => cancelBooking(btn.dataset.id, btn.dataset.num))
+  );
+}
+
+async function cancelBooking(id, num) {
+  if (!confirm(`¿Cancelar la reserva ${num}? Esta acción no se puede deshacer.`)) return;
+  try {
+    await apiFetch(`/admin/bookings/${id}`, { method: 'DELETE' });
+    showMsg('bookings-msg', `Reserva ${num} cancelada.`, 'success');
+    loadBookings();
+  } catch (err) {
+    showMsg('bookings-msg', err.message, 'error');
+  }
 }
 
 function renderPagination() {
