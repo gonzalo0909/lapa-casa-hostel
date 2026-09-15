@@ -510,6 +510,37 @@ router.put('/bookings/:id', async (req, res, next) => {
 });
 
 /**
+ * DELETE /admin/bookings/:id — cancelación manual por el administrador
+ */
+router.delete('/bookings/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const existing = await bookingService.getBooking(id);
+    if (!existing) {
+      res.status(404).json(ApiResponse.error('Reserva no encontrada'));
+      return;
+    }
+    if (existing.status === 'cancelled') {
+      res.status(400).json(ApiResponse.error('La reserva ya está cancelada'));
+      return;
+    }
+    const cancelled = await bookingService.cancelBooking(id, 'cancelled_by_admin');
+    await auditLogService.log({
+      entity_type: 'reservation',
+      entity_id: id,
+      operation: 'ADMIN_CANCEL_BOOKING',
+      reservation_id: id,
+      guest_id: existing.guest_id,
+      old_data: { status: existing.status },
+      new_data: { status: 'cancelled', reason: 'cancelled_by_admin' },
+    });
+    res.status(200).json(ApiResponse.success(cancelled, 'Reserva cancelada'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * POST /admin/bookings/:id/resend-confirmation
  */
 router.post('/bookings/:id/resend-confirmation', async (req, res, next) => {
