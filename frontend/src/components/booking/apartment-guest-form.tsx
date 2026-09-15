@@ -553,7 +553,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                 className={styles.guestCounterBtn}
                 disabled={guestCount <= 1}
                 onClick={() => onGuestCountChange(Math.max(1, guestCount - 1))}
-                aria-label="Reducir huéspedes"
+                aria-label={t('decreaseGuests')}
               >−</button>
               <span className={styles.guestCounterVal}>{guestCount}</span>
               <button
@@ -561,7 +561,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
                 className={styles.guestCounterBtn}
                 disabled={guestCount >= MAX_APT_GUESTS}
                 onClick={() => onGuestCountChange(Math.min(MAX_APT_GUESTS, guestCount + 1))}
-                aria-label="Aumentar huéspedes"
+                aria-label={t('increaseGuests')}
               >+</button>
             </div>
 
