@@ -226,23 +226,7 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
           )}
           <div className={styles.summaryRow}>
             <span>{t('guests')}</span>
-            <div className={styles.guestCounterInline}>
-              <button
-                type="button"
-                className={styles.guestCounterBtn}
-                onClick={() => onGuestCountChange(Math.max(1, guestCount - 1))}
-                disabled={guestCount <= 1}
-                aria-label="-"
-              >−</button>
-              <span className={styles.guestCounterVal}>{guestCount}</span>
-              <button
-                type="button"
-                className={styles.guestCounterBtn}
-                onClick={() => onGuestCountChange(Math.min(2, guestCount + 1))}
-                disabled={guestCount >= 2}
-                aria-label="+"
-              >+</button>
-            </div>
+            <span className={styles.summaryRowBold}>{guestCount}</span>
           </div>
           <div className={styles.summaryRow}>
             <span>{t('checkIn')}</span>
