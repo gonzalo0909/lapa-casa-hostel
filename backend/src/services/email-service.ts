@@ -8,7 +8,7 @@
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { query } from '../config/database';
-import { renderEmailTemplate } from '../templates/render';
+import { renderEmailTemplate as _renderEmailTemplate, type TemplateVars } from '../templates/render';
 import { logger } from '../utils/logger';
 import type { Reservation, Guest } from '../types/database';
 
@@ -31,6 +31,12 @@ const HOSTEL_DISTRICT = process.env.HOSTEL_DISTRICT || 'Santa Teresa';
 const HOSTEL_CITY     = process.env.HOSTEL_CITY     || 'Rio de Janeiro – RJ';
 const HOSTEL_CEP      = process.env.HOSTEL_CEP      || '20261-005';
 const HOSTEL_MAPS_URL = process.env.HOSTEL_MAPS_URL || `https://maps.google.com/?q=${encodeURIComponent((process.env.HOSTEL_STREET || 'Rua Silvio Romero, 22') + ', Rio de Janeiro')}`;
+const FOOTER_ADDRESS  = process.env.FOOTER_ADDRESS  || `${HOSTEL_STREET}, ${HOSTEL_DISTRICT}, ${HOSTEL_CITY}`;
+const FOOTER_EMAIL    = process.env.FOOTER_EMAIL    || FROM_EMAIL;
+
+function renderEmailTemplate(name: string, vars: TemplateVars): string {
+  return _renderEmailTemplate(name, { footerAddress: FOOTER_ADDRESS, footerEmail: FOOTER_EMAIL, ...vars });
+}
 
 let resendClient: Resend | null = null;
 let warnedNoApiKey = false;
@@ -132,7 +138,8 @@ const LABELS: Record<Language, Record<string, string>> = {
     daysUntilCheckIn: 'Dias até o check-in',
     retryNote: 'Vamos te enviar até 3 lembretes por email nos próximos dias.',
     paymentReceivedTitle: 'Pagamento Recebido',
-    paymentReceivedIntro: 'Confirmamos o recebimento do seu pagamento.',
+    paymentReceivedWelcome: 'Seu lugar no Lapa Casa está confirmado!',
+    paymentReceivedIntro: 'Confirmamos o recebimento do seu pagamento. Estamos muito felizes em recebê-lo e já estamos te esperando!',
     amountPaid: 'Valor recebido',
     thanks: 'Obrigado! Nos vemos em breve.',
     remainingStillDue: 'Saldo restante ainda pendente',
@@ -207,7 +214,8 @@ const LABELS: Record<Language, Record<string, string>> = {
     daysUntilCheckIn: 'Days until check-in',
     retryNote: "We'll send you up to 3 email reminders over the next few days.",
     paymentReceivedTitle: 'Payment Received',
-    paymentReceivedIntro: 'We confirm we received your payment.',
+    paymentReceivedWelcome: 'Your spot at Lapa Casa is confirmed!',
+    paymentReceivedIntro: 'We confirm we received your payment. We are so happy to have you and we cannot wait to welcome you!',
     amountPaid: 'Amount received',
     thanks: 'Thank you! See you soon.',
     remainingStillDue: 'Remaining balance still due',
@@ -281,7 +289,8 @@ const LABELS: Record<Language, Record<string, string>> = {
     daysUntilCheckIn: 'Días hasta el check-in',
     retryNote: 'Te vamos a mandar hasta 3 recordatorios por email en los próximos días.',
     paymentReceivedTitle: 'Pago Recibido',
-    paymentReceivedIntro: 'Confirmamos la recepción de tu pago.',
+    paymentReceivedWelcome: '¡Tu lugar en Lapa Casa ya está confirmado!',
+    paymentReceivedIntro: 'Confirmamos la recepción de tu pago. Estamos muy contentos de recibirte y te esperamos con todo listo.',
     amountPaid: 'Monto recibido',
     thanks: '¡Gracias! Nos vemos pronto.',
     remainingStillDue: 'Saldo restante aún pendiente',
@@ -406,10 +415,10 @@ async function isApartmentBooking(reservationId: string): Promise<boolean> {
  */
 async function getApartmentAddress(
   reservationId: string,
-): Promise<{ street: string; number: string | null; cep: string | null } | null> {
+): Promise<{ name: string; street: string; number: string | null; cep: string | null } | null> {
   try {
-    const { rows } = await query<{ address: string; address_number: string | null; cep: string | null }>(
-      `SELECT rt.address, rt.address_number, rt.cep
+    const { rows } = await query<{ name: string; address: string; address_number: string | null; cep: string | null }>(
+      `SELECT rt.name, rt.address, rt.address_number, rt.cep
        FROM reservation_beds rb
        JOIN beds b ON b.id = rb.bed_id
        JOIN room_types rt ON rt.id = b.room_type_id
@@ -421,7 +430,7 @@ async function getApartmentAddress(
       [reservationId],
     );
     if (!rows[0]) { return null; }
-    return { street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
+    return { name: rows[0].name, street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
   } catch {
     return null;
   }
@@ -436,7 +445,7 @@ function roomsListHtml(rooms: Array<{ name: string; beds: number }>): string {
 function buildAddressHtml(
   isApt: boolean,
   lang: Language,
-  aptAddress?: { street: string; number: string | null; cep: string | null }
+  aptAddress?: { name: string; street: string; number: string | null; cep: string | null }
 ): string {
   const label = { pt: 'Endereço', en: 'Address', es: 'Dirección' }[lang];
   const mapsLabel = { pt: 'Ver no Google Maps →', en: 'View on Google Maps →', es: 'Ver en Google Maps →' }[lang];
@@ -450,6 +459,7 @@ function buildAddressHtml(
     if (aptAddress) {
       const fullAddress = aptAddress.street + (aptAddress.number ? ', ' + aptAddress.number : '');
       const street = escapeText(fullAddress);
+      const aptName = escapeText(aptAddress.name);
       const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}`;
       const mapImgUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&zoom=15&size=560x180&scale=2&markers=color:red|${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&key=${process.env.GOOGLE_MAPS_API_KEY ?? ''}`;
       const mapBlock = process.env.GOOGLE_MAPS_API_KEY
@@ -458,7 +468,8 @@ function buildAddressHtml(
       const cepLine = aptAddress.cep ? `<p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${escapeText(aptAddress.cep)}</p>` : '';
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:16px;border-left:4px solid #2e7d32;">
   <tr><td style="padding:16px 20px;">
-    <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 6px;font-size:15px;font-weight:bold;color:#2e7d32;">${aptName}</p>
     <p style="margin:0 0 4px;font-size:18px;font-weight:bold;color:#1a1a1a;">${street}</p>
     ${cepLine}
     ${mapBlock}
@@ -644,6 +655,7 @@ export class EmailService {
       emailTitle: t.paymentReceivedTitle,
       labelTitle: t.paymentReceivedTitle,
       labelGreeting: t.greeting,
+      labelWelcome: t.paymentReceivedWelcome,
       labelIntro: t.paymentReceivedIntro,
       labelReservation: t.reservation,
       labelAmountPaid: t.amountPaid,
