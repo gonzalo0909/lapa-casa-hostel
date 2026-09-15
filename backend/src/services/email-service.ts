@@ -8,7 +8,7 @@
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { query } from '../config/database';
-import { renderEmailTemplate } from '../templates/render';
+import { renderEmailTemplate as _renderEmailTemplate, type TemplateVars } from '../templates/render';
 import { logger } from '../utils/logger';
 import type { Reservation, Guest } from '../types/database';
 
@@ -31,6 +31,12 @@ const HOSTEL_DISTRICT = process.env.HOSTEL_DISTRICT || 'Santa Teresa';
 const HOSTEL_CITY     = process.env.HOSTEL_CITY     || 'Rio de Janeiro – RJ';
 const HOSTEL_CEP      = process.env.HOSTEL_CEP      || '20261-005';
 const HOSTEL_MAPS_URL = process.env.HOSTEL_MAPS_URL || `https://maps.google.com/?q=${encodeURIComponent((process.env.HOSTEL_STREET || 'Rua Silvio Romero, 22') + ', Rio de Janeiro')}`;
+const FOOTER_ADDRESS  = process.env.FOOTER_ADDRESS  || `${HOSTEL_STREET}, ${HOSTEL_DISTRICT}, ${HOSTEL_CITY}`;
+const FOOTER_EMAIL    = process.env.FOOTER_EMAIL    || FROM_EMAIL;
+
+function renderEmailTemplate(name: string, vars: TemplateVars): string {
+  return _renderEmailTemplate(name, { footerAddress: FOOTER_ADDRESS, footerEmail: FOOTER_EMAIL, ...vars });
+}
 
 let resendClient: Resend | null = null;
 let warnedNoApiKey = false;
