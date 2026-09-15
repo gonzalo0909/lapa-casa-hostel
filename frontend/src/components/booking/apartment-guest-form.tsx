@@ -14,7 +14,7 @@ import {
   Users, ShieldCheck, Trash2, Upload, Camera,
 } from 'lucide-react';
 import styles from './apartment-engine.module.css';
-import { CHECKIN_TIMES, type GuestForm, type AptLocale, type AdditionalGuest, type AppliedCoupon } from './apartment-engine.types';
+import { CHECKIN_TIMES, MAX_APT_GUESTS, type GuestForm, type AptLocale, type AdditionalGuest, type AppliedCoupon } from './apartment-engine.types';
 import { validateCPF, formatCPF, isEmailFmt, formatBRPhone, fmtDate } from './apartment-engine.utils';
 import type { ApartmentAvailability } from '@/types/global';
 
@@ -545,6 +545,25 @@ export const ApartmentGuestForm: React.FC<ApartmentGuestFormProps> = ({
               <Users size={15} /> {t('guestDeclarationTitle')}
             </div>
             <p className={styles.guestsDeclNote}>{t('guestDeclarationNote')}</p>
+
+            {/* Contador de huéspedes */}
+            <div className={styles.guestCounterInline} style={{ marginBottom: '0.75rem' }}>
+              <button
+                type="button"
+                className={styles.guestCounterBtn}
+                disabled={guestCount <= 1}
+                onClick={() => onGuestCountChange(Math.max(1, guestCount - 1))}
+                aria-label="Reducir huéspedes"
+              >−</button>
+              <span className={styles.guestCounterVal}>{guestCount}</span>
+              <button
+                type="button"
+                className={styles.guestCounterBtn}
+                disabled={guestCount >= MAX_APT_GUESTS}
+                onClick={() => onGuestCountChange(Math.min(MAX_APT_GUESTS, guestCount + 1))}
+                aria-label="Aumentar huéspedes"
+              >+</button>
+            </div>
 
             {/* Titular — solo lectura, datos del form principal */}
             <div className={styles.guestDeclRow}>
