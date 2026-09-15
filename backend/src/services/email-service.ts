@@ -415,10 +415,10 @@ async function isApartmentBooking(reservationId: string): Promise<boolean> {
  */
 async function getApartmentAddress(
   reservationId: string,
-): Promise<{ street: string; number: string | null; cep: string | null } | null> {
+): Promise<{ name: string; street: string; number: string | null; cep: string | null } | null> {
   try {
-    const { rows } = await query<{ address: string; address_number: string | null; cep: string | null }>(
-      `SELECT rt.address, rt.address_number, rt.cep
+    const { rows } = await query<{ name: string; address: string; address_number: string | null; cep: string | null }>(
+      `SELECT rt.name, rt.address, rt.address_number, rt.cep
        FROM reservation_beds rb
        JOIN beds b ON b.id = rb.bed_id
        JOIN room_types rt ON rt.id = b.room_type_id
@@ -430,7 +430,7 @@ async function getApartmentAddress(
       [reservationId],
     );
     if (!rows[0]) { return null; }
-    return { street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
+    return { name: rows[0].name, street: rows[0].address, number: rows[0].address_number, cep: rows[0].cep };
   } catch {
     return null;
   }
@@ -445,7 +445,7 @@ function roomsListHtml(rooms: Array<{ name: string; beds: number }>): string {
 function buildAddressHtml(
   isApt: boolean,
   lang: Language,
-  aptAddress?: { street: string; number: string | null; cep: string | null }
+  aptAddress?: { name: string; street: string; number: string | null; cep: string | null }
 ): string {
   const label = { pt: 'Endereço', en: 'Address', es: 'Dirección' }[lang];
   const mapsLabel = { pt: 'Ver no Google Maps →', en: 'View on Google Maps →', es: 'Ver en Google Maps →' }[lang];
@@ -459,6 +459,7 @@ function buildAddressHtml(
     if (aptAddress) {
       const fullAddress = aptAddress.street + (aptAddress.number ? ', ' + aptAddress.number : '');
       const street = escapeText(fullAddress);
+      const aptName = escapeText(aptAddress.name);
       const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}`;
       const mapImgUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&zoom=15&size=560x180&scale=2&markers=color:red|${encodeURIComponent(fullAddress + ', Rio de Janeiro')}&key=${process.env.GOOGLE_MAPS_API_KEY ?? ''}`;
       const mapBlock = process.env.GOOGLE_MAPS_API_KEY
@@ -467,7 +468,8 @@ function buildAddressHtml(
       const cepLine = aptAddress.cep ? `<p style="margin:0 0 12px;font-size:14px;color:#333333;">CEP: ${escapeText(aptAddress.cep)}</p>` : '';
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin-bottom:16px;border-left:4px solid #2e7d32;">
   <tr><td style="padding:16px 20px;">
-    <p style="margin:0 0 8px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#1b5e20;letter-spacing:0.8px;text-transform:uppercase;">📍 ${label}</p>
+    <p style="margin:0 0 6px;font-size:15px;font-weight:bold;color:#2e7d32;">${aptName}</p>
     <p style="margin:0 0 4px;font-size:18px;font-weight:bold;color:#1a1a1a;">${street}</p>
     ${cepLine}
     ${mapBlock}

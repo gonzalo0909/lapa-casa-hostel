@@ -28,10 +28,10 @@
  *   #15803D/#14532D/#166534 → verdes banner promo (sin token)
  */
 .root {
-  --bg: #FAF7F0; --bg-subtle: #EEE9DC; --bg-card: #FFFDF8;
-  --fg: #1A1610; --fg-muted: #6A6058; --border: #D8D0BC;
+  --bg: #FFFFFF; --bg-subtle: #F5F5F5; --bg-card: #FFFFFF;
+  --fg: #111111; --fg-muted: #555555; --border: #E0E0E0;
   --primary: #2C4A8C; --primary-fg: #FFFFFF; --primary-soft: #D5DFF5;
-  --accent: #F0B429;
+  --accent: #111111;
   --success-bg: #D5E8D4; --success-fg: #1E5E40;
   --unavail-bg: #EEE9DC; --unavail-fg: #6A6058;
   --warn-bg: #FBE9DB; --warn-border: #E29B72; --warn-fg: #9A4A28;
