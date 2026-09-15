@@ -644,6 +644,18 @@ export class EmailService {
     const aptAddress = isApt ? await getApartmentAddress(booking.id) : null;
     const addressHtml = buildAddressHtml(isApt, language, aptAddress ?? undefined);
 
+    const aptWelcomeByLang: Record<string, (name: string) => string> = {
+      pt: (name) => `Sua reserva no ${name} está confirmada!`,
+      en: (name) => `Your reservation at ${name} is confirmed!`,
+      es: (name) => `¡Tu reserva en ${name} ya está confirmada!`,
+      fr: (name) => `Votre réservation au ${name} est confirmée !`,
+      de: (name) => `Ihre Buchung im ${name} ist bestätigt!`,
+      it: (name) => `La tua prenotazione al ${name} è confermata!`,
+    };
+    const labelWelcome = (isApt && aptAddress?.name)
+      ? (aptWelcomeByLang[language] ?? aptWelcomeByLang.en)(aptAddress.name)
+      : t.paymentReceivedWelcome;
+
     const remainingSectionHtml = stillDue
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
            <tr><td style="padding:6px 0;font-size:14px;color:#555555;">${t.remainingStillDue}</td>
@@ -655,7 +667,7 @@ export class EmailService {
       emailTitle: t.paymentReceivedTitle,
       labelTitle: t.paymentReceivedTitle,
       labelGreeting: t.greeting,
-      labelWelcome: t.paymentReceivedWelcome,
+      labelWelcome,
       labelIntro: t.paymentReceivedIntro,
       labelReservation: t.reservation,
       labelAmountPaid: t.amountPaid,
