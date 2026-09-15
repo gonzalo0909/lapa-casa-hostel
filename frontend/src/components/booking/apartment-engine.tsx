@@ -493,7 +493,6 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
                 open={paySuccessOpen}
                 onClose={() => setPaySuccessOpen(false)}
                 size="sm"
-                disableBackdropClick
               >
                 <ModalBody>
                   <div className={styles.paySuccess}>
@@ -581,6 +580,14 @@ export const ApartmentEngine: React.FC<ApartmentEngineProps> = ({ locale = 'pt' 
                         </div>
                       </div>
                     )}
+                    <button
+                      type="button"
+                      className={styles.cardBtn}
+                      style={{ marginTop: '1.5rem', width: '100%' }}
+                      onClick={() => setPaySuccessOpen(false)}
+                    >
+                      {tc('close')}
+                    </button>
                   </div>
                 </ModalBody>
               </Modal>
