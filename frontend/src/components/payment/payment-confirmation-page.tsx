@@ -152,10 +152,10 @@ export const PaymentConfirmationPage: React.FC<PaymentConfirmationPageProps> = (
 
       {/* Estado do pagamento */}
       {depositDone ? (
-        <div className="bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700 rounded-lg p-6 text-center">
+        <div className="bg-white border-2 border-gray-300 rounded-lg p-6 text-center">
           <p className="text-2xl mb-2">✓</p>
-          <p className="font-bold text-green-900 dark:text-green-300">{t('depositSuccessTitle')}</p>
-          <p className="text-sm text-green-800 dark:text-green-400 mt-2">{t('depositSuccessNote')}</p>
+          <p className="font-bold text-gray-900">{t('depositSuccessTitle')}</p>
+          <p className="text-sm text-gray-600 mt-2">{t('depositSuccessNote')}</p>
         </div>
       ) : booking.status === 'cancelled' || isExpired ? (
         <Alert variant="danger">{t('cancelledNote')}</Alert>
